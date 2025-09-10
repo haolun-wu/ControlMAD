@@ -1,0 +1,34 @@
+MULTI-AGENT DEBATE SUMMARY REPORT
+==================================================
+
+Total Sessions: 1
+Generated: 2025-09-10 14:11:38
+
+Total Agents: 3
+Overall Average Accuracy: 0.600
+Accuracy Std Dev: 0.242
+Best Accuracy: 1.000
+Worst Accuracy: 0.000
+
+PER-AGENT STATISTICS:
+------------------------------
+Agent-1:
+  Average Accuracy: 0.500
+  Std Dev: 0.277
+  Total Responses: 6
+
+Agent-2:
+  Average Accuracy: 0.667
+  Std Dev: 0.189
+  Total Responses: 6
+
+Agent-3:
+  Average Accuracy: 0.633
+  Std Dev: 0.180
+  Total Responses: 6
+
+CONSENSUS STATISTICS:
+------------------------------
+Sessions with Consensus: 1/1
+Sessions requiring Supervisor: 0/1
+Consensus Rate: 100.0%

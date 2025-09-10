@@ -397,15 +397,16 @@ class openai_client:
             if verbosity in ["low", "medium", "high"]:
                 api_params["text"] = {"verbosity": verbosity}
             
-            # Add reasoning parameters if supported
-            reasoning_params = {}
-            if reasoning_effort in ["low", "medium", "high"]:
-                reasoning_params["effort"] = reasoning_effort
-            if reasoning_summary in ["auto", "concise", "detailed"]:
-                reasoning_params["summary"] = reasoning_summary
-            
-            if reasoning_params:
-                api_params["reasoning"] = reasoning_params
+            # Add reasoning parameters if supported by the model
+            if model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
+                reasoning_params = {}
+                if reasoning_effort in ["low", "medium", "high"]:
+                    reasoning_params["effort"] = reasoning_effort
+                if reasoning_summary in ["auto", "concise", "detailed"]:
+                    reasoning_params["summary"] = reasoning_summary
+                
+                if reasoning_params:
+                    api_params["reasoning"] = reasoning_params
             
             # Make the API request using new response API
             response = self.client.responses.create(**api_params)

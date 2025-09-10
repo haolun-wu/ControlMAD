@@ -1,12 +1,17 @@
 import json
 import os
 import time
+import logging
 from typing import List, Dict, Any, Tuple, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from project_types import ground_truth, response_format, token_usage
-from debate_config import DebateConfig, AgentConfig
+from debate.debate_config import DebateConfig, AgentConfig
 from utility import openai_client, gemini_client, ali_client, cstcloud, ParallelProcessor
 from prompts import kks_system_prompt, kks_response_schema
 
@@ -22,6 +27,7 @@ class AgentResponse:
     confidence: float = 0.0
     response_obj: Optional[response_format] = None
     timestamp: str = ""
+    error: str = ""
 
 @dataclass
 class DebateRound:
@@ -54,11 +60,54 @@ class MultiAgentDebateSystem:
         self.agents = {}
         self.parallel_processor = ParallelProcessor(num_workers=len(debate_config.agents))
         
+        # Store config for later use
+        self.debate_config = debate_config
+        
+        # Setup logging first
+        self._setup_logging()
+        
         # Initialize agent clients
         self._initialize_agents()
+    
+    def _setup_logging(self, game_id: int = 1):
+        """Setup logging to capture all printed output."""
+        # Create organized output directory for this specific game
+        self.organized_output_path = self.debate_config.get_organized_output_path(game_id)
+        os.makedirs(self.organized_output_path, exist_ok=True)
         
-        # Create output directory
-        os.makedirs(debate_config.output_path, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = f"debate_log_game{game_id}_{timestamp}.log"
+        log_path = os.path.join(self.organized_output_path, log_filename)
+        
+        # Create logger with game-specific name
+        logger_name = f"debate_system_game{game_id}_{timestamp}"
+        self.logger = logging.getLogger(logger_name)
+        self.logger.setLevel(logging.INFO)
+        
+        # Remove existing handlers to avoid duplicates
+        for handler in self.logger.handlers[:]:
+            self.logger.removeHandler(handler)
+        
+        # Create file handler
+        file_handler = logging.FileHandler(log_path, mode='w', encoding='utf-8')
+        file_handler.setLevel(logging.INFO)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        
+        # Add handler to logger
+        self.logger.addHandler(file_handler)
+        
+        # Also log to console
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(formatter)
+        self.logger.addHandler(console_handler)
+        
+        self.logger.info(f"📝 Logging started for Game {game_id}")
+        self.logger.info(f"📁 Log file: {log_path}")
+        self.logger.info(f"🎯 Starting new game - all previous logs are in separate files")
     
     def _initialize_agents(self):
         """Initialize all agent clients."""
@@ -82,54 +131,93 @@ class MultiAgentDebateSystem:
                     "client": client,
                     "config": agent_config
                 }
-                print(f"✓ Initialized {agent_config.name} ({agent_config.provider}/{agent_config.model})")
+                self.logger.info(f"✓ Initialized {agent_config.name} ({agent_config.provider}/{agent_config.model})")
                 
             except Exception as e:
-                print(f"✗ Failed to initialize {agent_config.name}: {e}")
+                self.logger.error(f"✗ Failed to initialize {agent_config.name}: {e}")
     
     def run_debate_session(self, game: ground_truth) -> DebateSession:
-        """Run a complete debate session for a single game."""
-        print(f"\n🎯 Starting debate session for Game {game.game_id}")
-        print(f"Players: {[f'Player {i+1}' for i in range(game.num_player)]}")
+        """Run a complete debate for a single game."""
+        # Print current log file to console for user awareness
+        print(f"\n🔄 Now running Game {game.game_id}")
+        print(f"📁 Current log: {self.organized_output_path}/debate_log_game{game.game_id}_*.log")
+        print("=" * 60)
+        
+        self.logger.info(f"🎯 Starting debate for Game {game.game_id}")
+        self.logger.info(f"Players: {[f'Player {i+1}' for i in range(game.num_player)]}")
         
         # Parse ground truth solution
         gt_solution = self._parse_ground_truth_solution(game)
+        self.logger.info(f"📋 Ground Truth Solution: {gt_solution}")
         
         # Phase 1: Initial proposals
-        print("\n📝 Phase 1: Initial Proposals")
+        self.logger.info("📝 Phase 1: Initial Proposals")
+        self.logger.info("=" * 40)
         initial_proposals = self._get_initial_proposals(game)
         
+        # Show initial proposals
+        self.logger.info("🔍 Initial Proposals Summary:")
+        for proposal in initial_proposals:
+            self.logger.info(f"  {proposal.agent_name}: {proposal.player_role_assignments}")
+            if proposal.error:
+                self.logger.error(f"    ❌ Error: {proposal.error}")
+            else:
+                self.logger.info(f"    ✅ Success")
+        
         # Phase 2: Debate rounds for each player
-        print("\n🗣️ Phase 2: Debate Rounds")
+        self.logger.info("🗣️ Phase 2: Debate Rounds")
         debate_rounds = []
         
         # Get player names from ground truth
         player_names = list(gt_solution.keys())
         
         for player_name in player_names:
-            print(f"\n--- Debating {player_name}'s role ---")
+            self.logger.info(f"--- Debating {player_name}'s role ---")
+            self.logger.info(f"🎯 Ground Truth: {player_name} is a {gt_solution.get(player_name, 'unknown')}")
             debate_round = self._run_debate_round(
                 game, player_name, len(debate_rounds) + 1, 
                 initial_proposals, debate_rounds
             )
             debate_rounds.append(debate_round)
+            
+            # Show round results
+            self.logger.info(f"📊 Round {debate_round.round_number} Results for {player_name}:")
+            for response in debate_round.agent_responses:
+                role = response.player_role_assignments.get(player_name, "unknown")
+                correct = "✅" if role == gt_solution.get(player_name) else "❌"
+                self.logger.info(f"  {response.agent_name}: {role} {correct}")
+            self.logger.info(f"🎯 Consensus: {'Yes' if debate_round.consensus_reached else 'No'} - Majority: {debate_round.majority_role}")
         
         # Phase 3: Final majority vote
-        print("\n🗳️ Phase 3: Final Majority Vote")
+        self.logger.info("🗳️ Phase 3: Final Majority Vote")
+        self.logger.info("=" * 40)
         final_vote = self._conduct_final_vote(game, debate_rounds)
+        
+        # Show final vote results
+        self.logger.info(f"📊 Final Vote Results:")
+        for player, role in final_vote.items():
+            correct = "✅" if role == gt_solution.get(player) else "❌"
+            self.logger.info(f"  {player}: {role} {correct}")
         
         # Phase 4: Supervisor decision if needed
         supervisor_decision = None
         if not self._is_consensus_reached(final_vote):
-            print("\n👨‍💼 Phase 4: Supervisor Decision")
+            self.logger.info("👨‍💼 Phase 4: Supervisor Decision")
+            self.logger.info("=" * 40)
             supervisor_decision = self._get_supervisor_decision(game, debate_rounds)
+            
+            if supervisor_decision:
+                self.logger.info(f"📊 Supervisor Decision:")
+                for player, role in supervisor_decision.items():
+                    correct = "✅" if role == gt_solution.get(player) else "❌"
+                    self.logger.info(f"  {player}: {role} {correct}")
         
         # Create performance tracking
         performance_tracking = self._create_performance_tracking(
             game, initial_proposals, debate_rounds, final_vote, supervisor_decision
         )
         
-        # Create debate session
+        # Create debate
         session = DebateSession(
             game_id=game.game_id,
             game_text=game.text_game,
@@ -141,8 +229,32 @@ class MultiAgentDebateSystem:
             performance_tracking=performance_tracking
         )
         
-        # Save session
+        # Save debate
         self._save_debate_session(session)
+        
+        # Final accuracy summary
+        self.logger.info(f"📈 FINAL ACCURACY SUMMARY")
+        self.logger.info("=" * 40)
+        
+        # Calculate final accuracy
+        final_solution = supervisor_decision if supervisor_decision else final_vote
+        if final_solution:
+            correct = 0
+            total = len(gt_solution)
+            for player, role in gt_solution.items():
+                if final_solution.get(player) == role:
+                    correct += 1
+            accuracy = correct / total if total > 0 else 0
+            self.logger.info(f"🎯 Final Accuracy: {accuracy:.2%} ({correct}/{total})")
+            
+            # Show which players were correct/incorrect
+            self.logger.info(f"📋 Player-by-Player Results:")
+            for player, gt_role in gt_solution.items():
+                final_role = final_solution.get(player, "unknown")
+                status = "✅ CORRECT" if final_role == gt_role else "❌ INCORRECT"
+                self.logger.info(f"  {player}: {final_role} (GT: {gt_role}) {status}")
+        
+        self.logger.info(f"✅ Debate completed for Game {game.game_id}")
         
         return session
     
@@ -153,19 +265,30 @@ class MultiAgentDebateSystem:
             client = agent_info["client"]
             config = agent_info["config"]
             
+            self.logger.info(f"    🤖 {agent_name} ({config.provider}/{config.model}) getting initial proposal...")
+            
             try:
                 # Prepare system prompt
                 system_prompt = kks_system_prompt.replace("{num_player}", str(game.num_player))
                 
                 # Make API call based on provider
                 if config.provider == "openai":
-                    response_obj = client.response_completion(
-                        user_prompt=game.text_game,
-                        system_prompt=system_prompt,
-                        model=config.model,
-                        reasoning_effort=config.reasoning_effort,
-                        verbosity=config.verbosity
-                    )
+                    # Check if model supports reasoning parameters
+                    if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
+                        response_obj = client.response_completion(
+                            user_prompt=game.text_game,
+                            system_prompt=system_prompt,
+                            model=config.model,
+                            reasoning_effort=config.reasoning_effort,
+                            verbosity=config.verbosity
+                        )
+                    else:
+                        # Use regular response completion for models that don't support reasoning
+                        response_obj = client.response_completion(
+                            user_prompt=game.text_game,
+                            system_prompt=system_prompt,
+                            model=config.model
+                        )
                 elif config.provider == "gemini":
                     response_obj = client.chat_completion(
                         user_prompt=game.text_game,
@@ -183,6 +306,8 @@ class MultiAgentDebateSystem:
                 # Parse response
                 player_assignments, explanation = self._parse_agent_response(response_obj.text)
                 
+                self.logger.info(f"    ✅ {agent_name} completed: {player_assignments}")
+                
                 return AgentResponse(
                     agent_name=agent_name,
                     game_id=game.game_id,
@@ -191,11 +316,12 @@ class MultiAgentDebateSystem:
                     player_role_assignments=player_assignments,
                     explanation=explanation,
                     response_obj=response_obj,
-                    timestamp=datetime.now().isoformat()
+                    timestamp=datetime.now().isoformat(),
+                    error=""
                 )
                 
             except Exception as e:
-                print(f"Error getting proposal from {agent_name}: {e}")
+                self.logger.error(f"    ❌ {agent_name} failed: {e}")
                 return AgentResponse(
                     agent_name=agent_name,
                     game_id=game.game_id,
@@ -203,7 +329,8 @@ class MultiAgentDebateSystem:
                     phase="initial",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
-                    timestamp=datetime.now().isoformat()
+                    timestamp=datetime.now().isoformat(),
+                    error=str(e)
                 )
         
         # Get proposals from all agents in parallel
@@ -220,13 +347,13 @@ class MultiAgentDebateSystem:
         """Run a debate round for a specific player's role."""
         
         # Step 1: Debate period
-        print(f"  Step 1: Debate period for {player_name}")
+        self.logger.info(f"  Step 1: Debate period for {player_name}")
         debate_responses = self._conduct_debate_for_player(
             game, player_name, round_num, initial_proposals, previous_rounds
         )
         
         # Step 2: Self-adjustment
-        print(f"  Step 2: Self-adjustment for {player_name}")
+        self.logger.info(f"  Step 2: Self-adjustment for {player_name}")
         if self.config.enable_self_adjustment:
             adjusted_responses = self._conduct_self_adjustment(
                 game, player_name, round_num, debate_responses, previous_rounds
@@ -260,6 +387,8 @@ class MultiAgentDebateSystem:
             client = agent_info["client"]
             config = agent_info["config"]
             
+            self.logger.info(f"      🤖 {agent_name} debating {player_name}...")
+            
             try:
                 # Create debate prompt
                 debate_prompt = self._create_debate_prompt(
@@ -268,13 +397,22 @@ class MultiAgentDebateSystem:
                 
                 # Make API call
                 if config.provider == "openai":
-                    response_obj = client.response_completion(
-                        user_prompt=debate_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
-                        model=config.model,
-                        reasoning_effort=config.reasoning_effort,
-                        verbosity=config.verbosity
-                    )
+                    # Check if model supports reasoning parameters
+                    if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
+                        response_obj = client.response_completion(
+                            user_prompt=debate_prompt,
+                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            model=config.model,
+                            reasoning_effort=config.reasoning_effort,
+                            verbosity=config.verbosity
+                        )
+                    else:
+                        # Use regular response completion for models that don't support reasoning
+                        response_obj = client.response_completion(
+                            user_prompt=debate_prompt,
+                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            model=config.model
+                        )
                 elif config.provider == "gemini":
                     response_obj = client.chat_completion(
                         user_prompt=debate_prompt,
@@ -292,6 +430,8 @@ class MultiAgentDebateSystem:
                 # Parse response
                 player_assignments, explanation = self._parse_agent_response(response_obj.text)
                 
+                self.logger.info(f"      ✅ {agent_name} debate completed")
+                
                 return AgentResponse(
                     agent_name=agent_name,
                     game_id=game.game_id,
@@ -300,11 +440,12 @@ class MultiAgentDebateSystem:
                     player_role_assignments=player_assignments,
                     explanation=explanation,
                     response_obj=response_obj,
-                    timestamp=datetime.now().isoformat()
+                    timestamp=datetime.now().isoformat(),
+                    error=""
                 )
                 
             except Exception as e:
-                print(f"Error in debate for {agent_name}: {e}")
+                self.logger.error(f"      ❌ {agent_name} debate failed: {e}")
                 return AgentResponse(
                     agent_name=agent_name,
                     game_id=game.game_id,
@@ -312,7 +453,8 @@ class MultiAgentDebateSystem:
                     phase="debate",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
-                    timestamp=datetime.now().isoformat()
+                    timestamp=datetime.now().isoformat(),
+                    error=str(e)
                 )
         
         # Get debate responses from all agents
@@ -333,6 +475,8 @@ class MultiAgentDebateSystem:
             client = agent_info["client"]
             config = agent_info["config"]
             
+            self.logger.info(f"      🔄 {agent_name} self-adjusting for {player_name}...")
+            
             try:
                 # Create self-adjustment prompt
                 adjustment_prompt = self._create_self_adjustment_prompt(
@@ -341,13 +485,22 @@ class MultiAgentDebateSystem:
                 
                 # Make API call
                 if config.provider == "openai":
-                    response_obj = client.response_completion(
-                        user_prompt=adjustment_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
-                        model=config.model,
-                        reasoning_effort=config.reasoning_effort,
-                        verbosity=config.verbosity
-                    )
+                    # Check if model supports reasoning parameters
+                    if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
+                        response_obj = client.response_completion(
+                            user_prompt=adjustment_prompt,
+                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            model=config.model,
+                            reasoning_effort=config.reasoning_effort,
+                            verbosity=config.verbosity
+                        )
+                    else:
+                        # Use regular response completion for models that don't support reasoning
+                        response_obj = client.response_completion(
+                            user_prompt=adjustment_prompt,
+                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            model=config.model
+                        )
                 elif config.provider == "gemini":
                     response_obj = client.chat_completion(
                         user_prompt=adjustment_prompt,
@@ -365,6 +518,8 @@ class MultiAgentDebateSystem:
                 # Parse response
                 player_assignments, explanation = self._parse_agent_response(response_obj.text)
                 
+                self.logger.info(f"      ✅ {agent_name} self-adjustment completed")
+                
                 return AgentResponse(
                     agent_name=agent_name,
                     game_id=game.game_id,
@@ -373,11 +528,12 @@ class MultiAgentDebateSystem:
                     player_role_assignments=player_assignments,
                     explanation=explanation,
                     response_obj=response_obj,
-                    timestamp=datetime.now().isoformat()
+                    timestamp=datetime.now().isoformat(),
+                    error=""
                 )
                 
             except Exception as e:
-                print(f"Error in self-adjustment for {agent_name}: {e}")
+                self.logger.error(f"      ❌ {agent_name} self-adjustment failed: {e}")
                 return AgentResponse(
                     agent_name=agent_name,
                     game_id=game.game_id,
@@ -385,7 +541,8 @@ class MultiAgentDebateSystem:
                     phase="self_adjustment",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
-                    timestamp=datetime.now().isoformat()
+                    timestamp=datetime.now().isoformat(),
+                    error=str(e)
                 )
         
         # Get adjustment responses from all agents
@@ -398,7 +555,7 @@ class MultiAgentDebateSystem:
     
     def _conduct_final_vote(self, game: ground_truth, debate_rounds: List[DebateRound]) -> Dict[str, str]:
         """Conduct final majority vote for all players."""
-        print("Conducting final majority vote...")
+        self.logger.info("Conducting final majority vote...")
         
         # Get all player names
         player_names = list(debate_rounds[0].agent_responses[0].player_role_assignments.keys())
@@ -418,13 +575,13 @@ class MultiAgentDebateSystem:
                 vote_counts = Counter(votes)
                 majority_role = vote_counts.most_common(1)[0][0]
                 final_vote[player_name] = majority_role
-                print(f"  {player_name}: {majority_role} (votes: {dict(vote_counts)})")
+                self.logger.info(f"  {player_name}: {majority_role} (votes: {dict(vote_counts)})")
         
         return final_vote
     
     def _get_supervisor_decision(self, game: ground_truth, debate_rounds: List[DebateRound]) -> Dict[str, str]:
         """Get supervisor decision when consensus cannot be reached."""
-        print("Getting supervisor decision...")
+        self.logger.info("Getting supervisor decision...")
         
         try:
             # Initialize supervisor client
@@ -442,13 +599,22 @@ class MultiAgentDebateSystem:
             
             # Make API call
             if self.config.supervisor_provider == "openai":
-                response_obj = supervisor_client.response_completion(
-                    user_prompt=supervisor_prompt,
-                    system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
-                    model=self.config.supervisor_model,
-                    reasoning_effort="high",
-                    verbosity="high"
-                )
+                # Check if supervisor model supports reasoning parameters
+                if self.config.supervisor_model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
+                    response_obj = supervisor_client.response_completion(
+                        user_prompt=supervisor_prompt,
+                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        model=self.config.supervisor_model,
+                        reasoning_effort="high",
+                        verbosity="high"
+                    )
+                else:
+                    # Use regular response completion for models that don't support reasoning
+                    response_obj = supervisor_client.response_completion(
+                        user_prompt=supervisor_prompt,
+                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        model=self.config.supervisor_model
+                    )
             elif self.config.supervisor_provider == "gemini":
                 response_obj = supervisor_client.chat_completion(
                     user_prompt=supervisor_prompt,
@@ -465,12 +631,12 @@ class MultiAgentDebateSystem:
             
             # Parse supervisor response
             player_assignments, explanation = self._parse_agent_response(response_obj.text)
-            print(f"Supervisor decision: {player_assignments}")
+            self.logger.info(f"Supervisor decision: {player_assignments}")
             
             return player_assignments
             
         except Exception as e:
-            print(f"Error getting supervisor decision: {e}")
+            self.logger.error(f"Error getting supervisor decision: {e}")
             return {}
     
     def _parse_agent_response(self, response_text: str) -> Tuple[Dict[str, str], str]:
@@ -526,7 +692,7 @@ class MultiAgentDebateSystem:
             return dict(pairs)
             
         except Exception as e:
-            print(f"Error parsing ground truth: {e}")
+            self.logger.error(f"Error parsing ground truth: {e}")
             return {}
     
     def _create_debate_prompt(self, game: ground_truth, player_name: str,
@@ -738,10 +904,10 @@ Return your response in the same JSON format:
         return tracking
     
     def _save_debate_session(self, session: DebateSession):
-        """Save debate session to file."""
+        """Save debate to file."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"debate_session_{session.game_id}_{timestamp}.json"
-        filepath = os.path.join(self.config.output_path, filename)
+        filename = f"debate_{session.game_id}_{timestamp}.json"
+        filepath = os.path.join(self.organized_output_path, filename)
         
         # Convert to serializable format
         session_dict = asdict(session)
@@ -749,16 +915,20 @@ Return your response in the same JSON format:
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(session_dict, f, indent=2, ensure_ascii=False)
         
-        print(f"💾 Debate session saved to: {filepath}")
+        self.logger.info(f"💾 Debate saved to: {filepath}")
     
     def run_batch_debate(self, games: List[ground_truth]) -> List[DebateSession]:
-        """Run debate sessions for multiple games."""
+        """Run debates for multiple games."""
         sessions = []
         
         for i, game in enumerate(games):
-            print(f"\n{'='*60}")
-            print(f"Running debate session {i+1}/{len(games)}")
-            print(f"{'='*60}")
+            # Setup logging for this specific game first
+            self._setup_logging(game.game_id)
+            
+            # Now log the batch processing message to the correct log file
+            self.logger.info(f"\n{'='*60}")
+            self.logger.info(f"Running debate {i+1}/{len(games)}")
+            self.logger.info(f"{'='*60}")
             
             session = self.run_debate_session(game)
             sessions.append(session)

@@ -1,0 +1,657 @@
+{
+  "game_id": 1,
+  "game_text": "---\nPlayer name: Tina\nPlayer statement: Among the following two statements, exactly one is true: \n (1). Hank is a knight.\n (2). Hank and I have the same role.\n---\nPlayer name: Sam\nPlayer statement: Among the following two statements, exactly one is true: \n (1). Violet, Tina, and I all have the same role.\n (2). Among all players, the number of knaves is odd.\n---\nPlayer name: Violet\nPlayer statement: Wendy, Tina, Sam, and Hank all have the same role.\n---\nPlayer name: Hank\nPlayer statement: Violet and Tina are either both telling truth or both lying.\n---\nPlayer name: Wendy\nPlayer statement: Among the following two statements, exactly one is true: \n (1). Hank, Violet, Tina, and I all have the same role.\n (2). Among all players, there is exactly one spy.\n---\nMessage from the game manager: I am the game manager and here is a hint for you: Among all players, there is exactly one spy.\n",
+  "ground_truth_solution": {
+    "Tina": "knave",
+    "Sam": "knave",
+    "Violet": "knave",
+    "Hank": "spy",
+    "Wendy": "knight"
+  },
+  "initial_proposals": [
+    {
+      "agent_name": "Agent-1",
+      "game_id": 1,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Tina": "knave",
+        "Sam": "knave",
+        "Violet": "spy",
+        "Hank": "knave",
+        "Wendy": "knave"
+      },
+      "explanation": "Assuming Violet is the unique spy makes Violet's statement unconstrained while forcing the others to be knaves; this satisfies the single-spy constraint and keeps Hank's, Tina's, Sam's, and Wendy's statements consistent with knave behavior. No other consistent assignment emerges under the one-spy rule.",
+      "confidence": 0.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"Assuming Violet is the unique spy makes Violet's statement unconstrained while forcing the others to be knaves; this satisfies the single-spy constraint and keeps Hank's, Tina's, Sam's, and Wendy's statements consistent with knave behavior. No other consistent assignment emerges under the one-spy rule.\"\n}",
+        "usage": {
+          "input": 1086,
+          "output": 1884,
+          "reasoning": 1728,
+          "cached": 0,
+          "total": 2970
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-10T14:01:23.978704",
+      "error": ""
+    },
+    {
+      "agent_name": "Agent-2",
+      "game_id": 1,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Tina": "knight",
+        "Sam": "knave",
+        "Violet": "knave",
+        "Hank": "knave",
+        "Wendy": "spy"
+      },
+      "explanation": "The game manager's hint states there is exactly one spy, so statement (2) of Wendy must be true and (1) false. Wendy is telling the truth, so Wendy is the spy (can tell the truth or lie).\n\nWendy's statement (1) is false, so Hank, Violet, Tina, and Wendy do not all have the same role, so there is at least one difference among them.\n\nHank states Violet and Tina are either both telling truth or both lying—thus Hank's statement equates their truthfulness.\n\nViolet claims Wendy, Tina, Sam, and Hank all have the same role. If Violet is telling the truth, then Wendy (spy) would share the same role as others, contradicting the unique spy hint. Thus Violet is lying, so Violet is a knave.\n\nSince Violet and Tina are not both telling the truth or both lying (because Violet lies and Tina must differ), Hank's statement is false, so Hank is a knave.\n\nTina says exactly one of: (1) Hank is a knight; (2) Hank and Tina have the same role is true. Hank is a knave, so (1) Hank is a knight is false. If Tina were knave and lying, both statements would be false or true, breaking the exclusive one true condition. So Tina is telling the truth, making her a knight.\n\nSam says exactly one of: (1) Violet, Tina, Sam all have the same role; (2) knaves' number is odd is true. Violet is knave, Tina knight, so (1) is false. The number of knaves is 3 (Violet, Hank, Sam), an odd number, so (2) is true. But Sam is a knave, who must lie and cannot have one of the statements true exclusively as he claims, so Sam's statement is false, consistent with Sam being knave.\n\nFinal roles: Tina = knight, Sam = knave, Violet = knave, Hank = knave, Wendy = spy.",
+      "confidence": 0.0,
+      "response_obj": {
+        "text": "{\n  \"players\": [\n    {\"name\": \"Tina\", \"role\": \"knight\"},\n    {\"name\": \"Sam\", \"role\": \"knave\"},\n    {\"name\": \"Violet\", \"role\": \"knave\"},\n    {\"name\": \"Hank\", \"role\": \"knave\"},\n    {\"name\": \"Wendy\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"The game manager's hint states there is exactly one spy, so statement (2) of Wendy must be true and (1) false. Wendy is telling the truth, so Wendy is the spy (can tell the truth or lie).\\n\\nWendy's statement (1) is false, so Hank, Violet, Tina, and Wendy do not all have the same role, so there is at least one difference among them.\\n\\nHank states Violet and Tina are either both telling truth or both lying—thus Hank's statement equates their truthfulness.\\n\\nViolet claims Wendy, Tina, Sam, and Hank all have the same role. If Violet is telling the truth, then Wendy (spy) would share the same role as others, contradicting the unique spy hint. Thus Violet is lying, so Violet is a knave.\\n\\nSince Violet and Tina are not both telling the truth or both lying (because Violet lies and Tina must differ), Hank's statement is false, so Hank is a knave.\\n\\nTina says exactly one of: (1) Hank is a knight; (2) Hank and Tina have the same role is true. Hank is a knave, so (1) Hank is a knight is false. If Tina were knave and lying, both statements would be false or true, breaking the exclusive one true condition. So Tina is telling the truth, making her a knight.\\n\\nSam says exactly one of: (1) Violet, Tina, Sam all have the same role; (2) knaves' number is odd is true. Violet is knave, Tina knight, so (1) is false. The number of knaves is 3 (Violet, Hank, Sam), an odd number, so (2) is true. But Sam is a knave, who must lie and cannot have one of the statements true exclusively as he claims, so Sam's statement is false, consistent with Sam being knave.\\n\\nFinal roles: Tina = knight, Sam = knave, Violet = knave, Hank = knave, Wendy = spy.\"\n}",
+        "usage": {
+          "input": 1087,
+          "output": 520,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1607
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-10T14:01:21.862776",
+      "error": ""
+    },
+    {
+      "agent_name": "Agent-3",
+      "game_id": 1,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Tina": "knave",
+        "Sam": "spy",
+        "Violet": "knight",
+        "Hank": "knave",
+        "Wendy": "knight"
+      },
+      "explanation": "The hint states there is exactly one spy. If Violet's statement is true (making her a knight), then Wendy must be lying (a knave) and Tina's claim implies both lying, which contradicts. Therefore, Violet is indeed a knight. Since Tina says one of her statements is true, this means she is lying about both. This leads to Hank being a knight or knave. Assuming Hank is a knight means Violet and Tina must align, leading him to contradict his own statement, hence both must be knaves. This leaves Sam as the spy with validated roles for Wendy, who must also be truthful with only one spy, as Sam is. No contradictions arise, affirming logic holds strongly here.",
+      "confidence": 0.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"spy\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The hint states there is exactly one spy. If Violet's statement is true (making her a knight), then Wendy must be lying (a knave) and Tina's claim implies both lying, which contradicts. Therefore, Violet is indeed a knight. Since Tina says one of her statements is true, this means she is lying about both. This leads to Hank being a knight or knave. Assuming Hank is a knight means Violet and Tina must align, leading him to contradict his own statement, hence both must be knaves. This leaves Sam as the spy with validated roles for Wendy, who must also be truthful with only one spy, as Sam is. No contradictions arise, affirming logic holds strongly here.\"\n}",
+        "usage": {
+          "input": 1087,
+          "output": 233,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1320
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-10T14:01:14.935269",
+      "error": ""
+    }
+  ],
+  "debate_rounds": [
+    {
+      "player_name": "Tina",
+      "round_number": 1,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knave",
+            "Hank": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "Assuming Wendy is the sole spy (manager's hint). Violet and Tina end up as knaves, making Hank's statement about them true only if he is a knight, which also aligns Sam as a knave when evaluating his two-part claim. The internal XORs and joint statements are arranged so that the knight (Hank) tells truth, the knaves (Tina, Violet, Sam) lie, and Wendy (spy) can say anything while satisfying the manager's exact-one-spy hint.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Assuming Wendy is the sole spy (manager's hint). Violet and Tina end up as knaves, making Hank's statement about them true only if he is a knight, which also aligns Sam as a knave when evaluating his two-part claim. The internal XORs and joint statements are arranged so that the knight (Hank) tells truth, the knaves (Tina, Violet, Sam) lie, and Wendy (spy) can say anything while satisfying the manager's exact-one-spy hint.\"\n}",
+            "usage": {
+              "input": 1390,
+              "output": 2756,
+              "reasoning": 2560,
+              "cached": 0,
+              "total": 4146
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:02:08.485627",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knave",
+            "Hank": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "The game manager's hint that there is exactly one spy guides the reasoning. Tina's statement is an XOR about Hank being a knight and Hank having the same role as Tina. Assuming Tina to be a knight leads to a contradiction because the XOR cannot be satisfied without inconsistency. Therefore, Tina is a knave; both parts of the XOR statement are false, meaning Hank is not a knight and Hank and Tina have different roles. If Hank were not knight, then his statement becomes unreliable. However, assuming Hank to be knight leads to the consistent scenario where Hank says Violet and Tina either both tell the truth or both lie. Since Tina lies (knave) and Hank tells the truth (knight), Violet must also be a knave like Tina. Wendy says either she, Hank, Violet, and Tina all share the same role or exactly one spy exists. Since the hint says there is exactly one spy, Wendy's statement (2) is true, so (1) is false; thus, Wendy cannot be the same as Hank (knight) or Tina/Violet (knaves). Wendy must be the spy. Sam's statement is XOR about having the same role as Violet and Tina and the number of knaves is odd. There are exactly three knaves (Violet, Tina, Sam) which is odd, so (2) is true, meaning (1) is false; Sam does not share the same role with Violet and Tina and must be a knave, consistent with being a liar. This assignment satisfies all statements without contradiction and aligns with the game manager's hint.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The game manager's hint that there is exactly one spy guides the reasoning. Tina's statement is an XOR about Hank being a knight and Hank having the same role as Tina. Assuming Tina to be a knight leads to a contradiction because the XOR cannot be satisfied without inconsistency. Therefore, Tina is a knave; both parts of the XOR statement are false, meaning Hank is not a knight and Hank and Tina have different roles. If Hank were not knight, then his statement becomes unreliable. However, assuming Hank to be knight leads to the consistent scenario where Hank says Violet and Tina either both tell the truth or both lie. Since Tina lies (knave) and Hank tells the truth (knight), Violet must also be a knave like Tina. Wendy says either she, Hank, Violet, and Tina all share the same role or exactly one spy exists. Since the hint says there is exactly one spy, Wendy's statement (2) is true, so (1) is false; thus, Wendy cannot be the same as Hank (knight) or Tina/Violet (knaves). Wendy must be the spy. Sam's statement is XOR about having the same role as Violet and Tina and the number of knaves is odd. There are exactly three knaves (Violet, Tina, Sam) which is odd, so (2) is true, meaning (1) is false; Sam does not share the same role with Violet and Tina and must be a knave, consistent with being a liar. This assignment satisfies all statements without contradiction and aligns with the game manager's hint.\"\n}",
+            "usage": {
+              "input": 1391,
+              "output": 410,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1801
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:01:48.462817",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "spy",
+            "Violet": "knight",
+            "Hank": "knight",
+            "Wendy": "knave"
+          },
+          "explanation": "Tina must be a knave because if she were a knight, her statement would create inconsistencies regarding her and Hank's roles. If Tina is a knave, both parts of her statement are false, meaning Hank is not a knight and they do not share the same role. Since the game manager stated there is one spy, and Wendy's statement has two parts where at least one must be untrue, Wendy must be lying, making her a knave as well. This leaves Hank and Violet as knights, confirming Violet's statement about everyone else not having the same role as either Hank or Tina.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"spy\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"Tina must be a knave because if she were a knight, her statement would create inconsistencies regarding her and Hank's roles. If Tina is a knave, both parts of her statement are false, meaning Hank is not a knight and they do not share the same role. Since the game manager stated there is one spy, and Wendy's statement has two parts where at least one must be untrue, Wendy must be lying, making her a knave as well. This leaves Hank and Violet as knights, confirming Violet's statement about everyone else not having the same role as either Hank or Tina.\"\n}",
+            "usage": {
+              "input": 1391,
+              "output": 211,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1602
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:01:48.778574",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Tina:\n- Agent-1: knave\n- Agent-2: knave\n- Agent-3: knave\n",
+      "consensus_reached": true,
+      "majority_role": "knave"
+    },
+    {
+      "player_name": "Sam",
+      "round_number": 2,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knave",
+            "Hank": "spy",
+            "Wendy": "knight"
+          },
+          "explanation": "Assumed Hank is the sole spy (manager's hint). Set Violet and Tina as knaves and Wendy as knight. Then Hank's truth about Violet and Tina being both lying holds. Sam, also a knave, has both substatements true, making his overall claim false, consistent with knave. Tina's and Violet's statements are false; Wendy's meta-statement is true (exactly one spy). This arrangement satisfies all Knight/Knave constraints and the manager's single spy hint.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Hank\", \"role\": \"spy\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"Assumed Hank is the sole spy (manager's hint). Set Violet and Tina as knaves and Wendy as knight. Then Hank's truth about Violet and Tina being both lying holds. Sam, also a knave, has both substatements true, making his overall claim false, consistent with knave. Tina's and Violet's statements are false; Wendy's meta-statement is true (exactly one spy). This arrangement satisfies all Knight/Knave constraints and the manager's single spy hint.\"\n}",
+            "usage": {
+              "input": 1388,
+              "output": 2691,
+              "reasoning": 2496,
+              "cached": 0,
+              "total": 4079
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:02:38.676189",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knave",
+            "Hank": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy. Wendy’s statement (2) that among all players there is exactly one spy must be true, so Wendy is telling the truth and thus a knight or a spy; since there is only one spy, Wendy is the spy. Wendy's other statement (1) is false, so Hank, Violet, Tina, and Wendy do not all have the same role. Violet claims Wendy, Tina, Sam, and Hank all have the same role, which must be false, so Violet is lying and is a knave. Hank states Violet and Tina are either both telling truth or both lying. Violet is lying, so Tina must be lying as well, so Tina is a knave. Tina’s statement says exactly one of (1) Hank is a knight, or (2) Hank and I have the same role is true. Hank cannot have same role as Tina (knave), so Hank is a knight, so Tina’s statement is true, which contradicts Tina being a knave (who always lie). Thus, Tina lying means her statement is false, so either both are true or both are false. Hank is knight (true), so Hank and Tina do not have the same role (true). Both statements in Tina’s claim can’t be true simultaneously, so Tina is knave lying. Sam’s statement that exactly one of (1) Violet, Tina, and Sam all have the same role, or (2) the number of knaves is odd is true. Since Violet, Tina, and Sam are all knaves, (1) is true. Therefore, (2) is false — number of knaves is not odd, it's even, consistent with 3 knaves (Violet, Tina, Sam). Sam is lying when claiming the disjunction is exclusive, so Sam is knave. Hank’s statement is true, fitting his knight role. Thus, roles consistent with all statements and the manager’s hint are as listed.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Tina\", \"role\": \"knave\"},\n    {\"name\": \"Sam\", \"role\": \"knave\"},\n    {\"name\": \"Violet\", \"role\": \"knave\"},\n    {\"name\": \"Hank\", \"role\": \"knight\"},\n    {\"name\": \"Wendy\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"The game manager's hint states there is exactly one spy. Wendy’s statement (2) that among all players there is exactly one spy must be true, so Wendy is telling the truth and thus a knight or a spy; since there is only one spy, Wendy is the spy. Wendy's other statement (1) is false, so Hank, Violet, Tina, and Wendy do not all have the same role. Violet claims Wendy, Tina, Sam, and Hank all have the same role, which must be false, so Violet is lying and is a knave. Hank states Violet and Tina are either both telling truth or both lying. Violet is lying, so Tina must be lying as well, so Tina is a knave. Tina’s statement says exactly one of (1) Hank is a knight, or (2) Hank and I have the same role is true. Hank cannot have same role as Tina (knave), so Hank is a knight, so Tina’s statement is true, which contradicts Tina being a knave (who always lie). Thus, Tina lying means her statement is false, so either both are true or both are false. Hank is knight (true), so Hank and Tina do not have the same role (true). Both statements in Tina’s claim can’t be true simultaneously, so Tina is knave lying. Sam’s statement that exactly one of (1) Violet, Tina, and Sam all have the same role, or (2) the number of knaves is odd is true. Since Violet, Tina, and Sam are all knaves, (1) is true. Therefore, (2) is false — number of knaves is not odd, it's even, consistent with 3 knaves (Violet, Tina, Sam). Sam is lying when claiming the disjunction is exclusive, so Sam is knave. Hank’s statement is true, fitting his knight role. Thus, roles consistent with all statements and the manager’s hint are as listed.\"\n}",
+            "usage": {
+              "input": 1389,
+              "output": 492,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1881
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:02:29.832586",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knight",
+            "Hank": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "Since the manager's hint indicates exactly one spy, we start with validating each player's statements. By assuming Sam is a knave, both of his statements are false. Therefore, Violet, Tina, and Sam cannot all share the same role and the number of knaves cannot be odd, which aligns with Tina also being a knave. With Violet's statement about Wendy, Tina, Sam, and Hank all having the same role being false, it suggests Wendy must be the spy while Hank and Violet are knights. Thus, all roles are consistent with the provided statements.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Since the manager's hint indicates exactly one spy, we start with validating each player's statements. By assuming Sam is a knave, both of his statements are false. Therefore, Violet, Tina, and Sam cannot all share the same role and the number of knaves cannot be odd, which aligns with Tina also being a knave. With Violet's statement about Wendy, Tina, Sam, and Hank all having the same role being false, it suggests Wendy must be the spy while Hank and Violet are knights. Thus, all roles are consistent with the provided statements.\"\n}",
+            "usage": {
+              "input": 1389,
+              "output": 202,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1591
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:02:30.607008",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Sam:\n- Agent-1: knave\n- Agent-2: knave\n- Agent-3: knave\n",
+      "consensus_reached": true,
+      "majority_role": "knave"
+    },
+    {
+      "player_name": "Violet",
+      "round_number": 3,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knight",
+            "Violet": "knight",
+            "Hank": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "Based on the manager's hint that there is exactly one spy, the only consistent arrangement under the given statements is to assign Tina and Hank as knaves, Sam and Wendy as knights, and Violet as a knight, leaving the spy role to be determined by the remaining logic. This satisfies the condition that exactly one spy exists, and aligns the truth-values of the remaining statements so that knights tell the truth and knaves lie.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"Based on the manager's hint that there is exactly one spy, the only consistent arrangement under the given statements is to assign Tina and Hank as knaves, Sam and Wendy as knights, and Violet as a knight, leaving the spy role to be determined by the remaining logic. This satisfies the condition that exactly one spy exists, and aligns the truth-values of the remaining statements so that knights tell the truth and knaves lie.\"\n}",
+            "usage": {
+              "input": 1380,
+              "output": 4212,
+              "reasoning": 4032,
+              "cached": 1024,
+              "total": 5592
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:03:31.177947",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "spy",
+            "Hank": "knight",
+            "Wendy": "knight"
+          },
+          "explanation": "The game manager states there is exactly one spy. Tina and Sam have statements that imply contradictions if they are knights or spies, so they must be knaves. Tina's statement about Hank is a classic exclusive or (exactly one true) scenario that fits with Hank being knight and Tina lying. Violet claims Wendy, Tina, Sam, and Hank all have the same role - since Tina and Sam are knaves, Violet's statement is false, so Violet is not a knight; given the one spy limit and Tina and Sam are knaves, Violet must be the spy. Hank's statement that Violet and Tina either both tell truth or both lie fits with Hank being a knight because Tina lies and Violet (spy) can lie or tell truth, but here lies, so Hank tells truth. Wendy's statement is a similar exclusive or scenario: (1) all four the same role, which is false; (2) exactly one spy, which is true, so Wendy tells truth (knight). This configuration has exactly one spy (Violet), knaves (Tina, Sam), and knights (Hank, Wendy), consistent with all statements and the hint.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Tina\", \"role\": \"knave\"},\n    {\"name\": \"Sam\", \"role\": \"knave\"},\n    {\"name\": \"Violet\", \"role\": \"spy\"},\n    {\"name\": \"Hank\", \"role\": \"knight\"},\n    {\"name\": \"Wendy\", \"role\": \"knight\"}\n  ],\n  \"explanation\": \"The game manager states there is exactly one spy. Tina and Sam have statements that imply contradictions if they are knights or spies, so they must be knaves. Tina's statement about Hank is a classic exclusive or (exactly one true) scenario that fits with Hank being knight and Tina lying. Violet claims Wendy, Tina, Sam, and Hank all have the same role - since Tina and Sam are knaves, Violet's statement is false, so Violet is not a knight; given the one spy limit and Tina and Sam are knaves, Violet must be the spy. Hank's statement that Violet and Tina either both tell truth or both lie fits with Hank being a knight because Tina lies and Violet (spy) can lie or tell truth, but here lies, so Hank tells truth. Wendy's statement is a similar exclusive or scenario: (1) all four the same role, which is false; (2) exactly one spy, which is true, so Wendy tells truth (knight). This configuration has exactly one spy (Violet), knaves (Tina, Sam), and knights (Hank, Wendy), consistent with all statements and the hint.\"\n}",
+            "usage": {
+              "input": 1381,
+              "output": 323,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1704
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:03:08.654581",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "spy",
+            "Hank": "knight",
+            "Wendy": "knave"
+          },
+          "explanation": "The game manager confirms there is exactly one spy. Since Tina is a knave, her statement must be false; thus, both statements about Hank are false, meaning Hank is not a knight and they don’t share the same role. Sam also lies, indicating all three (Violet, Tina, and Sam) do not share the same role, which supports Violet being a spy. Wendy's statements imply the opposite of Sam's, reinforcing the assessment of Tin and Sam's knave roles. Hank's role as a knight indicating both Violet and Tina either lie or tell the truth solidifies Violet's position as the spy while the others align to knave roles.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The game manager confirms there is exactly one spy. Since Tina is a knave, her statement must be false; thus, both statements about Hank are false, meaning Hank is not a knight and they don’t share the same role. Sam also lies, indicating all three (Violet, Tina, and Sam) do not share the same role, which supports Violet being a spy. Wendy's statements imply the opposite of Sam's, reinforcing the assessment of Tin and Sam's knave roles. Hank's role as a knight indicating both Violet and Tina either lie or tell the truth solidifies Violet's position as the spy while the others align to knave roles.\" \n}",
+            "usage": {
+              "input": 1381,
+              "output": 223,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1604
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:03:09.541133",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Violet:\n- Agent-1: knight\n- Agent-2: spy\n- Agent-3: spy\n",
+      "consensus_reached": true,
+      "majority_role": "spy"
+    },
+    {
+      "player_name": "Hank",
+      "round_number": 4,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knave",
+            "Hank": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "Assuming Wendy is the sole spy (manager's hint). If Hank were knave, Tina's and Violet's truth values lead to a contradiction with Tina's XOR statement. Therefore Hank must be the knight. Violet's statement about all four (Wendy, Tina, Sam, Hank) having the same role is false, so Violet is a knave. Hank's truthfulness then requires Tina and Violet to have opposite truth values; given Tina's statement structure, she must be lying, making Tina a knave. Sam's statement then also resolves to false, making Sam a knave. This yields exactly one spy (Wendy) and a consistent assignment: Hank=knight, Wendy=spy, Tina=knave, Violet=knave, Sam=knave.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Tina\", \"role\": \"knave\"},\n    {\"name\": \"Sam\", \"role\": \"knave\"},\n    {\"name\": \"Violet\", \"role\": \"knave\"},\n    {\"name\": \"Hank\", \"role\": \"knight\"},\n    {\"name\": \"Wendy\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"Assuming Wendy is the sole spy (manager's hint). If Hank were knave, Tina's and Violet's truth values lead to a contradiction with Tina's XOR statement. Therefore Hank must be the knight. Violet's statement about all four (Wendy, Tina, Sam, Hank) having the same role is false, so Violet is a knave. Hank's truthfulness then requires Tina and Violet to have opposite truth values; given Tina's statement structure, she must be lying, making Tina a knave. Sam's statement then also resolves to false, making Sam a knave. This yields exactly one spy (Wendy) and a consistent assignment: Hank=knight, Wendy=spy, Tina=knave, Violet=knave, Sam=knave.\"\n}",
+            "usage": {
+              "input": 1391,
+              "output": 2299,
+              "reasoning": 2048,
+              "cached": 1024,
+              "total": 3690
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:04:07.075193",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knight",
+            "Violet": "knave",
+            "Hank": "knave",
+            "Wendy": "spy"
+          },
+          "explanation": "The game manager's hint establishes exactly one spy among all players. Wendy's statement says either (1) Hank, Violet, Tina, and Wendy have the same role, or (2) there is exactly one spy. Since Wendy is the spy, statement (2) is true and (1) is false, consistent with her role as spy who can lie or tell the truth. Violet's statement claims Wendy, Tina, Sam, and Hank all have the same role, which conflicts with Wendy being the spy and Sam being knight, so Violet is lying and thus a knave. Hank's statement that Violet and Tina are either both telling truth or both lying aligns if Hank is also a knave, matching Violet and Tina's lying status. Tina's statement is a double exclusive, and given Hank is knave, this must be false, confirming Tina as knave. Sam's statement must then be true, consistent with being a knight. Hence, there is exactly one spy (Wendy), and the others are knights or knaves accordingly, with Hank correctly identified as a knave.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The game manager's hint establishes exactly one spy among all players. Wendy's statement says either (1) Hank, Violet, Tina, and Wendy have the same role, or (2) there is exactly one spy. Since Wendy is the spy, statement (2) is true and (1) is false, consistent with her role as spy who can lie or tell the truth. Violet's statement claims Wendy, Tina, Sam, and Hank all have the same role, which conflicts with Wendy being the spy and Sam being knight, so Violet is lying and thus a knave. Hank's statement that Violet and Tina are either both telling truth or both lying aligns if Hank is also a knave, matching Violet and Tina's lying status. Tina's statement is a double exclusive, and given Hank is knave, this must be false, confirming Tina as knave. Sam's statement must then be true, consistent with being a knight. Hence, there is exactly one spy (Wendy), and the others are knights or knaves accordingly, with Hank correctly identified as a knave.\"\n}",
+            "usage": {
+              "input": 1392,
+              "output": 308,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1700
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:03:52.961542",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knight",
+            "Sam": "spy",
+            "Violet": "knave",
+            "Hank": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "The game manager's hint confirms there is exactly one spy. Assuming Hank is a knave is consistent with both Wendy's statement and Tina's statement. Since Wendy must be telling the truth in that scenario, it logically follows that Wendy must be a knight and Hank a knave. Given this, Sam's statement could support Tina's role as a knight, and knowing one spy must exist confirms Sam as the spy since he could lie about the odd number of knaves while being truthful about the shared role with Tina. Thus, no contradictions arise from this assignment.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knight\"},\n        {\"name\": \"Sam\", \"role\": \"spy\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The game manager's hint confirms there is exactly one spy. Assuming Hank is a knave is consistent with both Wendy's statement and Tina's statement. Since Wendy must be telling the truth in that scenario, it logically follows that Wendy must be a knight and Hank a knave. Given this, Sam's statement could support Tina's role as a knight, and knowing one spy must exist confirms Sam as the spy since he could lie about the odd number of knaves while being truthful about the shared role with Tina. Thus, no contradictions arise from this assignment.\"\n}",
+            "usage": {
+              "input": 1392,
+              "output": 201,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1593
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:03:51.974907",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Hank:\n- Agent-1: knight\n- Agent-2: knave\n- Agent-3: knave\n",
+      "consensus_reached": true,
+      "majority_role": "knave"
+    },
+    {
+      "player_name": "Wendy",
+      "round_number": 5,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 1,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knave",
+            "Hank": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "Wendy must be the spy because otherwise Violet's statement cannot be satisfied with the exact-one-spy hint. This forces Violet to be a knave. The remaining deductions lead to Tina and Sam both lying (knaves) and Hank telling the truth (knight) given the constraints, though some combinations yield contradictions; the consistent configuration given the constraints centers Wendy as the sole spy with Violet as knave and Hank as knight, while Tina and Sam end up as knaves in this resolution.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Wendy must be the spy because otherwise Violet's statement cannot be satisfied with the exact-one-spy hint. This forces Violet to be a knave. The remaining deductions lead to Tina and Sam both lying (knaves) and Hank telling the truth (knight) given the constraints, though some combinations yield contradictions; the consistent configuration given the constraints centers Wendy as the sole spy with Violet as knave and Hank as knight, while Tina and Sam end up as knaves in this resolution.\"\n}",
+            "usage": {
+              "input": 1412,
+              "output": 5569,
+              "reasoning": 5376,
+              "cached": 0,
+              "total": 6981
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:05:04.713446",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 1,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "knave",
+            "Hank": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "Given the manager's hint that there is exactly one spy, Wendy's statement must have exactly one true statement among her two options. If statement (2) 'There is exactly one spy' is true, then statement (1) that 'Hank, Violet, Tina, and Wendy all have the same role' is false, forcing Wendy to be the spy. Violet's statement that the four players including herself have the same role is then false, making her a knave. Hank's logic that Violet and Tina tell truth or lie together fits if Hank is a knight and both Violet and Tina are knaves. Tina's statement about Hank being a knight or having the same role as him requires her to be lying (knave). Sam's compound statement also being false fits with Sam as a knave. This assignment satisfies all statements and the manager's hint without contradictions.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Tina\", \"role\": \"knave\"},\n    {\"name\": \"Sam\", \"role\": \"knave\"},\n    {\"name\": \"Violet\", \"role\": \"knave\"},\n    {\"name\": \"Hank\", \"role\": \"knight\"},\n    {\"name\": \"Wendy\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"Given the manager's hint that there is exactly one spy, Wendy's statement must have exactly one true statement among her two options. If statement (2) 'There is exactly one spy' is true, then statement (1) that 'Hank, Violet, Tina, and Wendy all have the same role' is false, forcing Wendy to be the spy. Violet's statement that the four players including herself have the same role is then false, making her a knave. Hank's logic that Violet and Tina tell truth or lie together fits if Hank is a knight and both Violet and Tina are knaves. Tina's statement about Hank being a knight or having the same role as him requires her to be lying (knave). Sam's compound statement also being false fits with Sam as a knave. This assignment satisfies all statements and the manager's hint without contradictions.\"\n}",
+            "usage": {
+              "input": 1413,
+              "output": 264,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1677
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:04:35.480706",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 1,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Tina": "knave",
+            "Sam": "knave",
+            "Violet": "spy",
+            "Hank": "knight",
+            "Wendy": "knave"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy, which we deduced must be Violet. This implies both statements from Tina must be considered: if Hank is a knight, then Tina is lying about having the same role, making her a knave. Sam's claim that there is an odd number of knaves is also false, confirming him as a knave as well. Wendy's statement (1) must also be false, verifying she is a knave. Hank's role as a knight is validated by the falsehood of both Tina and Wendy's statements, supporting that he and Violet are in sync on telling the truth or lies.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Tina\", \"role\": \"knave\"},\n        {\"name\": \"Sam\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The game manager's hint states there is exactly one spy, which we deduced must be Violet. This implies both statements from Tina must be considered: if Hank is a knight, then Tina is lying about having the same role, making her a knave. Sam's claim that there is an odd number of knaves is also false, confirming him as a knave as well. Wendy's statement (1) must also be false, verifying she is a knave. Hank's role as a knight is validated by the falsehood of both Tina and Wendy's statements, supporting that he and Violet are in sync on telling the truth or lies.\"\n}",
+            "usage": {
+              "input": 1413,
+              "output": 219,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1632
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:04:37.503723",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Wendy:\n- Agent-1: spy\n- Agent-2: spy\n- Agent-3: knave\n",
+      "consensus_reached": true,
+      "majority_role": "spy"
+    }
+  ],
+  "final_vote": {
+    "Tina": "knave",
+    "Sam": "knave",
+    "Violet": "knave",
+    "Hank": "knight",
+    "Wendy": "spy"
+  },
+  "supervisor_decision": null,
+  "performance_tracking": {
+    "game_id": 1,
+    "ground_truth": {
+      "Tina": "knave",
+      "Sam": "knave",
+      "Violet": "knave",
+      "Hank": "spy",
+      "Wendy": "knight"
+    },
+    "initial_accuracy": {
+      "Agent-1": 0.4,
+      "Agent-2": 0.4,
+      "Agent-3": 0.4
+    },
+    "final_accuracy": {
+      "majority_vote": 0.6
+    },
+    "consensus_accuracy": {},
+    "agent_performance": {},
+    "round_by_round": [
+      {
+        "player": "Tina",
+        "round": 1,
+        "agent_accuracy": {
+          "Agent-1": 0.6,
+          "Agent-2": 0.6,
+          "Agent-3": 0.2
+        }
+      },
+      {
+        "player": "Sam",
+        "round": 2,
+        "agent_accuracy": {
+          "Agent-1": 1.0,
+          "Agent-2": 0.6,
+          "Agent-3": 0.4
+        }
+      },
+      {
+        "player": "Violet",
+        "round": 3,
+        "agent_accuracy": {
+          "Agent-1": 0.4,
+          "Agent-2": 0.6,
+          "Agent-3": 0.4
+        }
+      },
+      {
+        "player": "Hank",
+        "round": 4,
+        "agent_accuracy": {
+          "Agent-1": 0.6,
+          "Agent-2": 0.4,
+          "Agent-3": 0.4
+        }
+      },
+      {
+        "player": "Wendy",
+        "round": 5,
+        "agent_accuracy": {
+          "Agent-1": 0.6,
+          "Agent-2": 0.6,
+          "Agent-3": 0.4
+        }
+      }
+    ]
+  }
+}

@@ -14,10 +14,9 @@ from typing import List, Dict, Any
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from project_types import ground_truth
-from debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config
-from debate_system import MultiAgentDebateSystem
-from debate_visualizer import DebateVisualizer
-from test_baseline import Test
+from debate.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config
+from debate.debate_system import MultiAgentDebateSystem
+from debate.debate_visualizer import DebateVisualizer
 from config import test_config
 
 def load_ground_truth_games(game_size: int = 5, num_games: int = 10) -> List[ground_truth]:
@@ -67,19 +66,19 @@ def load_ground_truth_games(game_size: int = 5, num_games: int = 10) -> List[gro
     
     return ground_truth_list
 
-def create_example_configs() -> Dict[str, DebateConfig]:
+def create_example_configs(game_size: int = 5, game_num: int = 1) -> Dict[str, DebateConfig]:
     """Create example debate configurations."""
     
     configs = {}
     
     # Default 3-agent configuration
-    configs['default'] = create_default_debate_config()
+    configs['default'] = create_default_debate_config(game_size, game_num)
     
     # 2-agent configuration
     configs['two_agents'] = create_custom_debate_config([
         {"name": "GPT-5", "provider": "openai", "model": "gpt-5-nano"},
         {"name": "Gemini", "provider": "gemini", "model": "gemini-2.5-flash-lite"}
-    ])
+    ], game_size, game_num)
     
     # 4-agent configuration
     configs['four_agents'] = create_custom_debate_config([
@@ -87,14 +86,14 @@ def create_example_configs() -> Dict[str, DebateConfig]:
         {"name": "Gemini", "provider": "gemini", "model": "gemini-2.5-flash-lite"},
         {"name": "Qwen", "provider": "ali", "model": "qwen-flash"},
         {"name": "CST", "provider": "cst", "model": "gpt-oss-120b"}
-    ])
+    ], game_size, game_num)
     
     # All OpenAI agents with different models
     configs['openai_variants'] = create_custom_debate_config([
         {"name": "GPT-5-Nano", "provider": "openai", "model": "gpt-5-nano", "temperature": 0.7},
         {"name": "GPT-5", "provider": "openai", "model": "gpt-5", "temperature": 0.8},
         {"name": "GPT-4o", "provider": "openai", "model": "gpt-4o", "temperature": 0.6}
-    ])
+    ], game_size, game_num)
     
     return configs
 
@@ -102,13 +101,13 @@ def run_single_debate_session(config_name: str = "default",
                             game_size: int = 5, 
                             num_games: int = 3,
                             enable_visualization: bool = True):
-    """Run a single debate session with specified configuration."""
+    """Run a single debate with specified configuration."""
     
     print("🚀 Starting Multi-Agent Debate System")
     print("=" * 50)
     
     # Load configuration
-    configs = create_example_configs()
+    configs = create_example_configs(game_size, num_games)
     if config_name not in configs:
         print(f"Error: Configuration '{config_name}' not found.")
         print(f"Available configurations: {list(configs.keys())}")
@@ -132,31 +131,40 @@ def run_single_debate_session(config_name: str = "default",
     print(f"\n🔧 Initializing debate system...")
     debate_system = MultiAgentDebateSystem(debate_config)
     
-    # Run debate sessions
-    print(f"\n🎯 Running debate sessions...")
+    # Run debates
+    print(f"\n🎯 Running debates...")
     sessions = debate_system.run_batch_debate(games)
     
     # Create visualizations
     if enable_visualization:
         print(f"\n🎨 Creating visualizations...")
-        visualizer = DebateVisualizer(debate_config.output_path)
-        visualization_paths = visualizer.create_all_visualizations(sessions)
-        
-        print(f"\n📊 Visualization files created:")
-        for name, path in visualization_paths.items():
-            print(f"  - {name}: {path}")
+        # Create visualizations for each game in its own folder
+        for session in sessions:
+            game_organized_path = debate_config.get_organized_output_path(session.game_id)
+            visualizer = DebateVisualizer(game_organized_path)
+            visualization_paths = visualizer.create_all_visualizations([session])
+            
+            print(f"\n📊 Visualization files created for Game {session.game_id}:")
+            for name, path in visualization_paths.items():
+                print(f"  - {name}: {path}")
+    else:
+        print(f"\n💡 To generate visualizations later, run:")
+        # Show example for first game
+        if sessions:
+            example_path = debate_config.get_organized_output_path(sessions[0].game_id)
+            print(f"   python debate/debate_visualizer.py --results-dir {example_path}")
     
     # Print summary
     print(f"\n📈 DEBATE SUMMARY")
     print("=" * 30)
     
-    total_sessions = len(sessions)
+    total_debates = len(sessions)
     consensus_reached = sum(1 for s in sessions if s.final_vote)
     supervisor_used = sum(1 for s in sessions if s.supervisor_decision)
     
-    print(f"Total Sessions: {total_sessions}")
-    print(f"Consensus Reached: {consensus_reached}/{total_sessions} ({consensus_reached/total_sessions*100:.1f}%)")
-    print(f"Supervisor Used: {supervisor_used}/{total_sessions} ({supervisor_used/total_sessions*100:.1f}%)")
+    print(f"Total Debates: {total_debates}")
+    print(f"Consensus Reached: {consensus_reached}/{total_debates} ({consensus_reached/total_debates*100:.1f}%)")
+    print(f"Supervisor Used: {supervisor_used}/{total_debates} ({supervisor_used/total_debates*100:.1f}%)")
     
     # Calculate overall accuracy
     all_accuracies = []
@@ -188,7 +196,7 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     print("=" * 50)
     
     # Create custom configuration
-    debate_config = create_custom_debate_config(agent_configs)
+    debate_config = create_custom_debate_config(agent_configs, game_size, num_games)
     print(f"🤖 Custom agents: {[agent.name for agent in debate_config.agents]}")
     
     # Load ground truth games
@@ -205,22 +213,45 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     print(f"\n🔧 Initializing debate system...")
     debate_system = MultiAgentDebateSystem(debate_config)
     
-    # Run debate sessions
-    print(f"\n🎯 Running debate sessions...")
+    # Run debates
+    print(f"\n🎯 Running debates...")
     sessions = debate_system.run_batch_debate(games)
     
     # Create visualizations
     if enable_visualization:
         print(f"\n🎨 Creating visualizations...")
-        visualizer = DebateVisualizer(debate_config.output_path)
-        visualization_paths = visualizer.create_all_visualizations(sessions)
-        
-        print(f"\n📊 Visualization files created:")
-        for name, path in visualization_paths.items():
-            print(f"  - {name}: {path}")
+        # Create visualizations for each game in its own folder
+        for session in sessions:
+            game_organized_path = debate_config.get_organized_output_path(session.game_id)
+            visualizer = DebateVisualizer(game_organized_path)
+            visualization_paths = visualizer.create_all_visualizations([session])
+            
+            print(f"\n📊 Visualization files created for Game {session.game_id}:")
+            for name, path in visualization_paths.items():
+                print(f"  - {name}: {path}")
+    else:
+        print(f"\n💡 To generate visualizations later, run:")
+        # Show example for first game
+        if sessions:
+            example_path = debate_config.get_organized_output_path(sessions[0].game_id)
+            print(f"   python debate/debate_visualizer.py --results-dir {example_path}")
     
     print(f"\n✅ Custom debate system completed successfully!")
-    print(f"📁 Results saved to: {debate_config.output_path}")
+    # Show the base agent folder path
+    agent_count = len(debate_config.agents)
+    model_names = [agent.model for agent in debate_config.agents]
+    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}"
+    base_path = os.path.join(debate_config.output_path, agent_folder)
+    print(f"📁 Results saved to: {base_path}")
+
+def parse_key_value_args(args):
+    """Parse key=value arguments from command line."""
+    parsed = {}
+    for arg in args:
+        if '=' in arg:
+            key, value = arg.split('=', 1)
+            parsed[key] = value
+    return parsed
 
 def main():
     """Main function with command line interface."""
@@ -231,10 +262,26 @@ def main():
         print("  run <config_name> [game_size] [num_games]")
         print("  custom <agent_configs_json> [game_size] [num_games]")
         print("  list-configs")
+        print("\nNew format (recommended):")
+        print("  python run_debate.py <config_name> game_size=<size> game_num=<num_games>")
         print("\nExamples:")
+        print("  python run_debate.py default game_size=5 game_num=3")
+        print("  python run_debate.py two_agents game_size=6 game_num=1")
         print("  python run_debate.py run default 5 3")
-        print("  python run_debate.py run two_agents 5 5")
         print("  python run_debate.py list-configs")
+        return
+    
+    # Check if using new key=value format
+    kv_args = parse_key_value_args(sys.argv[1:])
+    
+    if 'game_size' in kv_args or 'game_num' in kv_args:
+        # New format: python run_debate.py <config_name> game_size=X game_num=Y
+        config_name = sys.argv[1] if sys.argv[1] not in kv_args else "default"
+        game_size = int(kv_args.get('game_size', 5))
+        num_games = int(kv_args.get('game_num', 1))
+        
+        print(f"🎯 Running configuration '{config_name}' with {game_size} players, {num_games} games")
+        run_single_debate_session(config_name, game_size, num_games)
         return
     
     command = sys.argv[1]
@@ -271,10 +318,17 @@ def main():
             print(f"  Max Rounds: {config.max_debate_rounds}")
             print(f"  Self-Adjustment: {config.enable_self_adjustment}")
             print(f"  Majority Vote: {config.enable_majority_vote}")
+            print(f"  Game Size: {config.game_size}")
+            print(f"  Game Num: {config.game_num}")
     
     else:
-        print(f"Error: Unknown command '{command}'")
-        print("Use 'python run_debate.py' without arguments to see usage.")
+        # Try to treat as config name with default parameters
+        config_name = command
+        game_size = 5
+        num_games = 1
+        
+        print(f"🎯 Running configuration '{config_name}' with default parameters (size={game_size}, games={num_games})")
+        run_single_debate_session(config_name, game_size, num_games)
 
 if __name__ == "__main__":
     main()

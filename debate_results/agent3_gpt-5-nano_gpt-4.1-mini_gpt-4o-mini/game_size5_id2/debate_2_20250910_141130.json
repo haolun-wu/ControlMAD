@@ -1,0 +1,657 @@
+{
+  "game_id": 2,
+  "game_text": "---\nPlayer name: Grace\nPlayer statement: Among Wendy, Liam, Noah, and I, the number of spies is odd.\n---\nPlayer name: Noah\nPlayer statement: Liam and Grace have the same role.\n---\nPlayer name: Liam\nPlayer statement: Among David, Grace, and I, there are exactly two knaves.\n---\nPlayer name: David\nPlayer statement: Among Grace, Liam, and Noah, exactly two people are telling the truth.\n---\nPlayer name: Wendy\nPlayer statement: Among the following two statements, exactly one is true: \n (1). Among Noah, Grace, and Liam, the number of people who are telling the truth is even.\n (2). David and Grace have the same role.\n---\nMessage from the game manager: I am the game manager and here is a hint for you: Among all players, there is exactly one spy.\n",
+  "ground_truth_solution": {
+    "Grace": "knight",
+    "Noah": "knave",
+    "Liam": "spy",
+    "David": "knave",
+    "Wendy": "knave"
+  },
+  "initial_proposals": [
+    {
+      "agent_name": "Agent-1",
+      "game_id": 2,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Grace": "knight",
+        "Noah": "knave",
+        "Liam": "knight",
+        "David": "knave",
+        "Wendy": "knave"
+      },
+      "explanation": "After checking the constraints, Grace cannot be knave or spy without causing contradictions in the truth values of others. Assuming Grace as knight leads to inconsistencies in David's and Wendy's statements. The remaining consistent pattern is not constructible within the given constraints; hence no coherent assignment satisfies all statements with exactly one spy. The contradiction arises from Wendy’s two-part statement and the required single spy among all players.",
+      "confidence": 0.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knight\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"After checking the constraints, Grace cannot be knave or spy without causing contradictions in the truth values of others. Assuming Grace as knight leads to inconsistencies in David's and Wendy's statements. The remaining consistent pattern is not constructible within the given constraints; hence no coherent assignment satisfies all statements with exactly one spy. The contradiction arises from Wendy’s two-part statement and the required single spy among all players.\"\n}",
+        "usage": {
+          "input": 1047,
+          "output": 3759,
+          "reasoning": 3584,
+          "cached": 0,
+          "total": 4806
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-10T14:08:12.443811",
+      "error": ""
+    },
+    {
+      "agent_name": "Agent-2",
+      "game_id": 2,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Grace": "knight",
+        "Noah": "knave",
+        "Liam": "knight",
+        "David": "knave",
+        "Wendy": "spy"
+      },
+      "explanation": "The hint says there is exactly one spy. Grace says the number of spies among Wendy, Liam, Noah, and herself is odd. Since only one spy exists in total, Grace's statement is true, so Grace is a knight. Noah claims Liam and Grace have the same role. Grace is a knight, so if Noah tells truth, Liam would also be knight. We will verify this. Liam says among David, Grace, and himself, there are exactly two knaves. Since Grace is knight, and if Liam were knight (telling the truth), two of David, Grace, Liam are knaves. Grace is knight, so David and Liam would be knaves. But Liam cannot be both knight and knave. Therefore, Liam must be lying and not knight. But if Liam lies, he can be knave or spy. We have one spy total, so someone must be spy. David says among Grace, Liam, and Noah exactly two tell the truth. Grace is knight (truth), Liam (we are uncertain), Noah's truth-telling is unknown. We find that if David's statement is true, David is knight. But then David and Liam would both be knights. That contradicts the Liam's lying deduction. So David is lying and is a knave. Wendy says exactly one of the two statements is true: 1) number of truth-tellers among Noah, Grace, Liam is even, 2) David and Grace have the same role. We know Grace is knight and David is knave, so statement 2 is false. So statement 1 must be true to satisfy Wendy's statement. Statement 1 being true means even number of truth-tellers among Noah, Grace, Liam. Grace is true. Liam was found lying (so false). Noah's truthfulness is undetermined. If Noah is knave (lying), then truth-tellers among Noah, Grace, Liam is 1 (Grace only), which is odd, contradicting statement 1. So Noah is knave, lies, so statement 1 is false in that case, contradicting Wendy's statement. So Noah is knave, lying, leaves inconsistency. The only way to satisfy Wendy is if Noah is knave (lying), Liam is knight (truth), Grace knight (truth), so truth-tellers among Noah, Grace, Liam is 2, which is even, making statement 1 true, statement 2 false, Wendy's overall statement true, so Wendy can be spy telling truth or lying. Since Wendy is the only player whose role is unclear, she must be the spy. Hence, Grace knight, Liam knight, Noah knave, David knave, Wendy spy.",
+      "confidence": 0.0,
+      "response_obj": {
+        "text": "{\n  \"players\": [\n    {\"name\": \"Grace\", \"role\": \"knight\"},\n    {\"name\": \"Noah\", \"role\": \"knave\"},\n    {\"name\": \"Liam\", \"role\": \"knight\"},\n    {\"name\": \"David\", \"role\": \"knave\"},\n    {\"name\": \"Wendy\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"The hint says there is exactly one spy. Grace says the number of spies among Wendy, Liam, Noah, and herself is odd. Since only one spy exists in total, Grace's statement is true, so Grace is a knight. Noah claims Liam and Grace have the same role. Grace is a knight, so if Noah tells truth, Liam would also be knight. We will verify this. Liam says among David, Grace, and himself, there are exactly two knaves. Since Grace is knight, and if Liam were knight (telling the truth), two of David, Grace, Liam are knaves. Grace is knight, so David and Liam would be knaves. But Liam cannot be both knight and knave. Therefore, Liam must be lying and not knight. But if Liam lies, he can be knave or spy. We have one spy total, so someone must be spy. David says among Grace, Liam, and Noah exactly two tell the truth. Grace is knight (truth), Liam (we are uncertain), Noah's truth-telling is unknown. We find that if David's statement is true, David is knight. But then David and Liam would both be knights. That contradicts the Liam's lying deduction. So David is lying and is a knave. Wendy says exactly one of the two statements is true: 1) number of truth-tellers among Noah, Grace, Liam is even, 2) David and Grace have the same role. We know Grace is knight and David is knave, so statement 2 is false. So statement 1 must be true to satisfy Wendy's statement. Statement 1 being true means even number of truth-tellers among Noah, Grace, Liam. Grace is true. Liam was found lying (so false). Noah's truthfulness is undetermined. If Noah is knave (lying), then truth-tellers among Noah, Grace, Liam is 1 (Grace only), which is odd, contradicting statement 1. So Noah is knave, lies, so statement 1 is false in that case, contradicting Wendy's statement. So Noah is knave, lying, leaves inconsistency. The only way to satisfy Wendy is if Noah is knave (lying), Liam is knight (truth), Grace knight (truth), so truth-tellers among Noah, Grace, Liam is 2, which is even, making statement 1 true, statement 2 false, Wendy's overall statement true, so Wendy can be spy telling truth or lying. Since Wendy is the only player whose role is unclear, she must be the spy. Hence, Grace knight, Liam knight, Noah knave, David knave, Wendy spy.\"\n}",
+        "usage": {
+          "input": 1048,
+          "output": 633,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1681
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-10T14:05:16.106309",
+      "error": ""
+    },
+    {
+      "agent_name": "Agent-3",
+      "game_id": 2,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Grace": "knight",
+        "Noah": "knave",
+        "Liam": "knave",
+        "David": "spy",
+        "Wendy": "knight"
+      },
+      "explanation": "The hint states there is exactly one spy. If Grace is telling the truth, there must be an odd number of spies among Wendy, Liam, Noah, and her; hence she is not a knave. Noah's statement implies he and Liam share the same role. If both are lying as knaves, their role consistency holds. Liam's statement about two knaves among David, Grace, and himself cannot be true if Grace is a knight; thus, David must be a spy contradicting Liam's claim. David's statement suggests two truths among Grace, Liam, and Noah, which cannot coexist with their roles. Wendy's statements imply that only one must be true, indicating that either both (1) and (2) lead to inconsistencies, placing Noah as a knave, confirming Grace as the knight and David as the spy.",
+      "confidence": 0.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"spy\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The hint states there is exactly one spy. If Grace is telling the truth, there must be an odd number of spies among Wendy, Liam, Noah, and her; hence she is not a knave. Noah's statement implies he and Liam share the same role. If both are lying as knaves, their role consistency holds. Liam's statement about two knaves among David, Grace, and himself cannot be true if Grace is a knight; thus, David must be a spy contradicting Liam's claim. David's statement suggests two truths among Grace, Liam, and Noah, which cannot coexist with their roles. Wendy's statements imply that only one must be true, indicating that either both (1) and (2) lead to inconsistencies, placing Noah as a knave, confirming Grace as the knight and David as the spy.\"\n}",
+        "usage": {
+          "input": 1048,
+          "output": 257,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1305
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-10T14:05:09.589382",
+      "error": ""
+    }
+  ],
+  "debate_rounds": [
+    {
+      "player_name": "Grace",
+      "round_number": 1,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 2,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "spy",
+            "Noah": "knave",
+            "Liam": "knave",
+            "David": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "From the manager's hint there is exactly one spy. Grace cannot be knight or knave without inconsistency, so Grace is the spy. Noah's statement then cannot be true if Grace is the spy, forcing Noah to be knave. Liam's claim cannot be satisfied as true under the remaining constraints, thus Liam is knave, and David must also be knave to keep the system coherent. Wendy ends up as knight to provide a consistent truth-telling role given the others' enforced lies.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"spy\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"From the manager's hint there is exactly one spy. Grace cannot be knight or knave without inconsistency, so Grace is the spy. Noah's statement then cannot be true if Grace is the spy, forcing Noah to be knave. Liam's claim cannot be satisfied as true under the remaining constraints, thus Liam is knave, and David must also be knave to keep the system coherent. Wendy ends up as knight to provide a consistent truth-telling role given the others' enforced lies.\"\n}",
+            "usage": {
+              "input": 1340,
+              "output": 3457,
+              "reasoning": 3264,
+              "cached": 0,
+              "total": 4797
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:09:01.981466",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 2,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "spy",
+            "David": "knave",
+            "Wendy": "knave"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy. Grace's statement is that among Wendy, Liam, Noah, and herself, the number of spies is odd. With exactly one spy total, this makes Grace's statement true, so Grace is a knight. Noah says Liam and Grace have the same role; since Grace is a knight, this is false, making Noah a knave. Liam claims among David, Grace, and himself, there are exactly two knaves. David and Liam are candidates for knaves here. David states exactly two among Grace, Liam, and Noah are telling the truth. Grace (knight, telling truth) and Liam (unknown truthfulness) or Noah. Liam is the spy who can lie or tell the truth. Wendy's statement about exactly one of her two statements being true also fits with her being a knave. Liam as spy is consistent, as the only spy. This assignment satisfies all statements without contradictions.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"spy\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The game manager's hint states there is exactly one spy. Grace's statement is that among Wendy, Liam, Noah, and herself, the number of spies is odd. With exactly one spy total, this makes Grace's statement true, so Grace is a knight. Noah says Liam and Grace have the same role; since Grace is a knight, this is false, making Noah a knave. Liam claims among David, Grace, and himself, there are exactly two knaves. David and Liam are candidates for knaves here. David states exactly two among Grace, Liam, and Noah are telling the truth. Grace (knight, telling truth) and Liam (unknown truthfulness) or Noah. Liam is the spy who can lie or tell the truth. Wendy's statement about exactly one of her two statements being true also fits with her being a knave. Liam as spy is consistent, as the only spy. This assignment satisfies all statements without contradictions.\"\n}",
+            "usage": {
+              "input": 1341,
+              "output": 280,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1621
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:08:48.505844",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 2,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "spy",
+            "Liam": "knave",
+            "David": "knave",
+            "Wendy": "knave"
+          },
+          "explanation": "The hint indicates there is exactly one spy. Assuming Grace is a knight, her statement about the number of spies among Wendy, Liam, and Noah being odd holds true. Thus, one of them is the spy and can only be Noah since Liam must be lying by claiming there are two knaves among David, Grace, and himself; if he were truthful, it would contradict Grace being a knight. Wendy's statement also indicates that one among Noah, Grace, and Liam is truthful, affirming our analysis that Grace is the knight. Therefore, the roles align with the rest of the statements made by each player.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"spy\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint indicates there is exactly one spy. Assuming Grace is a knight, her statement about the number of spies among Wendy, Liam, and Noah being odd holds true. Thus, one of them is the spy and can only be Noah since Liam must be lying by claiming there are two knaves among David, Grace, and himself; if he were truthful, it would contradict Grace being a knight. Wendy's statement also indicates that one among Noah, Grace, and Liam is truthful, affirming our analysis that Grace is the knight. Therefore, the roles align with the rest of the statements made by each player.\"\n}",
+            "usage": {
+              "input": 1341,
+              "output": 211,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1552
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:08:47.638925",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Grace:\n- Agent-1: spy\n- Agent-2: knight\n- Agent-3: knight\n",
+      "consensus_reached": true,
+      "majority_role": "knight"
+    },
+    {
+      "player_name": "Noah",
+      "round_number": 2,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 2,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "spy",
+            "David": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "With exactly one spy, assume Liam is the spy. Then Grace must be truthful (knight), Noah's statement is false (Liam and Grace differ in role), so Noah is knave. David’s statement is false (only one knave among Grace, Liam, Noah), so David is knave. Wendy’s meta-statement evaluates to true when sub1 is true and sub2 false, which occurs if Liam’s statement is true; as a spy, Liam can tell truth. All constraints satisfied with exactly one spy (Liam).",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"spy\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"With exactly one spy, assume Liam is the spy. Then Grace must be truthful (knight), Noah's statement is false (Liam and Grace differ in role), so Noah is knave. David’s statement is false (only one knave among Grace, Liam, Noah), so David is knave. Wendy’s meta-statement evaluates to true when sub1 is true and sub2 false, which occurs if Liam’s statement is true; as a spy, Liam can tell truth. All constraints satisfied with exactly one spy (Liam).\"\n}",
+            "usage": {
+              "input": 1365,
+              "output": 1676,
+              "reasoning": 1472,
+              "cached": 0,
+              "total": 3041
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:09:29.085879",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 2,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "spy",
+            "David": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy. Grace claims that among Wendy, Liam, Noah, and herself, the number of spies is odd; since there is only one spy, Grace is telling the truth, making her a knight. Noah's statement that Liam and Grace have the same role must then be false, making Noah a knave. Liam's claim that among David, Grace, and himself there are exactly two knaves fits only if Liam is the spy and David is a knave. David says exactly two among Grace, Liam, and Noah tell the truth; we have Grace and Wendy as knights (truth-tellers), and Noah and David as knaves. Wendy's complicated statement is consistent with one of her two claims being true, making her a knight. Thus, the roles are assigned as above, consistent with all statements and the single spy constraint.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"spy\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The game manager's hint states there is exactly one spy. Grace claims that among Wendy, Liam, Noah, and herself, the number of spies is odd; since there is only one spy, Grace is telling the truth, making her a knight. Noah's statement that Liam and Grace have the same role must then be false, making Noah a knave. Liam's claim that among David, Grace, and himself there are exactly two knaves fits only if Liam is the spy and David is a knave. David says exactly two among Grace, Liam, and Noah tell the truth; we have Grace and Wendy as knights (truth-tellers), and Noah and David as knaves. Wendy's complicated statement is consistent with one of her two claims being true, making her a knight. Thus, the roles are assigned as above, consistent with all statements and the single spy constraint.\"\n}",
+            "usage": {
+              "input": 1366,
+              "output": 265,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1631
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:09:17.522463",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 2,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "spy",
+            "David": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "Given that there is exactly one spy, Grace's statement about the odd number of spies is true, meaning she is a knight. Noah's claim that Liam and Grace share a role must be false, so Noah is a knave. Liam's statement about having exactly two knaves, alongside David's declaration which confirms that two among Grace, Liam, and Noah are truthful, leads to the conclusion that Liam must be the spy since he cannot count himself among the two knights. Wendy's combined analysis regarding the truthfulness of statements confirms her as a knight too since Grace's statement holds. Hence, the roles align consistently with the hints given.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"spy\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"Given that there is exactly one spy, Grace's statement about the odd number of spies is true, meaning she is a knight. Noah's claim that Liam and Grace share a role must be false, so Noah is a knave. Liam's statement about having exactly two knaves, alongside David's declaration which confirms that two among Grace, Liam, and Noah are truthful, leads to the conclusion that Liam must be the spy since he cannot count himself among the two knights. Wendy's combined analysis regarding the truthfulness of statements confirms her as a knight too since Grace's statement holds. Hence, the roles align consistently with the hints given.\"\n}",
+            "usage": {
+              "input": 1366,
+              "output": 216,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1582
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:09:17.157046",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Noah:\n- Agent-1: knave\n- Agent-2: knave\n- Agent-3: knave\n",
+      "consensus_reached": true,
+      "majority_role": "knave"
+    },
+    {
+      "player_name": "Liam",
+      "round_number": 3,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 2,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Noah": "spy",
+            "Liam": "knave",
+            "David": "knight",
+            "Wendy": "knight"
+          },
+          "explanation": "Liam cannot be a knight because that would force Grace's statement to be true under the one-spy constraint, which contradicts Grace being a knave. Testing Liam as knave with the one-spy condition leads to a consistent assignment when Noah is the spy, and David and Wendy turn out to be knights while Grace remains a knave. This satisfies all statements with exactly one spy and no contradictions across the five players.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Noah\", \"role\": \"spy\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"Liam cannot be a knight because that would force Grace's statement to be true under the one-spy constraint, which contradicts Grace being a knave. Testing Liam as knave with the one-spy condition leads to a consistent assignment when Noah is the spy, and David and Wendy turn out to be knights while Grace remains a knave. This satisfies all statements with exactly one spy and no contradictions across the five players.\"\n}",
+            "usage": {
+              "input": 1341,
+              "output": 3891,
+              "reasoning": 3712,
+              "cached": 0,
+              "total": 5232
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:10:06.712323",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 2,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "knave",
+            "David": "spy",
+            "Wendy": "knight"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy. Grace claims the number of spies among Wendy, Liam, Noah, and herself is odd; since there is only one spy, Grace must be telling the truth and is therefore a knight. Liam states that among David, Grace, and himself there are exactly two knaves. If Liam were a knight, this would force David and Liam himself to be knaves, which is a contradiction; thus Liam cannot be knight. Considering Liam as knave (liar) makes his statement false, meaning that in David, Grace, and Liam, there are not exactly two knaves. Noah claims Liam and Grace have the same role; since Grace is knight, if Noah's statement were true, Liam would be knight, which contradicts the previous conclusion. Therefore, Noah is lying and is a knave. David says that among Grace, Liam, and Noah, exactly two people are telling the truth. Grace is knight (truth-teller), Liam is knave (liar), Noah is knave (liar). Thus only one is telling truth among these three, contradicting David's statement if he is telling truth. So David must be lying here and is not knight, fitting the spy role perfectly. Wendy declares an XOR statement: exactly one of her two assertions is true—both of which reconcile with her being a knight. This setup fits all constraints and roles consistently: Grace and Wendy are knights, Liam and Noah are knaves, and David is the single spy.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"spy\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The game manager's hint states there is exactly one spy. Grace claims the number of spies among Wendy, Liam, Noah, and herself is odd; since there is only one spy, Grace must be telling the truth and is therefore a knight. Liam states that among David, Grace, and himself there are exactly two knaves. If Liam were a knight, this would force David and Liam himself to be knaves, which is a contradiction; thus Liam cannot be knight. Considering Liam as knave (liar) makes his statement false, meaning that in David, Grace, and Liam, there are not exactly two knaves. Noah claims Liam and Grace have the same role; since Grace is knight, if Noah's statement were true, Liam would be knight, which contradicts the previous conclusion. Therefore, Noah is lying and is a knave. David says that among Grace, Liam, and Noah, exactly two people are telling the truth. Grace is knight (truth-teller), Liam is knave (liar), Noah is knave (liar). Thus only one is telling truth among these three, contradicting David's statement if he is telling truth. So David must be lying here and is not knight, fitting the spy role perfectly. Wendy declares an XOR statement: exactly one of her two assertions is true—both of which reconcile with her being a knight. This setup fits all constraints and roles consistently: Grace and Wendy are knights, Liam and Noah are knaves, and David is the single spy.\"\n}",
+            "usage": {
+              "input": 1342,
+              "output": 395,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1737
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:09:53.509653",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 2,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "spy",
+            "David": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "Given the hint of exactly one spy, Grace's statement about having an odd number of spies must be true, making her a knight. If Grace is a knight, Noah's statement claiming he and Liam share the same role must be false, making Noah a knave. Liam, therefore, must be the spy since he aligns with Grace's statement of odd spies. Considering David's claim of two knaves must also account for Wendy's statement structure, it leads us to deduce that David and Noah are both knaves, while Wendy is thereby validated as a knight due to her correct alignment with the truth.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"spy\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"Given the hint of exactly one spy, Grace's statement about having an odd number of spies must be true, making her a knight. If Grace is a knight, Noah's statement claiming he and Liam share the same role must be false, making Noah a knave. Liam, therefore, must be the spy since he aligns with Grace's statement of odd spies. Considering David's claim of two knaves must also account for Wendy's statement structure, it leads us to deduce that David and Noah are both knaves, while Wendy is thereby validated as a knight due to her correct alignment with the truth.\"\n}",
+            "usage": {
+              "input": 1342,
+              "output": 210,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1552
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:09:47.800462",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Liam:\n- Agent-1: knave\n- Agent-2: knave\n- Agent-3: spy\n",
+      "consensus_reached": true,
+      "majority_role": "knave"
+    },
+    {
+      "player_name": "David",
+      "round_number": 4,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 2,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "knave",
+            "David": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "Assuming Grace is a knight makes Grace's statement true, implying exactly one spy among {Grace, Wendy, Liam, Noah}. Testing consistency shows Liam and Noah can be knaves, David knight, leaving Wendy as the sole spy; then all statements fit: Grace's true; Noah and Liam false; David true; Wendy (spy) can mix truth/lie and her combined statement about the two subparts matches the required exactly-one-true condition.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Assuming Grace is a knight makes Grace's statement true, implying exactly one spy among {Grace, Wendy, Liam, Noah}. Testing consistency shows Liam and Noah can be knaves, David knight, leaving Wendy as the sole spy; then all statements fit: Grace's true; Noah and Liam false; David true; Wendy (spy) can mix truth/lie and her combined statement about the two subparts matches the required exactly-one-true condition.\"\n}",
+            "usage": {
+              "input": 1345,
+              "output": 2488,
+              "reasoning": 2304,
+              "cached": 0,
+              "total": 3833
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:10:42.926594",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 2,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "knave",
+            "David": "knave",
+            "Wendy": "spy"
+          },
+          "explanation": "The game manager's hint tells us there is exactly one spy. Grace claims that among Wendy, Liam, Noah, and herself, the number of spies is odd. Since only one spy exists overall, Grace's statement is true, so she is a knight. David states that among Grace, Liam, and Noah, exactly two people are telling the truth. If Grace is truthful (a knight), then among Liam and Noah, only one can also tell the truth for David's statement to hold. Assume David is telling the truth (knight), then two among Grace, Liam, and Noah tell the truth. Grace already true, so either Liam or Noah but not both is truthful. However, Noah claims Liam and Grace have the same role, which contradicts because Grace is knight and Liam must then be knight, violating the single-spy rule or the number of knaves needed. So Noah is lying (knave). Liam's statement about exactly two knaves among David, Grace, and Liam matches if David and Liam are knaves. David says two among Grace, Liam, and Noah tell the truth. Grace is truthful, Liam is lying, Noah lying; so only one truth teller, thus David's statement is false, so David is knave. Only one spy remains, assigned to Wendy. Wendy's complex statement about exactly one true statement holds true if her statement is truthful or false depending on Wendy's lying or truthful choice, consistent with spy role. Thus, David is knave, Wendy is spy, Grace knight, Liam and Noah knaves.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The game manager's hint tells us there is exactly one spy. Grace claims that among Wendy, Liam, Noah, and herself, the number of spies is odd. Since only one spy exists overall, Grace's statement is true, so she is a knight. David states that among Grace, Liam, and Noah, exactly two people are telling the truth. If Grace is truthful (a knight), then among Liam and Noah, only one can also tell the truth for David's statement to hold. Assume David is telling the truth (knight), then two among Grace, Liam, and Noah tell the truth. Grace already true, so either Liam or Noah but not both is truthful. However, Noah claims Liam and Grace have the same role, which contradicts because Grace is knight and Liam must then be knight, violating the single-spy rule or the number of knaves needed. So Noah is lying (knave). Liam's statement about exactly two knaves among David, Grace, and Liam matches if David and Liam are knaves. David says two among Grace, Liam, and Noah tell the truth. Grace is truthful, Liam is lying, Noah lying; so only one truth teller, thus David's statement is false, so David is knave. Only one spy remains, assigned to Wendy. Wendy's complex statement about exactly one true statement holds true if her statement is truthful or false depending on Wendy's lying or truthful choice, consistent with spy role. Thus, David is knave, Wendy is spy, Grace knight, Liam and Noah knaves.\"\n}",
+            "usage": {
+              "input": 1346,
+              "output": 402,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1748
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:10:34.186287",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 2,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "spy",
+            "David": "knave",
+            "Wendy": "knight"
+          },
+          "explanation": "The hint states there is exactly one spy. If Grace's statement about an odd number of spies among her, Wendy, Liam, and Noah is true, she is a knight. This means her statement is valid. Noah's statement (same role as Liam) must be false; hence Noah is the knave. Liam's statement, claiming two knaves among David, Grace, and himself, can't hold with only one spy, confirming that David is also a knave. Wendy's statement combining possible truths aligns with being a knight, as it doesn't contradict the findings. Since only one can be a spy, Liam takes that role.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"spy\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The hint states there is exactly one spy. If Grace's statement about an odd number of spies among her, Wendy, Liam, and Noah is true, she is a knight. This means her statement is valid. Noah's statement (same role as Liam) must be false; hence Noah is the knave. Liam's statement, claiming two knaves among David, Grace, and himself, can't hold with only one spy, confirming that David is also a knave. Wendy's statement combining possible truths aligns with being a knight, as it doesn't contradict the findings. Since only one can be a spy, Liam takes that role.\"\n}",
+            "usage": {
+              "input": 1346,
+              "output": 215,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1561
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:10:33.467672",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for David:\n- Agent-1: knight\n- Agent-2: knave\n- Agent-3: knave\n",
+      "consensus_reached": true,
+      "majority_role": "knave"
+    },
+    {
+      "player_name": "Wendy",
+      "round_number": 5,
+      "agent_responses": [
+        {
+          "agent_name": "Agent-1",
+          "game_id": 2,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "knave",
+            "David": "knave",
+            "Wendy": "spy"
+          },
+          "explanation": "No unique consistent assignment can be derived from the given statements and the single-spy constraint; multiple configurations could satisfy the rules, so Wendy being the spy with Grace as knight leads to contradictions elsewhere, and alternative allocations fail similarly. Therefore, without additional constraints, the Wendy role remains indeterminate.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"No unique consistent assignment can be derived from the given statements and the single-spy constraint; multiple configurations could satisfy the rules, so Wendy being the spy with Grace as knight leads to contradictions elsewhere, and alternative allocations fail similarly. Therefore, without additional constraints, the Wendy role remains indeterminate.\"\n}",
+            "usage": {
+              "input": 1344,
+              "output": 4247,
+              "reasoning": 4096,
+              "cached": 0,
+              "total": 5591
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:11:30.286462",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-2",
+          "game_id": 2,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "knave",
+            "David": "knave",
+            "Wendy": "spy"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy. Grace says that among Wendy, Liam, Noah, and herself, the number of spies is odd. If Wendy were not the spy, then since there is only one spy, Grace's statement would be false or true depending on who is spy. Assigning Wendy as the spy makes Grace's statement true because among the four in question, there is exactly one spy, an odd number. Thus, Grace must be telling the truth and is a knight. Noah claims Liam and Grace have the same role. Since Grace is knight, Noah's statement must be false (Noah lying), so Noah cannot be knight; Noah is either knave or spy. Liam claims that among David, Grace, and himself, there are exactly two knaves. As Grace is knight and Liam claims there are two knaves among the three, Liam's statement can be true only if David and Liam are knaves. David states that among Grace, Liam, and Noah, exactly two people tell the truth. Grace is knight and truthful; if Liam and Noah are knaves, then only one among Liam and Noah tells the truth, making David's statement false. Since David's statement is false, David must be knave. Wendy's statement is a complex exclusive or between her two sub-statements. Given the assignments above, Wendy's statement can be true or false — consistent with Wendy being the spy who can lie or tell truth. This assignment respects all constraints and roles consistent with the players' statements and the manager's hint.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knave\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The game manager's hint states there is exactly one spy. Grace says that among Wendy, Liam, Noah, and herself, the number of spies is odd. If Wendy were not the spy, then since there is only one spy, Grace's statement would be false or true depending on who is spy. Assigning Wendy as the spy makes Grace's statement true because among the four in question, there is exactly one spy, an odd number. Thus, Grace must be telling the truth and is a knight. Noah claims Liam and Grace have the same role. Since Grace is knight, Noah's statement must be false (Noah lying), so Noah cannot be knight; Noah is either knave or spy. Liam claims that among David, Grace, and himself, there are exactly two knaves. As Grace is knight and Liam claims there are two knaves among the three, Liam's statement can be true only if David and Liam are knaves. David states that among Grace, Liam, and Noah, exactly two people tell the truth. Grace is knight and truthful; if Liam and Noah are knaves, then only one among Liam and Noah tells the truth, making David's statement false. Since David's statement is false, David must be knave. Wendy's statement is a complex exclusive or between her two sub-statements. Given the assignments above, Wendy's statement can be true or false — consistent with Wendy being the spy who can lie or tell truth. This assignment respects all constraints and roles consistent with the players' statements and the manager's hint.\"\n}",
+            "usage": {
+              "input": 1345,
+              "output": 402,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1747
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:11:19.591366",
+          "error": ""
+        },
+        {
+          "agent_name": "Agent-3",
+          "game_id": 2,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knight",
+            "Noah": "knave",
+            "Liam": "knave",
+            "David": "knight",
+            "Wendy": "spy"
+          },
+          "explanation": "Assuming Wendy is the spy, Grace's statement about the odd number of spies among {Wendy, Liam, Noah, Grace} holds true, as there is exactly one spy. This validates Grace as a knight. Noah and Liam cannot both be knights since Grace's statement holds. Since David claims there are exactly two truth-tellers among Grace, Liam, and himself, and we find that Grace is truthful, David must also be truthful, confirming him as a knight. Thus, Noah and Liam must be knaves, as their statements cannot coexist with the established truth.",
+          "confidence": 0.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Noah\", \"role\": \"knave\"},\n        {\"name\": \"Liam\", \"role\": \"knave\"},\n        {\"name\": \"David\", \"role\": \"knight\"},\n        {\"name\": \"Wendy\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Assuming Wendy is the spy, Grace's statement about the odd number of spies among {Wendy, Liam, Noah, Grace} holds true, as there is exactly one spy. This validates Grace as a knight. Noah and Liam cannot both be knights since Grace's statement holds. Since David claims there are exactly two truth-tellers among Grace, Liam, and himself, and we find that Grace is truthful, David must also be truthful, confirming him as a knight. Thus, Noah and Liam must be knaves, as their statements cannot coexist with the established truth.\"\n}",
+            "usage": {
+              "input": 1345,
+              "output": 203,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1548
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-10T14:11:10.684510",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Wendy:\n- Agent-1: spy\n- Agent-2: spy\n- Agent-3: spy\n",
+      "consensus_reached": true,
+      "majority_role": "spy"
+    }
+  ],
+  "final_vote": {
+    "Grace": "knight",
+    "Noah": "knave",
+    "Liam": "knave",
+    "David": "knave",
+    "Wendy": "knight"
+  },
+  "supervisor_decision": null,
+  "performance_tracking": {
+    "game_id": 2,
+    "ground_truth": {
+      "Grace": "knight",
+      "Noah": "knave",
+      "Liam": "spy",
+      "David": "knave",
+      "Wendy": "knave"
+    },
+    "initial_accuracy": {
+      "Agent-1": 0.8,
+      "Agent-2": 0.6,
+      "Agent-3": 0.4
+    },
+    "final_accuracy": {
+      "majority_vote": 0.6
+    },
+    "consensus_accuracy": {},
+    "agent_performance": {},
+    "round_by_round": [
+      {
+        "player": "Grace",
+        "round": 1,
+        "agent_accuracy": {
+          "Agent-1": 0.4,
+          "Agent-2": 1.0,
+          "Agent-3": 0.6
+        }
+      },
+      {
+        "player": "Noah",
+        "round": 2,
+        "agent_accuracy": {
+          "Agent-1": 0.8,
+          "Agent-2": 0.8,
+          "Agent-3": 0.8
+        }
+      },
+      {
+        "player": "Liam",
+        "round": 3,
+        "agent_accuracy": {
+          "Agent-1": 0.0,
+          "Agent-2": 0.4,
+          "Agent-3": 0.8
+        }
+      },
+      {
+        "player": "David",
+        "round": 4,
+        "agent_accuracy": {
+          "Agent-1": 0.4,
+          "Agent-2": 0.6,
+          "Agent-3": 0.8
+        }
+      },
+      {
+        "player": "Wendy",
+        "round": 5,
+        "agent_accuracy": {
+          "Agent-1": 0.6,
+          "Agent-2": 0.6,
+          "Agent-3": 0.4
+        }
+      }
+    ]
+  }
+}

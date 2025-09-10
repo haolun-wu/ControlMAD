@@ -1,0 +1,138 @@
+DETAILED AGENT SOLUTION TRACKING REPORT
+==================================================
+
+GAME 1
+--------------------
+Ground Truth: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'spy', 'Wendy': 'knight'}
+
+INITIAL PROPOSALS:
+--------------------
+Agent-1:
+  Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'spy', 'Hank': 'knave', 'Wendy': 'knave'}
+  Accuracy: 0.400 (2/5)
+  Explanation: Assuming Violet is the unique spy makes Violet's statement unconstrained while forcing the others to...
+
+Agent-2:
+  Assignments: {'Tina': 'knight', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knave', 'Wendy': 'spy'}
+  Accuracy: 0.400 (2/5)
+  Explanation: The game manager's hint states there is exactly one spy, so statement (2) of Wendy must be true and ...
+
+Agent-3:
+  Assignments: {'Tina': 'knave', 'Sam': 'spy', 'Violet': 'knight', 'Hank': 'knave', 'Wendy': 'knight'}
+  Accuracy: 0.400 (2/5)
+  Explanation: The hint states there is exactly one spy. If Violet's statement is true (making her a knight), then ...
+
+DEBATE ROUNDS:
+--------------------
+Round 1 - Player: Tina
+Debate Summary: Debate summary for Tina:
+- Agent-1: knave
+- Agent-2: knave
+- Agent-3: knave
+
+  Agent-1:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: Assuming Wendy is the sole spy (manager's hint). Violet and Tina end up as knaves, making Hank's sta...
+  Agent-2:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: The game manager's hint that there is exactly one spy guides the reasoning. Tina's statement is an X...
+  Agent-3:
+    Assignments: {'Tina': 'knave', 'Sam': 'spy', 'Violet': 'knight', 'Hank': 'knight', 'Wendy': 'knave'}
+    Accuracy: 0.200 (1/5)
+    Explanation: Tina must be a knave because if she were a knight, her statement would create inconsistencies regard...
+  Consensus Reached: True
+  Majority Role: knave
+
+Round 2 - Player: Sam
+Debate Summary: Debate summary for Sam:
+- Agent-1: knave
+- Agent-2: knave
+- Agent-3: knave
+
+  Agent-1:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'spy', 'Wendy': 'knight'}
+    Accuracy: 1.000 (5/5)
+    Explanation: Assumed Hank is the sole spy (manager's hint). Set Violet and Tina as knaves and Wendy as knight. Th...
+  Agent-2:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: The game manager's hint states there is exactly one spy. Wendy’s statement (2) that among all player...
+  Agent-3:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knight', 'Hank': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.400 (2/5)
+    Explanation: Since the manager's hint indicates exactly one spy, we start with validating each player's statement...
+  Consensus Reached: True
+  Majority Role: knave
+
+Round 3 - Player: Violet
+Debate Summary: Debate summary for Violet:
+- Agent-1: knight
+- Agent-2: spy
+- Agent-3: spy
+
+  Agent-1:
+    Assignments: {'Tina': 'knave', 'Sam': 'knight', 'Violet': 'knight', 'Hank': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.400 (2/5)
+    Explanation: Based on the manager's hint that there is exactly one spy, the only consistent arrangement under the...
+  Agent-2:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'spy', 'Hank': 'knight', 'Wendy': 'knight'}
+    Accuracy: 0.600 (3/5)
+    Explanation: The game manager states there is exactly one spy. Tina and Sam have statements that imply contradict...
+  Agent-3:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'spy', 'Hank': 'knight', 'Wendy': 'knave'}
+    Accuracy: 0.400 (2/5)
+    Explanation: The game manager confirms there is exactly one spy. Since Tina is a knave, her statement must be fal...
+  Consensus Reached: True
+  Majority Role: spy
+
+Round 4 - Player: Hank
+Debate Summary: Debate summary for Hank:
+- Agent-1: knight
+- Agent-2: knave
+- Agent-3: knave
+
+  Agent-1:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: Assuming Wendy is the sole spy (manager's hint). If Hank were knave, Tina's and Violet's truth value...
+  Agent-2:
+    Assignments: {'Tina': 'knave', 'Sam': 'knight', 'Violet': 'knave', 'Hank': 'knave', 'Wendy': 'spy'}
+    Accuracy: 0.400 (2/5)
+    Explanation: The game manager's hint establishes exactly one spy among all players. Wendy's statement says either...
+  Agent-3:
+    Assignments: {'Tina': 'knight', 'Sam': 'spy', 'Violet': 'knave', 'Hank': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.400 (2/5)
+    Explanation: The game manager's hint confirms there is exactly one spy. Assuming Hank is a knave is consistent wi...
+  Consensus Reached: True
+  Majority Role: knave
+
+Round 5 - Player: Wendy
+Debate Summary: Debate summary for Wendy:
+- Agent-1: spy
+- Agent-2: spy
+- Agent-3: knave
+
+  Agent-1:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: Wendy must be the spy because otherwise Violet's statement cannot be satisfied with the exact-one-sp...
+  Agent-2:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: Given the manager's hint that there is exactly one spy, Wendy's statement must have exactly one true...
+  Agent-3:
+    Assignments: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'spy', 'Hank': 'knight', 'Wendy': 'knave'}
+    Accuracy: 0.400 (2/5)
+    Explanation: The game manager's hint states there is exactly one spy, which we deduced must be Violet. This impli...
+  Consensus Reached: True
+  Majority Role: spy
+
+FINAL RESULTS:
+--------------------
+Final Vote: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'spy'}
+Final Accuracy: 0.600 (3/5)
+
+==================================================
+

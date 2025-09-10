@@ -4,9 +4,14 @@ import pandas as pd
 import numpy as np
 from typing import List, Dict, Any, Optional
 import os
+import json
+import argparse
 from datetime import datetime
 
-from debate_system import DebateSession, DebateRound, AgentResponse
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from debate.debate_system import DebateSession, DebateRound, AgentResponse
 
 class DebateVisualizer:
     """Visualization system for multi-agent debate performance."""
@@ -23,25 +28,59 @@ class DebateVisualizer:
                                 save_path: Optional[str] = None) -> str:
         """Create a performance matrix showing accuracy across agents and rounds."""
         
-        # Collect data
+        # Collect data for all phases
         data = []
+        
         for session in sessions:
+            # Initial proposals
+            for proposal in session.initial_proposals:
+                correct = 0
+                total = len(session.ground_truth_solution)
+                for player, role in session.ground_truth_solution.items():
+                    if proposal.player_role_assignments.get(player) == role:
+                        correct += 1
+                accuracy = correct / total if total > 0 else 0
+                
+                data.append({
+                    'Game': session.game_id,
+                    'Agent': proposal.agent_name,
+                    'Phase': 'Initial',
+                    'Accuracy': accuracy
+                })
+            
+            # Self-adjustment phases for each round
             for round_data in session.debate_rounds:
                 for response in round_data.agent_responses:
-                    # Calculate accuracy for this response
-                    correct = 0
-                    total = len(session.ground_truth_solution)
-                    for player, role in session.ground_truth_solution.items():
-                        if response.player_role_assignments.get(player) == role:
-                            correct += 1
-                    accuracy = correct / total if total > 0 else 0
-                    
+                    if response.phase == 'self_adjustment':
+                        correct = 0
+                        total = len(session.ground_truth_solution)
+                        for player, role in session.ground_truth_solution.items():
+                            if response.player_role_assignments.get(player) == role:
+                                correct += 1
+                        accuracy = correct / total if total > 0 else 0
+                        
+                        data.append({
+                            'Game': session.game_id,
+                            'Agent': response.agent_name,
+                            'Phase': f'After Round {round_data.round_number} Self-Adjust',
+                            'Accuracy': accuracy
+                        })
+            
+            # Final consensus (if available)
+            if session.final_vote:
+                correct = 0
+                total = len(session.ground_truth_solution)
+                for player, role in session.ground_truth_solution.items():
+                    if session.final_vote.get(player) == role:
+                        correct += 1
+                accuracy = correct / total if total > 0 else 0
+                
+                # Add final consensus for all agents (they should all have the same result)
+                for proposal in session.initial_proposals:
                     data.append({
                         'Game': session.game_id,
-                        'Agent': response.agent_name,
-                        'Round': round_data.round_number,
-                        'Player': round_data.player_name,
-                        'Phase': response.phase,
+                        'Agent': proposal.agent_name,
+                        'Phase': 'Final Consensus',
                         'Accuracy': accuracy
                     })
         
@@ -50,18 +89,40 @@ class DebateVisualizer:
         # Create pivot table for heatmap
         pivot_table = df.pivot_table(
             values='Accuracy', 
-            index=['Agent', 'Phase'], 
-            columns='Round', 
+            index='Agent', 
+            columns='Phase', 
             aggfunc='mean'
         )
         
+        # Reorder columns for logical flow
+        # Extract round numbers and sort
+        phase_columns = list(pivot_table.columns)
+        initial_col = 'Initial'
+        round_cols = [col for col in phase_columns if col.startswith('After Round')]
+        final_consensus_col = 'Final Consensus' if 'Final Consensus' in phase_columns else None
+        
+        # Sort round columns by round number
+        def extract_round_number(col):
+            if col.startswith('After Round'):
+                return int(col.split(' ')[2])
+            return 0
+        
+        round_cols.sort(key=extract_round_number)
+        
+        # Build phase order: Initial -> Rounds -> Final Consensus
+        phase_order = [initial_col] + round_cols
+        if final_consensus_col:
+            phase_order.append(final_consensus_col)
+        
+        pivot_table = pivot_table.reindex(columns=phase_order)
+        
         # Create heatmap
-        plt.figure(figsize=(12, 8))
+        plt.figure(figsize=(max(8, len(phase_order) * 2), 6))
         sns.heatmap(pivot_table, annot=True, cmap='RdYlGn', 
                    vmin=0, vmax=1, fmt='.2f', cbar_kws={'label': 'Accuracy'})
-        plt.title('Agent Performance Matrix: Accuracy by Round and Phase')
-        plt.xlabel('Round Number')
-        plt.ylabel('Agent and Phase')
+        plt.title('Agent Performance Matrix: Accuracy by Round\n(Shows how each agent\'s accuracy changes through debate rounds and final consensus)')
+        plt.xlabel('Phase')
+        plt.ylabel('Agent')
         plt.tight_layout()
         
         if save_path is None:
@@ -364,6 +425,21 @@ class DebateVisualizer:
             
             agent_stats = {}
             for session in sessions:
+                # Include initial proposals
+                for proposal in session.initial_proposals:
+                    agent_name = proposal.agent_name
+                    if agent_name not in agent_stats:
+                        agent_stats[agent_name] = []
+                    
+                    correct = 0
+                    total = len(session.ground_truth_solution)
+                    for player, role in session.ground_truth_solution.items():
+                        if proposal.player_role_assignments.get(player) == role:
+                            correct += 1
+                    accuracy = correct / total if total > 0 else 0
+                    agent_stats[agent_name].append(accuracy)
+                
+                # Include debate rounds
                 for round_data in session.debate_rounds:
                     for response in round_data.agent_responses:
                         agent_name = response.agent_name
@@ -404,6 +480,94 @@ class DebateVisualizer:
         print(f"📋 Summary report saved to: {save_path}")
         return save_path
     
+    def create_detailed_tracking_report(self, sessions: List[DebateSession],
+                                       save_path: Optional[str] = None) -> str:
+        """Create a detailed report showing how each agent's solution changes over rounds."""
+        
+        if save_path is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            save_path = os.path.join(self.output_path, f"detailed_tracking_{timestamp}.txt")
+        
+        with open(save_path, 'w', encoding='utf-8') as f:
+            f.write("DETAILED AGENT SOLUTION TRACKING REPORT\n")
+            f.write("=" * 50 + "\n\n")
+            
+            for session in sessions:
+                f.write(f"GAME {session.game_id}\n")
+                f.write("-" * 20 + "\n")
+                f.write(f"Ground Truth: {session.ground_truth_solution}\n\n")
+                
+                # Initial proposals
+                f.write("INITIAL PROPOSALS:\n")
+                f.write("-" * 20 + "\n")
+                for proposal in session.initial_proposals:
+                    f.write(f"{proposal.agent_name}:\n")
+                    f.write(f"  Assignments: {proposal.player_role_assignments}\n")
+                    
+                    # Calculate accuracy for this proposal
+                    correct = 0
+                    total = len(session.ground_truth_solution)
+                    for player, role in session.ground_truth_solution.items():
+                        if proposal.player_role_assignments.get(player) == role:
+                            correct += 1
+                    accuracy = correct / total if total > 0 else 0
+                    f.write(f"  Accuracy: {accuracy:.3f} ({correct}/{total})\n")
+                    f.write(f"  Explanation: {proposal.explanation[:100]}...\n\n")
+                
+                # Debate rounds
+                f.write("DEBATE ROUNDS:\n")
+                f.write("-" * 20 + "\n")
+                for round_data in session.debate_rounds:
+                    f.write(f"Round {round_data.round_number} - Player: {round_data.player_name}\n")
+                    f.write(f"Debate Summary: {round_data.debate_summary}\n")
+                    
+                    for response in round_data.agent_responses:
+                        f.write(f"  {response.agent_name}:\n")
+                        f.write(f"    Assignments: {response.player_role_assignments}\n")
+                        
+                        # Calculate accuracy for this response
+                        correct = 0
+                        total = len(session.ground_truth_solution)
+                        for player, role in session.ground_truth_solution.items():
+                            if response.player_role_assignments.get(player) == role:
+                                correct += 1
+                        accuracy = correct / total if total > 0 else 0
+                        f.write(f"    Accuracy: {accuracy:.3f} ({correct}/{total})\n")
+                        f.write(f"    Explanation: {response.explanation[:100]}...\n")
+                    
+                    f.write(f"  Consensus Reached: {round_data.consensus_reached}\n")
+                    f.write(f"  Majority Role: {round_data.majority_role}\n\n")
+                
+                # Final results
+                f.write("FINAL RESULTS:\n")
+                f.write("-" * 20 + "\n")
+                if session.final_vote:
+                    f.write(f"Final Vote: {session.final_vote}\n")
+                    # Calculate final accuracy
+                    correct = 0
+                    total = len(session.ground_truth_solution)
+                    for player, role in session.ground_truth_solution.items():
+                        if session.final_vote.get(player) == role:
+                            correct += 1
+                    accuracy = correct / total if total > 0 else 0
+                    f.write(f"Final Accuracy: {accuracy:.3f} ({correct}/{total})\n")
+                
+                if session.supervisor_decision:
+                    f.write(f"Supervisor Decision: {session.supervisor_decision}\n")
+                    # Calculate supervisor accuracy
+                    correct = 0
+                    total = len(session.ground_truth_solution)
+                    for player, role in session.ground_truth_solution.items():
+                        if session.supervisor_decision.get(player) == role:
+                            correct += 1
+                    accuracy = correct / total if total > 0 else 0
+                    f.write(f"Supervisor Accuracy: {accuracy:.3f} ({correct}/{total})\n")
+                
+                f.write("\n" + "=" * 50 + "\n\n")
+        
+        print(f"📋 Detailed tracking report saved to: {save_path}")
+        return save_path
+    
     def create_all_visualizations(self, sessions: List[DebateSession]) -> Dict[str, str]:
         """Create all visualizations and return file paths."""
         results = {}
@@ -426,5 +590,216 @@ class DebateVisualizer:
         # Summary report
         results['summary_report'] = self.create_summary_report(sessions)
         
+        # Detailed tracking report
+        results['detailed_tracking'] = self.create_detailed_tracking_report(sessions)
+        
         print(f"✅ All visualizations created in: {self.output_path}")
         return results
+
+def load_debate_sessions(results_dir: str) -> List[DebateSession]:
+    """Load debates from JSON files in the results directory."""
+    sessions = []
+    
+    # Find all debate JSON files
+    for filename in os.listdir(results_dir):
+        if filename.startswith('debate_') and filename.endswith('.json'):
+            filepath = os.path.join(results_dir, filename)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    session_data = json.load(f)
+                
+                # Convert back to DebateSession object
+                session = _dict_to_debate_session(session_data)
+                sessions.append(session)
+                print(f"✅ Loaded debate from {filename}")
+                
+            except Exception as e:
+                print(f"❌ Error loading {filename}: {e}")
+    
+    return sessions
+
+def _dict_to_debate_session(data: Dict[str, Any]) -> DebateSession:
+    """Convert dictionary back to DebateSession object."""
+    
+    # Convert initial proposals
+    initial_proposals = []
+    for proposal_data in data.get('initial_proposals', []):
+        proposal = AgentResponse(
+            agent_name=proposal_data['agent_name'],
+            game_id=proposal_data['game_id'],
+            round_number=proposal_data['round_number'],
+            phase=proposal_data['phase'],
+            player_role_assignments=proposal_data['player_role_assignments'],
+            explanation=proposal_data['explanation'],
+            confidence=proposal_data.get('confidence', 0.0),
+            timestamp=proposal_data.get('timestamp', ''),
+            error=proposal_data.get('error', '')
+        )
+        initial_proposals.append(proposal)
+    
+    # Convert debate rounds
+    debate_rounds = []
+    for round_data in data.get('debate_rounds', []):
+        agent_responses = []
+        for response_data in round_data['agent_responses']:
+            response = AgentResponse(
+                agent_name=response_data['agent_name'],
+                game_id=response_data['game_id'],
+                round_number=response_data['round_number'],
+                phase=response_data['phase'],
+                player_role_assignments=response_data['player_role_assignments'],
+                explanation=response_data['explanation'],
+                confidence=response_data.get('confidence', 0.0),
+                timestamp=response_data.get('timestamp', ''),
+                error=response_data.get('error', '')
+            )
+            agent_responses.append(response)
+        
+        debate_round = DebateRound(
+            player_name=round_data['player_name'],
+            round_number=round_data['round_number'],
+            agent_responses=agent_responses,
+            debate_summary=round_data.get('debate_summary', ''),
+            consensus_reached=round_data.get('consensus_reached', False),
+            majority_role=round_data.get('majority_role')
+        )
+        debate_rounds.append(debate_round)
+    
+    # Create DebateSession
+    session = DebateSession(
+        game_id=data['game_id'],
+        game_text=data['game_text'],
+        ground_truth_solution=data['ground_truth_solution'],
+        initial_proposals=initial_proposals,
+        debate_rounds=debate_rounds,
+        final_vote=data.get('final_vote'),
+        supervisor_decision=data.get('supervisor_decision'),
+        performance_tracking=data.get('performance_tracking')
+    )
+    
+    return session
+
+def main():
+    """Main function for standalone visualization."""
+    parser = argparse.ArgumentParser(
+        description="Generate visualizations from existing debate results",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python debate_visualizer.py --results-dir ./debate_results
+  python debate_visualizer.py --results-dir ./debate_results --output-dir ./visualizations
+  python debate_visualizer.py --results-dir ./debate_results --specific-session debate_session_1_20250910_133709.json
+        """
+    )
+    
+    parser.add_argument(
+        '--results-dir', '-r',
+        type=str,
+        default='./debate_results',
+        help='Directory containing debate session JSON files (default: ./debate_results)'
+    )
+    
+    parser.add_argument(
+        '--output-dir', '-o',
+        type=str,
+        default=None,
+        help='Output directory for visualizations (default: same as results-dir)'
+    )
+    
+    parser.add_argument(
+        '--specific-session', '-s',
+        type=str,
+        default=None,
+        help='Generate visualizations for a specific debate file only'
+    )
+    
+    parser.add_argument(
+        '--no-performance-matrix',
+        action='store_true',
+        help='Skip performance matrix generation'
+    )
+    
+    parser.add_argument(
+        '--no-consensus-tracking',
+        action='store_true',
+        help='Skip consensus tracking visualization'
+    )
+    
+    parser.add_argument(
+        '--no-agent-comparison',
+        action='store_true',
+        help='Skip agent comparison visualization'
+    )
+    
+    args = parser.parse_args()
+    
+    # Validate results directory
+    if not os.path.exists(args.results_dir):
+        print(f"❌ Results directory not found: {args.results_dir}")
+        return
+    
+    # Set output directory
+    if args.output_dir is None:
+        args.output_dir = args.results_dir
+    
+    print(f"🔍 Loading debates from: {args.results_dir}")
+    
+    # Load debates
+    if args.specific_session:
+        # Load specific debate
+        filepath = os.path.join(args.results_dir, args.specific_session)
+        if not os.path.exists(filepath):
+            print(f"❌ Specific debate file not found: {filepath}")
+            return
+        
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                session_data = json.load(f)
+            session = _dict_to_debate_session(session_data)
+            sessions = [session]
+            print(f"✅ Loaded specific debate: {args.specific_session}")
+        except Exception as e:
+            print(f"❌ Error loading specific debate: {e}")
+            return
+    else:
+        # Load all debates
+        sessions = load_debate_sessions(args.results_dir)
+    
+    if not sessions:
+        print("❌ No debates found!")
+        return
+    
+    print(f"📊 Found {len(sessions)} debate(s)")
+    
+    # Create visualizer
+    visualizer = DebateVisualizer(args.output_dir)
+    
+    # Generate visualizations
+    print("🎨 Generating visualizations...")
+    results = {}
+    
+    if not args.no_performance_matrix:
+        print("  📈 Creating performance matrix...")
+        results['performance_matrix'] = visualizer.create_performance_matrix(sessions)
+    
+    if not args.no_consensus_tracking:
+        print("  📊 Creating consensus tracking...")
+        results['consensus_tracking'] = visualizer.create_consensus_tracking(sessions)
+    
+    if not args.no_agent_comparison:
+        print("  🤖 Creating agent comparison...")
+        results['agent_comparison'] = visualizer.create_agent_comparison(sessions)
+    
+    # Individual debate flows
+    print("  🔄 Creating debate flow diagrams...")
+    for session in sessions:
+        results[f'debate_flow_{session.game_id}'] = visualizer.create_debate_flow_diagram(session)
+    
+    print(f"\n✅ All visualizations completed!")
+    print(f"📁 Results saved to: {args.output_dir}")
+    print("\nGenerated files:")
+    for name, path in results.items():
+        print(f"  - {name}: {os.path.basename(path)}")
+
+if __name__ == "__main__":
+    main()

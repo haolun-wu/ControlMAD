@@ -1,0 +1,138 @@
+DETAILED AGENT SOLUTION TRACKING REPORT
+==================================================
+
+GAME 2
+--------------------
+Ground Truth: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'spy', 'David': 'knave', 'Wendy': 'knave'}
+
+INITIAL PROPOSALS:
+--------------------
+Agent-1:
+  Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knight', 'David': 'knave', 'Wendy': 'knave'}
+  Accuracy: 0.800 (4/5)
+  Explanation: After checking the constraints, Grace cannot be knave or spy without causing contradictions in the t...
+
+Agent-2:
+  Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knight', 'David': 'knave', 'Wendy': 'spy'}
+  Accuracy: 0.600 (3/5)
+  Explanation: The hint says there is exactly one spy. Grace says the number of spies among Wendy, Liam, Noah, and ...
+
+Agent-3:
+  Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'spy', 'Wendy': 'knight'}
+  Accuracy: 0.400 (2/5)
+  Explanation: The hint states there is exactly one spy. If Grace is telling the truth, there must be an odd number...
+
+DEBATE ROUNDS:
+--------------------
+Round 1 - Player: Grace
+Debate Summary: Debate summary for Grace:
+- Agent-1: spy
+- Agent-2: knight
+- Agent-3: knight
+
+  Agent-1:
+    Assignments: {'Grace': 'spy', 'Noah': 'knave', 'Liam': 'knave', 'David': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.400 (2/5)
+    Explanation: From the manager's hint there is exactly one spy. Grace cannot be knight or knave without inconsiste...
+  Agent-2:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'spy', 'David': 'knave', 'Wendy': 'knave'}
+    Accuracy: 1.000 (5/5)
+    Explanation: The game manager's hint states there is exactly one spy. Grace's statement is that among Wendy, Liam...
+  Agent-3:
+    Assignments: {'Grace': 'knight', 'Noah': 'spy', 'Liam': 'knave', 'David': 'knave', 'Wendy': 'knave'}
+    Accuracy: 0.600 (3/5)
+    Explanation: The hint indicates there is exactly one spy. Assuming Grace is a knight, her statement about the num...
+  Consensus Reached: True
+  Majority Role: knight
+
+Round 2 - Player: Noah
+Debate Summary: Debate summary for Noah:
+- Agent-1: knave
+- Agent-2: knave
+- Agent-3: knave
+
+  Agent-1:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'spy', 'David': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.800 (4/5)
+    Explanation: With exactly one spy, assume Liam is the spy. Then Grace must be truthful (knight), Noah's statement...
+  Agent-2:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'spy', 'David': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.800 (4/5)
+    Explanation: The game manager's hint states there is exactly one spy. Grace claims that among Wendy, Liam, Noah, ...
+  Agent-3:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'spy', 'David': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.800 (4/5)
+    Explanation: Given that there is exactly one spy, Grace's statement about the odd number of spies is true, meanin...
+  Consensus Reached: True
+  Majority Role: knave
+
+Round 3 - Player: Liam
+Debate Summary: Debate summary for Liam:
+- Agent-1: knave
+- Agent-2: knave
+- Agent-3: spy
+
+  Agent-1:
+    Assignments: {'Grace': 'knave', 'Noah': 'spy', 'Liam': 'knave', 'David': 'knight', 'Wendy': 'knight'}
+    Accuracy: 0.000 (0/5)
+    Explanation: Liam cannot be a knight because that would force Grace's statement to be true under the one-spy cons...
+  Agent-2:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'spy', 'Wendy': 'knight'}
+    Accuracy: 0.400 (2/5)
+    Explanation: The game manager's hint states there is exactly one spy. Grace claims the number of spies among Wend...
+  Agent-3:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'spy', 'David': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.800 (4/5)
+    Explanation: Given the hint of exactly one spy, Grace's statement about having an odd number of spies must be tru...
+  Consensus Reached: True
+  Majority Role: knave
+
+Round 4 - Player: David
+Debate Summary: Debate summary for David:
+- Agent-1: knight
+- Agent-2: knave
+- Agent-3: knave
+
+  Agent-1:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.400 (2/5)
+    Explanation: Assuming Grace is a knight makes Grace's statement true, implying exactly one spy among {Grace, Wend...
+  Agent-2:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'knave', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: The game manager's hint tells us there is exactly one spy. Grace claims that among Wendy, Liam, Noah...
+  Agent-3:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'spy', 'David': 'knave', 'Wendy': 'knight'}
+    Accuracy: 0.800 (4/5)
+    Explanation: The hint states there is exactly one spy. If Grace's statement about an odd number of spies among he...
+  Consensus Reached: True
+  Majority Role: knave
+
+Round 5 - Player: Wendy
+Debate Summary: Debate summary for Wendy:
+- Agent-1: spy
+- Agent-2: spy
+- Agent-3: spy
+
+  Agent-1:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'knave', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: No unique consistent assignment can be derived from the given statements and the single-spy constrai...
+  Agent-2:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'knave', 'Wendy': 'spy'}
+    Accuracy: 0.600 (3/5)
+    Explanation: The game manager's hint states there is exactly one spy. Grace says that among Wendy, Liam, Noah, an...
+  Agent-3:
+    Assignments: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'knight', 'Wendy': 'spy'}
+    Accuracy: 0.400 (2/5)
+    Explanation: Assuming Wendy is the spy, Grace's statement about the odd number of spies among {Wendy, Liam, Noah,...
+  Consensus Reached: True
+  Majority Role: spy
+
+FINAL RESULTS:
+--------------------
+Final Vote: {'Grace': 'knight', 'Noah': 'knave', 'Liam': 'knave', 'David': 'knave', 'Wendy': 'knight'}
+Final Accuracy: 0.600 (3/5)
+
+==================================================
+

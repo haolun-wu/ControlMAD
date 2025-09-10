@@ -8,13 +8,12 @@ import sys
 import json
 from typing import List, Dict, Any
 
-# Add current directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from project_types import ground_truth
-from debate_config import create_custom_debate_config
-from debate_system import MultiAgentDebateSystem
-from debate_visualizer import DebateVisualizer
+from debate.debate_config import create_custom_debate_config
+from debate.debate_system import MultiAgentDebateSystem
+from debate.debate_visualizer import DebateVisualizer
 
 def create_sample_game() -> ground_truth:
     """Create a sample game for demonstration."""
