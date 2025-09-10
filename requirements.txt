@@ -1,0 +1,16 @@
+# Core packages
+openai>=1.0.0
+google-genai>=0.1.0
+
+# Data handling
+dataclasses; python_version < '3.7'
+
+# Standard library packages (no installation needed)
+# - json
+# - os  
+# - threading
+# - itertools
+# - concurrent.futures
+# - random
+# - time
+# - re
