@@ -14,20 +14,26 @@ from typing import List, Dict, Any
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from project_types import ground_truth
-from debate.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config
+from debate.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config, create_flexible_debate_config
 from debate.debate_system import MultiAgentDebateSystem
 from debate.debate_visualizer import DebateVisualizer
 from config import test_config
 
-def load_ground_truth_games(game_size: int = 5, num_games: int = 10) -> List[ground_truth]:
+def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None) -> List[ground_truth]:
     """Load ground truth games for testing."""
+    if game_id_range is None:
+        game_id_range = [1, 1]  # Default to single game
+    
+    start_id, end_id = game_id_range
     ground_truth_list = []
     
     try:
         ground_truth_path = f"./groundtruth/{game_size}.jsonl"
         with open(ground_truth_path, 'r', encoding='utf-8') as file:
             for line_num, line in enumerate(file, 1):
-                if line_num > num_games:  # Limit number of games
+                if line_num < start_id:  # Skip games before start_id
+                    continue
+                if line_num > end_id:  # Stop after end_id
                     break
                     
                 line = line.strip()
@@ -66,60 +72,44 @@ def load_ground_truth_games(game_size: int = 5, num_games: int = 10) -> List[gro
     
     return ground_truth_list
 
-def create_example_configs(game_size: int = 5, game_num: int = 1) -> Dict[str, DebateConfig]:
-    """Create example debate configurations."""
-    
-    configs = {}
-    
-    # Default 3-agent configuration
-    configs['default'] = create_default_debate_config(game_size, game_num)
-    
-    # 2-agent configuration
-    configs['two_agents'] = create_custom_debate_config([
-        {"name": "GPT-5", "provider": "openai", "model": "gpt-5-nano"},
-        {"name": "Gemini", "provider": "gemini", "model": "gemini-2.5-flash-lite"}
-    ], game_size, game_num)
-    
-    # 4-agent configuration
-    configs['four_agents'] = create_custom_debate_config([
-        {"name": "GPT-5", "provider": "openai", "model": "gpt-5-nano"},
-        {"name": "Gemini", "provider": "gemini", "model": "gemini-2.5-flash-lite"},
-        {"name": "Qwen", "provider": "ali", "model": "qwen-flash"},
-        {"name": "CST", "provider": "cst", "model": "gpt-oss-120b"}
-    ], game_size, game_num)
-    
-    # All OpenAI agents with different models
-    configs['openai_variants'] = create_custom_debate_config([
-        {"name": "GPT-5-Nano", "provider": "openai", "model": "gpt-5-nano", "temperature": 0.7},
-        {"name": "GPT-5", "provider": "openai", "model": "gpt-5", "temperature": 0.8},
-        {"name": "GPT-4o", "provider": "openai", "model": "gpt-4o", "temperature": 0.6}
-    ], game_size, game_num)
-    
-    return configs
 
-def run_single_debate_session(config_name: str = "default", 
-                            game_size: int = 5, 
-                            num_games: int = 3,
-                            enable_visualization: bool = True):
-    """Run a single debate with specified configuration."""
+def run_debates_with_system(debate_system, games, use_parallel=True):
+    """Helper function to run debates with either parallel or sequential processing."""
+    print(f"\n🎯 Running debates...")
+    if use_parallel:
+        print("🔄 Using parallel processing for multiple games")
+        return debate_system.run_parallel_batch_debate(games)
+    else:
+        print("🔄 Using sequential processing for multiple games")
+        return debate_system.run_batch_debate(games)
+
+
+def run_single_debate_session(game_size: int = 5, 
+                            game_id_range: List[int] = None,
+                            enable_visualization: bool = True,
+                            use_parallel: bool = True,
+                            game_parallel_workers: int = 20):
+    """Run a single debate with default configuration."""
     
     print("🚀 Starting Multi-Agent Debate System")
     print("=" * 50)
     
-    # Load configuration
-    configs = create_example_configs(game_size, num_games)
-    if config_name not in configs:
-        print(f"Error: Configuration '{config_name}' not found.")
-        print(f"Available configurations: {list(configs.keys())}")
-        return
+    # Set default game_id_range if not provided
+    if game_id_range is None:
+        game_id_range = [1, 3]  # Default to games 1-3
     
-    debate_config = configs[config_name]
-    print(f"📋 Using configuration: {config_name}")
+    # Load default configuration
+    debate_config = create_default_debate_config(game_size, game_id_range)
+    # Override game_parallel_workers if specified
+    debate_config.game_parallel_workers = game_parallel_workers
+    print(f"📋 Using default configuration")
     print(f"🤖 Agents: {[agent.name for agent in debate_config.agents]}")
+    print(f"🔧 Game parallel workers: {debate_config.game_parallel_workers}")
     
     # Load ground truth games
-    print(f"\n📚 Loading {num_games} games of size {game_size}...")
-    games = load_ground_truth_games(game_size, num_games)
+    num_games = debate_config.get_num_games()
+    print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
+    games = load_ground_truth_games(game_size, game_id_range)
     
     if not games:
         print("❌ No games loaded. Please generate ground truth data first.")
@@ -133,7 +123,7 @@ def run_single_debate_session(config_name: str = "default",
     
     # Run debates
     print(f"\n🎯 Running debates...")
-    sessions = debate_system.run_batch_debate(games)
+    sessions = run_debates_with_system(debate_system, games, use_parallel)
     
     # Create visualizations
     if enable_visualization:
@@ -188,20 +178,26 @@ def run_single_debate_session(config_name: str = "default",
 
 def run_custom_debate(agent_configs: List[Dict[str, Any]], 
                      game_size: int = 5, 
-                     num_games: int = 3,
-                     enable_visualization: bool = True):
+                     game_id_range: List[int] = None,
+                     enable_visualization: bool = True,
+                     use_parallel: bool = True):
     """Run debate with custom agent configuration."""
     
     print("🚀 Starting Custom Multi-Agent Debate System")
     print("=" * 50)
     
+    # Set default game_id_range if not provided
+    if game_id_range is None:
+        game_id_range = [1, 3]  # Default to games 1-3
+    
     # Create custom configuration
-    debate_config = create_custom_debate_config(agent_configs, game_size, num_games)
+    debate_config = create_custom_debate_config(agent_configs, game_size, game_id_range)
     print(f"🤖 Custom agents: {[agent.name for agent in debate_config.agents]}")
     
     # Load ground truth games
-    print(f"\n📚 Loading {num_games} games of size {game_size}...")
-    games = load_ground_truth_games(game_size, num_games)
+    num_games = debate_config.get_num_games()
+    print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
+    games = load_ground_truth_games(game_size, game_id_range)
     
     if not games:
         print("❌ No games loaded. Please generate ground truth data first.")
@@ -215,7 +211,7 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     
     # Run debates
     print(f"\n🎯 Running debates...")
-    sessions = debate_system.run_batch_debate(games)
+    sessions = run_debates_with_system(debate_system, games, use_parallel)
     
     # Create visualizations
     if enable_visualization:
@@ -244,6 +240,70 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     base_path = os.path.join(debate_config.output_path, agent_folder)
     print(f"📁 Results saved to: {base_path}")
 
+def run_flexible_debate(llm_configs: List[Dict[str, Any]], 
+                       game_size: int = 5, 
+                       game_id_range: List[int] = None,
+                       enable_visualization: bool = True,
+                       use_parallel: bool = True):
+    """Run debate with flexible agent configuration (auto-generated names)."""
+    
+    print("🚀 Starting Flexible Multi-Agent Debate System")
+    print("=" * 50)
+    
+    # Set default game_id_range if not provided
+    if game_id_range is None:
+        game_id_range = [1, 3]  # Default to games 1-3
+    
+    # Create flexible configuration
+    debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
+    print(f"🤖 Auto-generated agents: {[agent.name for agent in debate_config.agents]}")
+    
+    # Load ground truth games
+    num_games = debate_config.get_num_games()
+    print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
+    games = load_ground_truth_games(game_size, game_id_range)
+    
+    if not games:
+        print("❌ No games loaded. Please generate ground truth data first.")
+        return
+    
+    print(f"✅ Loaded {len(games)} games")
+    
+    # Initialize debate system
+    print(f"\n🔧 Initializing debate system...")
+    debate_system = MultiAgentDebateSystem(debate_config)
+    
+    # Run debates
+    print(f"\n🎯 Running debates...")
+    sessions = run_debates_with_system(debate_system, games, use_parallel)
+    
+    # Create visualizations
+    if enable_visualization:
+        print(f"\n🎨 Creating visualizations...")
+        # Create visualizations for each game in its own folder
+        for session in sessions:
+            game_organized_path = debate_config.get_organized_output_path(session.game_id)
+            visualizer = DebateVisualizer(game_organized_path)
+            visualization_paths = visualizer.create_all_visualizations([session])
+            
+            print(f"\n📊 Visualization files created for Game {session.game_id}:")
+            for name, path in visualization_paths.items():
+                print(f"  - {name}: {path}")
+    else:
+        print(f"\n💡 To generate visualizations later, run:")
+        # Show example for first game
+        if sessions:
+            example_path = debate_config.get_organized_output_path(sessions[0].game_id)
+            print(f"   python debate/debate_visualizer.py --results-dir {example_path}")
+    
+    print(f"\n✅ Flexible debate system completed successfully!")
+    # Show the base agent folder path
+    agent_count = len(debate_config.agents)
+    model_names = [agent.model for agent in debate_config.agents]
+    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}"
+    base_path = os.path.join(debate_config.output_path, agent_folder)
+    print(f"📁 Results saved to: {base_path}")
+
 def parse_key_value_args(args):
     """Parse key=value arguments from command line."""
     parsed = {}
@@ -259,39 +319,76 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python run_debate.py <command> [options]")
         print("\nCommands:")
-        print("  run <config_name> [game_size] [num_games]")
+        print("  run [game_size] [num_games]")
         print("  custom <agent_configs_json> [game_size] [num_games]")
-        print("  list-configs")
+        print("  flexible <llm_configs_json> [game_size] [num_games]")
         print("\nNew format (recommended):")
-        print("  python run_debate.py <config_name> game_size=<size> game_num=<num_games>")
+        print("  python run_debate.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>]")
         print("\nExamples:")
-        print("  python run_debate.py default game_size=5 game_num=3")
-        print("  python run_debate.py two_agents game_size=6 game_num=1")
-        print("  python run_debate.py run default 5 3")
-        print("  python run_debate.py list-configs")
+        print("  python run_debate.py run game_size=5 game_id_range=1,20")
+        print("  python run_debate.py run game_size=5 game_id_range=1,20 use_parallel=false")
+        print("  python run_debate.py run game_size=5 game_id_range=1,20 game_parallel_workers=10")
+        print("  python run_debate.py run 5 1,20")
+        print("  python run_debate.py custom '[{\"name\":\"GPT-5\",\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_num=1")
+        print("  python run_debate.py flexible '[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"},{\"provider\":\"gemini\",\"model\":\"gemini-2.5-flash\",\"temperature\":0.2}]' game_size=5 game_num=1")
+        print("  # Note: temperature is optional for all models")
         return
     
     # Check if using new key=value format
     kv_args = parse_key_value_args(sys.argv[1:])
     
-    if 'game_size' in kv_args or 'game_num' in kv_args:
-        # New format: python run_debate.py <config_name> game_size=X game_num=Y
-        config_name = sys.argv[1] if sys.argv[1] not in kv_args else "default"
+    if 'game_size' in kv_args or 'game_id_range' in kv_args:
+        # New format: python run_debate.py run game_size=X game_id_range=Y,Z
+        command = sys.argv[1] if sys.argv[1] not in kv_args else "run"
         game_size = int(kv_args.get('game_size', 5))
-        num_games = int(kv_args.get('game_num', 1))
         
-        print(f"🎯 Running configuration '{config_name}' with {game_size} players, {num_games} games")
-        run_single_debate_session(config_name, game_size, num_games)
+        # Parse game_id_range
+        if 'game_id_range' in kv_args:
+            game_id_range_str = kv_args.get('game_id_range', '1,1')
+            try:
+                start_id, end_id = map(int, game_id_range_str.split(','))
+                game_id_range = [start_id, end_id]
+            except ValueError:
+                print(f"Error: Invalid game_id_range format '{game_id_range_str}'. Use 'start,end' format.")
+                return
+        else:
+            game_id_range = [1, 1]  # Default to single game
+        
+        if command == "run":
+            use_parallel = kv_args.get('use_parallel', 'true').lower() == 'true'
+            game_parallel_workers = int(kv_args.get('game_parallel_workers', 20))
+            num_games = game_id_range[1] - game_id_range[0] + 1
+            print(f"🎯 Running default configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
+            print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
+            print(f"🔧 Game parallel workers: {game_parallel_workers}")
+            run_single_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers)
+        else:
+            print(f"Error: Command '{command}' not supported with key=value format")
         return
     
     command = sys.argv[1]
     
     if command == "run":
-        config_name = sys.argv[2] if len(sys.argv) > 2 else "default"
-        game_size = int(sys.argv[3]) if len(sys.argv) > 3 else 5
-        num_games = int(sys.argv[4]) if len(sys.argv) > 4 else 3
+        game_size = int(sys.argv[2]) if len(sys.argv) > 2 else 5
+        # Support both old format (num_games) and new format (game_id_range)
+        if len(sys.argv) > 3:
+            arg3 = sys.argv[3]
+            if ',' in arg3:
+                # New format: game_id_range
+                try:
+                    start_id, end_id = map(int, arg3.split(','))
+                    game_id_range = [start_id, end_id]
+                except ValueError:
+                    print(f"Error: Invalid game_id_range format '{arg3}'. Use 'start,end' format.")
+                    return
+            else:
+                # Old format: num_games (convert to game_id_range)
+                num_games = int(arg3)
+                game_id_range = [1, num_games]
+        else:
+            game_id_range = [1, 3]  # Default
         
-        run_single_debate_session(config_name, game_size, num_games)
+        run_single_debate_session(game_size, game_id_range)
         
     elif command == "custom":
         if len(sys.argv) < 3:
@@ -309,26 +406,25 @@ def main():
         
         run_custom_debate(agent_configs, game_size, num_games)
         
-    elif command == "list-configs":
-        configs = create_example_configs()
-        print("Available configurations:")
-        for name, config in configs.items():
-            print(f"\n{name}:")
-            print(f"  Agents: {[agent.name for agent in config.agents]}")
-            print(f"  Max Rounds: {config.max_debate_rounds}")
-            print(f"  Self-Adjustment: {config.enable_self_adjustment}")
-            print(f"  Majority Vote: {config.enable_majority_vote}")
-            print(f"  Game Size: {config.game_size}")
-            print(f"  Game Num: {config.game_num}")
+    elif command == "flexible":
+        if len(sys.argv) < 3:
+            print("Error: Please provide LLM configurations as JSON string")
+            return
+        
+        try:
+            llm_configs = json.loads(sys.argv[2])
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON for LLM configurations: {e}")
+            return
+        
+        game_size = int(sys.argv[3]) if len(sys.argv) > 3 else 5
+        num_games = int(sys.argv[4]) if len(sys.argv) > 4 else 3
+        
+        run_flexible_debate(llm_configs, game_size, num_games)
     
     else:
-        # Try to treat as config name with default parameters
-        config_name = command
-        game_size = 5
-        num_games = 1
-        
-        print(f"🎯 Running configuration '{config_name}' with default parameters (size={game_size}, games={num_games})")
-        run_single_debate_session(config_name, game_size, num_games)
+        print(f"Error: Unknown command '{command}'")
+        print("Use 'python run_debate.py' without arguments to see usage information.")
 
 if __name__ == "__main__":
     main()

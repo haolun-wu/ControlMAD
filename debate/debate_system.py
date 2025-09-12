@@ -52,13 +52,24 @@ class DebateSession:
     performance_tracking: Dict[str, Any] = None
 
 class MultiAgentDebateSystem:
-    """Multi-agent debate system for knight-knaves-spy games."""
+    """Multi-agent debate system for knight-knaves-spy games.
+    
+    This system supports two levels of parallel processing:
+    1. Agent-level parallelism: Multiple agents debate simultaneously within each game
+    2. Game-level parallelism: Multiple games can be processed simultaneously
+    
+    The system maintains separate logging for each game case, ensuring clean separation
+    of results and debugging information.
+    """
     
     def __init__(self, debate_config: DebateConfig, secret_path: str = "secret.json"):
         self.config = debate_config
         self.secret_path = secret_path
         self.agents = {}
+        # Parallel processor for agent-level parallelism (debate rounds)
         self.parallel_processor = ParallelProcessor(num_workers=len(debate_config.agents))
+        # Parallel processor for game-level parallelism (multiple games)
+        self.game_parallel_processor = ParallelProcessor(num_workers=debate_config.game_parallel_workers)
         
         # Store config for later use
         self.debate_config = debate_config
@@ -186,12 +197,12 @@ class MultiAgentDebateSystem:
                 role = response.player_role_assignments.get(player_name, "unknown")
                 correct = "✅" if role == gt_solution.get(player_name) else "❌"
                 self.logger.info(f"  {response.agent_name}: {role} {correct}")
-            self.logger.info(f"🎯 Consensus: {'Yes' if debate_round.consensus_reached else 'No'} - Majority: {debate_round.majority_role}")
+            self.logger.info(f"🎯 Round completed - no intermediate voting")
         
-        # Phase 3: Final majority vote
-        self.logger.info("🗳️ Phase 3: Final Majority Vote")
+        # Phase 3: Final Discussion and Fresh Voting
+        self.logger.info("🗣️ Phase 3: Final Discussion and Fresh Voting")
         self.logger.info("=" * 40)
-        final_vote = self._conduct_final_vote(game, debate_rounds)
+        final_vote = self._conduct_final_discussion_and_vote(game, initial_proposals, debate_rounds)
         
         # Show final vote results
         self.logger.info(f"📊 Final Vote Results:")
@@ -204,7 +215,7 @@ class MultiAgentDebateSystem:
         if not self._is_consensus_reached(final_vote):
             self.logger.info("👨‍💼 Phase 4: Supervisor Decision")
             self.logger.info("=" * 40)
-            supervisor_decision = self._get_supervisor_decision(game, debate_rounds)
+            supervisor_decision = self._get_supervisor_decision(game, initial_proposals, debate_rounds)
             
             if supervisor_decision:
                 self.logger.info(f"📊 Supervisor Decision:")
@@ -257,6 +268,17 @@ class MultiAgentDebateSystem:
         self.logger.info(f"✅ Debate completed for Game {game.game_id}")
         
         return session
+    
+    def _run_single_game_debate(self, game: ground_truth) -> DebateSession:
+        """Run a complete debate for a single game in isolation (for parallel processing)."""
+        # Create a temporary debate system instance for this game
+        temp_system = MultiAgentDebateSystem(self.debate_config, self.secret_path)
+        # Override the parallel processor to use the same instance (shared resources)
+        temp_system.parallel_processor = self.parallel_processor
+        temp_system.game_parallel_processor = self.game_parallel_processor
+        
+        # Run the debate session
+        return temp_system.run_debate_session(game)
     
     def _get_initial_proposals(self, game: ground_truth) -> List[AgentResponse]:
         """Get initial proposals from all agents."""
@@ -361,10 +383,6 @@ class MultiAgentDebateSystem:
         else:
             adjusted_responses = debate_responses
         
-        # Step 3: Check consensus
-        consensus_role = self._check_consensus(adjusted_responses, player_name)
-        consensus_reached = consensus_role is not None
-        
         # Create debate summary
         debate_summary = self._create_debate_summary(adjusted_responses, player_name)
         
@@ -373,8 +391,8 @@ class MultiAgentDebateSystem:
             round_number=round_num,
             agent_responses=adjusted_responses,
             debate_summary=debate_summary,
-            consensus_reached=consensus_reached,
-            majority_role=consensus_role
+            consensus_reached=False,  # No intermediate consensus checking
+            majority_role=None  # No intermediate majority voting
         )
     
     def _conduct_debate_for_player(self, game: ground_truth, player_name: str,
@@ -553,33 +571,150 @@ class MultiAgentDebateSystem:
         
         return [r for r in responses if r is not None]
     
-    def _conduct_final_vote(self, game: ground_truth, debate_rounds: List[DebateRound]) -> Dict[str, str]:
-        """Conduct final majority vote for all players."""
-        self.logger.info("Conducting final majority vote...")
+    def _conduct_final_discussion_and_vote(self, game: ground_truth, initial_proposals: List[AgentResponse], debate_rounds: List[DebateRound]) -> Dict[str, str]:
+        """Conduct final discussion where agents reconsider everything and make fresh decisions."""
+        self.logger.info("Conducting final discussion and fresh voting...")
         
         # Get all player names
-        player_names = list(debate_rounds[0].agent_responses[0].player_role_assignments.keys())
-        final_vote = {}
+        player_names = list(initial_proposals[0].player_role_assignments.keys())
         
-        for player_name in player_names:
-            # Collect votes for this player from the last round
-            votes = []
-            for round_data in debate_rounds:
-                for response in round_data.agent_responses:
-                    if player_name in response.player_role_assignments:
-                        votes.append(response.player_role_assignments[player_name])
+        # Create final discussion prompt
+        final_discussion_prompt = self._create_final_discussion_prompt(game, initial_proposals, debate_rounds)
+        
+        # Get fresh votes from all agents
+        fresh_votes = []
+        agent_names = [name for name in self.agents.keys()]
+        
+        for agent_name in agent_names:
+            agent_info = self.agents[agent_name]
+            client = agent_info["client"]
+            config = agent_info["config"]
             
-            # Find majority vote
+            self.logger.info(f"  🤖 {agent_name} making final decision...")
+            
+            try:
+                # Make API call for final decision
+                if config.provider == "openai":
+                    if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
+                        response_obj = client.response_completion(
+                            user_prompt=final_discussion_prompt,
+                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            model=config.model,
+                            reasoning_effort=config.reasoning_effort,
+                            verbosity=config.verbosity
+                        )
+                    else:
+                        response_obj = client.response_completion(
+                            user_prompt=final_discussion_prompt,
+                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            model=config.model
+                        )
+                elif config.provider == "gemini":
+                    response_obj = client.chat_completion(
+                        user_prompt=final_discussion_prompt,
+                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        model=config.model,
+                        response_schema=kks_response_schema
+                    )
+                else:
+                    response_obj = client.chat_completion(
+                        user_prompt=final_discussion_prompt,
+                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        model=config.model
+                    )
+                
+                # Parse response
+                player_assignments, explanation = self._parse_agent_response(response_obj.text)
+                
+                fresh_votes.append({
+                    "agent_name": agent_name,
+                    "player_assignments": player_assignments,
+                    "explanation": explanation
+                })
+                
+                self.logger.info(f"  ✅ {agent_name} final decision completed")
+                
+            except Exception as e:
+                self.logger.error(f"  ❌ {agent_name} final decision failed: {e}")
+                # Use last known assignment if available
+                last_assignment = {}
+                for round_data in debate_rounds:
+                    for response in round_data.agent_responses:
+                        if response.agent_name == agent_name:
+                            last_assignment = response.player_role_assignments
+                            break
+                fresh_votes.append({
+                    "agent_name": agent_name,
+                    "player_assignments": last_assignment,
+                    "explanation": f"Error: {str(e)}"
+                })
+        
+        # Conduct majority vote on fresh decisions
+        final_vote = {}
+        for player_name in player_names:
+            votes = []
+            for vote_data in fresh_votes:
+                if player_name in vote_data["player_assignments"]:
+                    votes.append(vote_data["player_assignments"][player_name])
+            
             if votes:
                 from collections import Counter
                 vote_counts = Counter(votes)
                 majority_role = vote_counts.most_common(1)[0][0]
                 final_vote[player_name] = majority_role
-                self.logger.info(f"  {player_name}: {majority_role} (votes: {dict(vote_counts)})")
+                self.logger.info(f"  {player_name}: {majority_role} (fresh votes: {dict(vote_counts)})")
         
         return final_vote
     
-    def _get_supervisor_decision(self, game: ground_truth, debate_rounds: List[DebateRound]) -> Dict[str, str]:
+    def _create_final_discussion_prompt(self, game: ground_truth, initial_proposals: List[AgentResponse], debate_rounds: List[DebateRound]) -> str:
+        """Create final discussion prompt for agents to reconsider everything."""
+        
+        prompt = f"""You are participating in the FINAL DISCUSSION phase of a multi-agent debate about a Knight-Knaves-Spy game.
+
+GAME INFORMATION:
+{game.text_game}
+
+DEBATE HISTORY SUMMARY:
+We have completed individual debates for each player's role. Now it's time for the final discussion where you should reconsider everything and make your final decision.
+
+INITIAL PROPOSALS:
+"""
+        
+        for proposal in initial_proposals:
+            prompt += f"\n{proposal.agent_name} initially thought: {proposal.player_role_assignments}"
+            prompt += f"\nTheir reasoning: {proposal.explanation[:200]}...\n"
+        
+        prompt += "\nDEBATE ROUNDS SUMMARY:\n"
+        for round_data in debate_rounds:
+            prompt += f"\n--- Round {round_data.round_number}: {round_data.player_name} ---\n"
+            for response in round_data.agent_responses:
+                role = response.player_role_assignments.get(round_data.player_name, "unknown")
+                prompt += f"{response.agent_name} thought {round_data.player_name} is a {role}\n"
+                prompt += f"Reasoning: {response.explanation[:150]}...\n"
+        
+        prompt += f"""
+
+FINAL DISCUSSION INSTRUCTIONS:
+Now that you have seen the complete debate history, please make your FINAL decision for ALL players. Consider:
+1. All the arguments made during the debates
+2. How your thinking may have evolved
+3. Any new insights from the discussion
+4. The overall consistency of the solution
+
+This is your final chance to make the best possible decision. Think carefully and provide your complete analysis.
+
+Return your response in the same JSON format:
+{{
+    "players": [
+        {{"name": "player_name", "role": "role"}},
+        ...
+    ],
+    "explanation": "Your final comprehensive reasoning after considering the entire debate process"
+}}"""
+        
+        return prompt
+    
+    def _get_supervisor_decision(self, game: ground_truth, initial_proposals: List[AgentResponse], debate_rounds: List[DebateRound]) -> Dict[str, str]:
         """Get supervisor decision when consensus cannot be reached."""
         self.logger.info("Getting supervisor decision...")
         
@@ -595,7 +730,7 @@ class MultiAgentDebateSystem:
                 supervisor_client = cstcloud(self.secret_path)
             
             # Create supervisor prompt
-            supervisor_prompt = self._create_supervisor_prompt(game, debate_rounds)
+            supervisor_prompt = self._create_supervisor_prompt(game, initial_proposals, debate_rounds)
             
             # Make API call
             if self.config.supervisor_provider == "openai":
@@ -771,7 +906,7 @@ Return your response in the same JSON format:
         
         return prompt
     
-    def _create_supervisor_prompt(self, game: ground_truth, debate_rounds: List[DebateRound]) -> str:
+    def _create_supervisor_prompt(self, game: ground_truth, initial_proposals: List[AgentResponse], debate_rounds: List[DebateRound]) -> str:
         """Create supervisor prompt for final decision."""
         
         prompt = f"""You are a supervisor AI tasked with making the final decision in a multi-agent debate about a Knight-Knaves-Spy game.
@@ -779,18 +914,35 @@ Return your response in the same JSON format:
 GAME INFORMATION:
 {game.text_game}
 
-DEBATE HISTORY:
+COMPLETE DEBATE HISTORY:
+
+INITIAL PROPOSALS:
 """
         
+        for proposal in initial_proposals:
+            prompt += f"\n{proposal.agent_name} initially proposed: {proposal.player_role_assignments}"
+            prompt += f"\nTheir reasoning: {proposal.explanation[:200]}...\n"
+        
+        prompt += "\nDEBATE ROUNDS:\n"
         for round_data in debate_rounds:
             prompt += f"\n--- Round {round_data.round_number}: {round_data.player_name} ---\n"
             for response in round_data.agent_responses:
-                prompt += f"{response.agent_name}: {response.player_role_assignments}\n"
-                prompt += f"Reasoning: {response.explanation[:300]}...\n"
+                role = response.player_role_assignments.get(round_data.player_name, "unknown")
+                prompt += f"{response.agent_name} thought {round_data.player_name} is a {role}\n"
+                prompt += f"Reasoning: {response.explanation[:200]}...\n"
         
         prompt += """
 
-Based on the complete debate history, please provide your final decision. Consider all arguments and reasoning provided by the agents.
+SUPERVISOR INSTRUCTIONS:
+As the supervisor, you have access to the complete debate history. The agents have been unable to reach consensus, so you must make the final decision. Consider:
+
+1. All initial proposals and their reasoning
+2. The evolution of arguments through the debate rounds
+3. The consistency and logic of each agent's reasoning
+4. The overall coherence of the solution
+5. Any patterns or insights that emerged during the debate
+
+Make your decision based on the most logical and well-reasoned arguments you observed.
 
 Return your response in the same JSON format:
 {
@@ -798,7 +950,7 @@ Return your response in the same JSON format:
         {"name": "player_name", "role": "role"},
         ...
     ],
-    "explanation": "Your final decision with reasoning"
+    "explanation": "Your final decision with comprehensive reasoning based on the complete debate history"
 }"""
         
         return prompt
@@ -918,7 +1070,7 @@ Return your response in the same JSON format:
         self.logger.info(f"💾 Debate saved to: {filepath}")
     
     def run_batch_debate(self, games: List[ground_truth]) -> List[DebateSession]:
-        """Run debates for multiple games."""
+        """Run debates for multiple games sequentially."""
         sessions = []
         
         for i, game in enumerate(games):
@@ -933,4 +1085,39 @@ Return your response in the same JSON format:
             session = self.run_debate_session(game)
             sessions.append(session)
         
+        return sessions
+    
+    def run_parallel_batch_debate(self, games: List[ground_truth]) -> List[DebateSession]:
+        """Run debates for multiple games in parallel."""
+        print(f"🚀 Starting parallel processing of {len(games)} games")
+        print(f"🔧 Using {self.game_parallel_processor.num_workers} workers for game-level parallelism")
+        print(f"🤖 Each game will use {self.parallel_processor.num_workers} workers for agent-level parallelism")
+        
+        # Create a wrapper function that handles logging setup for each game
+        def run_game_with_logging(game: ground_truth) -> DebateSession:
+            # Create a temporary system instance for this specific game
+            temp_system = MultiAgentDebateSystem(self.debate_config, self.secret_path)
+            # Use the same parallel processors (shared resources)
+            temp_system.parallel_processor = self.parallel_processor
+            temp_system.game_parallel_processor = self.game_parallel_processor
+            
+            # Setup logging for this specific game
+            temp_system._setup_logging(game.game_id)
+            
+            # Log the parallel processing message
+            temp_system.logger.info(f"\n{'='*60}")
+            temp_system.logger.info(f"Running parallel debate for Game {game.game_id}")
+            temp_system.logger.info(f"{'='*60}")
+            
+            # Run the debate session
+            return temp_system.run_debate_session(game)
+        
+        # Process games in parallel
+        sessions = self.game_parallel_processor.process_tasks(
+            run_game_with_logging, 
+            games, 
+            preserve_order=True
+        )
+        
+        print(f"✅ Completed parallel processing of {len(sessions)} games")
         return sessions

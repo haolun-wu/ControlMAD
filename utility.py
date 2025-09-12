@@ -295,7 +295,8 @@ class cstcloud:
 class openai_client:
     """
     OpenAI API client with token usage tracking and parallel call support.
-    Supports GPT-4o, GPT-5, and other OpenAI models with cost calculation.
+    Supports GPT-5 series, GPT-4o, GPT-4o-mini, GPT-4.1-mini, and GPT-4.1-nano models with cost calculation.
+    Uses the new Response API with advanced parameters like verbosity and reasoning effort.
     """
 
     def __init__(self, secret_path: str):
@@ -349,20 +350,31 @@ class openai_client:
         except Exception as e:
             raise ValueError(f"Error reading API key: {e}")
     
-    def response_completion(self, user_prompt: str, system_prompt: str = None, model: str = "gpt-5-nano", stream: bool = False, verbosity: str = "medium", reasoning_effort: str = "medium", reasoning_summary: str = None, return_full_response: bool = False, call_id: str = None):
+    def response_completion(self, user_prompt: str, system_prompt: str = None, model: str = "gpt-5-nano", stream: bool = False, verbosity: str = "medium", reasoning_effort: str = "medium", reasoning_summary: str = None, return_full_response: bool = False, call_id: str = None, schema_format: dict = None):
         """
         Send a chat completion request using the new response API.
+        Supports GPT-5 series, GPT-4o, GPT-4o-mini, and GPT-4.1-mini models.
         
         Args:
             user_prompt (str): The user's message
             system_prompt (str): The system prompt/instruction (default: None)
             model (str): The model to use (default: "gpt-5-nano")
+                        Supported: "gpt-5", "gpt-5-nano", "gpt-4o", "gpt-4o-mini", "gpt-4.1-mini", "gpt-4.1-nano"
             stream (bool): Whether to stream the response (default: False)
             verbosity (str): Response verbosity level - "low", "medium", "high" (default: "medium")
-            reasoning_effort (str): Reasoning effort level - "low", "medium", "high" (default: "medium")
+                            - ONLY for GPT-5 series models (gpt-5, gpt-5-mini, gpt-5-nano)
+                            - Controls output length and detail without changing the prompt
+                            - Ignored for other models (gpt-4o, gpt-4.1 series, o1, o3)
+            reasoning_effort (str): Reasoning effort level (default: "medium")
+                                   - ONLY for reasoning models: GPT-5 series, o1, o3, o3-mini
+                                   - "minimal": Fastest response, minimal reasoning tokens (GPT-5 only)
+                                   - "low", "medium", "high": For reasoning models only
+                                   - Ignored for regular models (gpt-4o, gpt-4.1 series)
             reasoning_summary (str): Reasoning summary level - "auto", "concise", "detailed" (default: None)
             return_full_response (bool): Whether to return the full response object (default: False)
             call_id (str): Optional identifier for tracking parallel calls (default: None)
+            schema_format (dict): JSON schema for structured output (default: None)
+                                 Supports standard OpenAI JSON schema format
             
         Returns:
             response_format or tuple: The response_format object, or (response_format, full_response) if return_full_response=True
@@ -370,7 +382,11 @@ class openai_client:
         Raises:
             Exception: If the API request fails
         """
+        # Import the response_format class to avoid naming conflicts
+        # from src.supports.project_types import response_format, token_usage
+        
         try:
+                
             messages = []
             
             # Add system message if provided
@@ -393,20 +409,52 @@ class openai_client:
                 "stream": stream
             }
             
-            # Add verbosity parameter if supported
-            if verbosity in ["low", "medium", "high"]:
-                api_params["text"] = {"verbosity": verbosity}
+            # Prepare text parameter with verbosity and format
+            text_params = {}
             
-            # Add reasoning parameters if supported by the model
-            if model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
-                reasoning_params = {}
-                if reasoning_effort in ["low", "medium", "high"]:
+            # Add verbosity parameter ONLY for GPT-5 series models
+            gpt5_models = ["gpt-5", "gpt-5-nano", "gpt-5-mini"]
+            if any(model.startswith(gpt5) for gpt5 in gpt5_models) and verbosity in ["low", "medium", "high"]:
+                text_params["verbosity"] = verbosity
+                
+            # Add response format if provided
+            if schema_format:
+                if isinstance(schema_format, dict) and "json_schema" in schema_format:
+                    # If it's the full OpenAI format, extract the schema and name
+                    json_schema = schema_format["json_schema"]
+                    schema_name = json_schema.get("name", "structured_output")
+                    schema_def = json_schema.get("schema", {})
+                    
+                    text_params["format"] = {
+                        "type": "json_schema",
+                        "name": schema_name,  # Required field
+                        "schema": schema_def
+                    }
+                else:
+                    # If it's already just the schema, use a default name
+                    text_params["format"] = {
+                        "type": "json_schema",
+                        "name": "structured_output",  # Default name
+                        "schema": schema_format
+                    }
+            
+            # Set text parameter if any text config is provided
+            if text_params:
+                api_params["text"] = text_params
+            
+            # Add reasoning parameters ONLY for reasoning models (GPT-5 series, o1, o3, o3-mini)
+            reasoning_models = ["gpt-5", "gpt-5-nano", "gpt-5-mini", "o1", "o3", "o3-mini"]
+            reasoning_params = {}
+            
+            if any(model.startswith(rm) for rm in reasoning_models):
+                # Support minimal effort for GPT-5 series, and low/medium/high for reasoning models
+                if reasoning_effort in ["minimal", "low", "medium", "high"]:
                     reasoning_params["effort"] = reasoning_effort
                 if reasoning_summary in ["auto", "concise", "detailed"]:
                     reasoning_params["summary"] = reasoning_summary
-                
-                if reasoning_params:
-                    api_params["reasoning"] = reasoning_params
+            
+            if reasoning_params:
+                api_params["reasoning"] = reasoning_params
             
             # Make the API request using new response API
             response = self.client.responses.create(**api_params)
@@ -433,7 +481,6 @@ class openai_client:
                     return response_obj
             else:
                 # Handle non-streaming response
-                
                 # Extract the actual response text from the output structure
                 response_text = ""
                 if hasattr(response, 'output') and response.output:
@@ -570,12 +617,14 @@ class openai_client:
         if not usage:
             return 0.0
             
-        # Pricing per 1K tokens (September 2025 rates from OpenAI)
+        # Pricing per 1K tokens (2025 rates from OpenAI)
         pricing = {
             "gpt-5-nano": {"input": 0.00005, "output": 0.0004, "cached_input": 0.000005},
             "gpt-5": {"input": 0.00125, "output": 0.01, "cached_input": 0.000125},
             "gpt-4o": {"input": 0.0025, "output": 0.01, "cached_input": 0.00125},
-            "gpt-4o-mini": {"input": 0.00015, "output": 0.0006, "cached_input": 0.000075}
+            "gpt-4o-mini": {"input": 0.00015, "output": 0.0006, "cached_input": 0.000075},
+            "gpt-4.1-mini": {"input": 0.00015, "output": 0.0006, "cached_input": 0.000075},
+            "gpt-4.1-nano": {"input": 0.0001, "output": 0.0004, "cached_input": 0.00005}  # $0.10/1M input, $0.40/1M output
         }
         
         model_pricing = pricing.get(model, {"input": 0.00005, "output": 0.0004, "cached_input": 0.000005})
@@ -888,7 +937,8 @@ class ali_client:
         Args:
             secret_path (str): Path to the file containing the API key
         """
-        self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        # self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        self.base_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
         self.api_key = self._read_api_key(secret_path)
         self.client = OpenAI(
             api_key=self.api_key,
@@ -934,7 +984,7 @@ class ali_client:
         except Exception as e:
             raise ValueError(f"Error reading API key: {e}")
 
-    def chat_completion(self, user_prompt: str, system_prompt: str = None, model: str = "qwen-flash", stream: bool = False, return_full_response: bool = False):
+    def chat_completion(self, user_prompt: str, system_prompt: str = None, model: str = "qwen-flash", stream: bool = False, return_full_response: bool = False, enable_thinking: bool = False, thinking_budget: int = 8192, maximal_token: int = 4096):
         """
         Send a chat completion request to the Ali Cloud API.
 
@@ -944,6 +994,9 @@ class ali_client:
             model (str): The model to use (default: "qwen-flash")
             stream (bool): Whether to stream the response (default: False)
             return_full_response (bool): Whether to return the full response object (default: False)
+            enable_thinking (bool): Whether to enable thinking mode for compatible models (default: False)
+            thinking_budget (int): Token budget for thinking (default: 8192)
+            maximal_token (int): Maximum tokens for the response (default: 4096)
             
         Returns:
             response_format or tuple: The response_format object, or (response_format, full_response) if return_full_response=True
@@ -967,32 +1020,69 @@ class ali_client:
                 "content": user_prompt
             })
             
+            # Ali Cloud thinking mode only works with streaming - force streaming if thinking is enabled
+            if enable_thinking:
+                stream = True
+            
+            # Prepare request parameters
+            request_params = {
+                "model": model,
+                "messages": messages,
+                "stream": stream,
+                "max_tokens": maximal_token  # Limit response length to prevent very long responses
+            }
+            
+            # Add stream_options to get token usage in streaming mode
+            if stream:
+                request_params["stream_options"] = {"include_usage": True}
+            
+            # Add thinking mode parameters if enabled and supported by the model
+            if enable_thinking:
+                # Check if model supports enable_thinking parameter
+                # QwQ models (qwq-32b, etc.) have built-in thinking and don't support enable_thinking
+                if not model.lower().startswith('qwq'):
+                    # Use extra_body format as specified in official Ali Cloud documentation
+                    request_params["extra_body"] = {
+                        "enable_thinking": True,
+                        "thinking_budget": thinking_budget
+                    }
+                # Note: QwQ models have built-in thinking capabilities without additional parameters
+            
             # Make the API request
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                stream=stream
-            )
+            response = self.client.chat.completions.create(**request_params)
             
             if stream:
                 # Handle streaming response
                 full_response = ""
                 last_chunk = None
+                chunk_count = 0
+                
                 for chunk in response:
+                    chunk_count += 1
+                    
+                    # Add limits to prevent infinite generation
+                    if len(full_response) > 50000:  # 50KB limit
+                        break
+                    if chunk_count > 5000:  # Maximum chunks limit
+                        break
+                    
                     if hasattr(chunk, 'choices') and chunk.choices and len(chunk.choices) > 0:
                         if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
                             if chunk.choices[0].delta.content:
                                 full_response += chunk.choices[0].delta.content
                     last_chunk = chunk
                 
+                # Extract thinking content and final response
+                thinking_content, final_response = self._extract_thinking_content(full_response, model)
+                
                 # Create token usage object from the last chunk
                 token_usage_obj = self._create_token_usage(last_chunk.usage if hasattr(last_chunk, 'usage') else None)
                 
                 # Create response_format object
                 response_obj = response_format(
-                    text=full_response,
+                    text=final_response,
                     usage=token_usage_obj,
-                    summary="",
+                    summary=thinking_content,
                     error=""
                 )
                 
@@ -1004,14 +1094,17 @@ class ali_client:
                 # Handle non-streaming response
                 response_text = response.choices[0].message.content
                 
+                # Extract thinking content and final response
+                thinking_content, final_response = self._extract_thinking_content(response_text, model)
+                
                 # Create token usage object
                 token_usage_obj = self._create_token_usage(response.usage)
                 
                 # Create response_format object
                 response_obj = response_format(
-                    text=response_text,
+                    text=final_response,
                     usage=token_usage_obj,
-                    summary="",
+                    summary=thinking_content,
                     error=""
                 )
                 
@@ -1034,6 +1127,66 @@ class ali_client:
                 return error_response, None
             else:
                 return error_response
+
+    def _extract_thinking_content(self, text: str, model: str = "") -> tuple[str, str]:
+        """
+        Extract thinking content and final response from Ali model output.
+        
+        Args:
+            text (str): The full response text from Ali model
+            model (str): The model name to determine extraction strategy
+            
+        Returns:
+            tuple[str, str]: (thinking_content, final_response)
+        """
+        if not text:
+            return "", ""
+        
+        # Check for explicit thinking tags first (for newer Qwen models with enable_thinking)
+        thinking_start = text.find("<think>")
+        thinking_end = text.find("</think>")
+        
+        if thinking_start != -1 and thinking_end != -1 and thinking_end > thinking_start:
+            # Extract thinking content
+            thinking_content = text[thinking_start + 7:thinking_end].strip()
+            
+            # Extract final response (everything after </think>)
+            final_response = text[thinking_end + 8:].strip()
+            
+            return thinking_content, final_response
+        
+        # For QwQ models, the entire response contains reasoning
+        # We can consider the step-by-step reasoning as "thinking"
+        elif model.lower().startswith('qwq'):
+            # For QwQ models, extract structured reasoning as thinking content
+            # Look for step-by-step patterns or reasoning structure
+            lines = text.split('\n')
+            reasoning_lines = []
+            final_lines = []
+            
+            # Simple heuristic: steps/reasoning vs final answer
+            in_reasoning = True
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                    
+                # Look for final answer indicators
+                if any(indicator in line.lower() for indicator in ['therefore', 'so,', 'answer:', 'result:', '**answer']):
+                    in_reasoning = False
+                
+                if in_reasoning and any(indicator in line for indicator in ['step', '**', '1.', '2.', '3.', '-']):
+                    reasoning_lines.append(line)
+                else:
+                    final_lines.append(line)
+            
+            reasoning_content = '\n'.join(reasoning_lines) if reasoning_lines else ""
+            final_answer = '\n'.join(final_lines) if final_lines else text
+            
+            return reasoning_content, final_answer
+        else:
+            # No thinking tags found, entire text is the final response
+            return "", text
 
     def _create_token_usage(self, usage_obj) -> token_usage:
         """
@@ -1086,29 +1239,22 @@ class ali_client:
 
 
 if __name__ == "__main__":
-    # Test the Ali client
-    try:
-        # Initialize the client
-        client = ali_client("secret.json")
-        
-        # Test connection first
-        print("Testing Ali Cloud API connection...")
-        if client.test_connection():
-            print("✓ Ali Cloud connection successful!")
-            
-            # Test chat completion with fruit question
-            print("\nTesting chat completion...")
-            response = client.chat_completion(
-                user_prompt="I have 4 apples. My older sister has some oranges, the number of which is twice the number of apples I have. How many fruits do we have in total?",
-                system_prompt="You are a helpful math assistant. Provide step-by-step reasoning.",
-                model="qwen-flash"
-            )
-            
-            print(f"Response: {response.text}")
-            print(f"Token usage: Input={response.usage.input}, Output={response.usage.output}, Total={response.usage.total}")
-            
-        else:
-            print("✗ Ali Cloud connection failed!")
-        
-    except Exception as e:
-        print(f"Ali Cloud Error: {e}")
+    # Test all clients
+    clients = [
+        ("OpenAI", openai_client),
+        ("Gemini", gemini_client), 
+        ("Ali Cloud", ali_client)
+    ]
+    
+    for name, client_class in clients:
+        try:
+            print(f"Testing {name} API connection...")
+            client = client_class("secret.json")
+            if client.test_connection():
+                print(f"✓ {name} connection successful!")
+            else:
+                print(f"✗ {name} connection failed!")
+        except Exception as e:
+            print(f"{name} Error: {e}")
+
+
