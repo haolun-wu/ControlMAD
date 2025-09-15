@@ -1,5 +1,5 @@
-from project_types import base_config
-from utility import Utility
+from .project_types import base_config
+from .utility import Utility
 
 class Validator:
     def __init__(self, config: base_config):

@@ -1,6 +1,6 @@
 import random
 import json
-from project_types import player, base_config
+from .project_types import player, base_config
 
 class Generator:
     def __init__(self, config: base_config):

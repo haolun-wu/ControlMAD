@@ -1,4 +1,4 @@
-from project_types import base_config, test_setup
+from .project_types import base_config, test_setup
 
 
 game_config = base_config(

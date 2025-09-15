@@ -4,7 +4,7 @@ import json
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from openai import OpenAI
-from project_types import response_format, token_usage
+from .project_types import response_format, token_usage
 
 class Utility:
 
@@ -1128,7 +1128,7 @@ class ali_client:
             else:
                 return error_response
 
-    def _extract_thinking_content(self, text: str, model: str = "") -> tuple[str, str]:
+    def _extract_thinking_content(self, text: str, model: str = "") -> tuple:
         """
         Extract thinking content and final response from Ali model output.
         
@@ -1137,7 +1137,7 @@ class ali_client:
             model (str): The model name to determine extraction strategy
             
         Returns:
-            tuple[str, str]: (thinking_content, final_response)
+            tuple: (thinking_content, final_response)
         """
         if not text:
             return "", ""
@@ -1237,23 +1237,226 @@ class ali_client:
         except Exception:
             return False
 
+class volcano_client:
+    """
+    Volcano Engine (ByteDance) API client with token usage tracking and structured output support.
+    Supports DoubaoSeed models and other Volcano Engine models with cost calculation.
+    """
 
-if __name__ == "__main__":
-    # Test all clients
-    clients = [
-        ("OpenAI", openai_client),
-        ("Gemini", gemini_client), 
-        ("Ali Cloud", ali_client)
-    ]
+    def __init__(self, secret_path: str):
+        """
+        Initialize the Volcano Engine API client.
+
+        Args:
+            secret_path (str): Path to the file containing the API key
+        """
+        self.base_url = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+        self.api_key = self._read_api_key(secret_path)
     
-    for name, client_class in clients:
+    def _read_api_key(self, secret_path: str) -> str:
+        """
+        Read API key from the secret file.
+
+        Args:
+            secret_path (str): Path to the file containing the API keys in JSON format
+            
+        Returns:
+            str: The Volcano Engine API key
+            
+        Raises:
+            FileNotFoundError: If the secret file doesn't exist
+            ValueError: If the API key is empty or invalid
+            KeyError: If ByteDance provider is not found
+        """
         try:
-            print(f"Testing {name} API connection...")
-            client = client_class("secret.json")
-            if client.test_connection():
-                print(f"✓ {name} connection successful!")
+            with open(secret_path, 'r') as f:
+                api_keys_data = json.load(f)
+            
+            if not isinstance(api_keys_data, list):
+                raise ValueError("Secret file should contain a list of API providers")
+            
+            # Find the ByteDance API key
+            for provider in api_keys_data:
+                if provider.get("API provider") == "ByteDance":
+                    api_key = provider.get("API key", "").strip()
+                    if not api_key:
+                        raise ValueError("ByteDance API key is empty")
+                    return api_key
+            
+            raise KeyError("ByteDance provider not found in secret file")
+            
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Secret file not found: {secret_path}")
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON format in secret file: {e}")
+        except Exception as e:
+            raise ValueError(f"Error reading API key: {e}")
+
+    def chat_completion(self, user_prompt: str, system_prompt: str = None, model: str = "doubao-seed-1-6-flash-250828", max_tokens: int = 4096, thinking_type: str = "auto", stream: bool = False, temperature: float = 0.7, json_schema: dict = None, return_full_response: bool = False):
+        """
+        Send a chat completion request to the Volcano Engine API.
+
+        Args:
+            user_prompt (str): The user's message
+            system_prompt (str): The system prompt/instruction (default: None)
+            model (str): The model to use (default: "doubao-seed-1-6-flash-250828")
+            max_tokens (int): Maximum tokens for the response (default: 4096)
+            thinking_type (str): Thinking type for reasoning capabilities (default: "auto")
+                                - "enabled": Force enable deep thinking capability
+                                - "disabled": Force disable deep thinking capability  
+                                - "auto": Model decides whether to use deep thinking
+            stream (bool): Whether to stream the response (default: False)
+            temperature (float): Response creativity (default: 0.7)
+            json_schema (dict): JSON schema for structured output (default: None)
+            return_full_response (bool): Whether to return the full response object (default: False)
+            
+        Returns:
+            response_format or tuple: The response_format object, or (response_format, full_response) if return_full_response=True
+            
+        Raises:
+            Exception: If the API request fails
+        """
+        try:
+            import requests
+            
+            messages = []
+            
+            # Add system message if provided
+            if system_prompt:
+                messages.append({
+                    "role": "system",
+                    "content": system_prompt
+                })
+            
+            # Add user message
+            messages.append({
+                "role": "user",
+                "content": user_prompt
+            })
+            
+            # Prepare request data
+            request_data = {
+                "model": model,
+                "messages": messages,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "stream": stream
+            }
+            
+            # Add thinking parameter if provided (for reasoning models)
+            if thinking_type and thinking_type in ["enabled", "disabled", "auto"]:
+                request_data["thinking"] = {
+                    "type": thinking_type
+                }
+            
+            # Add response format if provided
+            # Updated to match official ByteDance/Volcano Engine API format
+            if json_schema:
+                if isinstance(json_schema, dict):
+                    # Support ByteDance/Volcano Engine response format structure
+                    if "json_schema" in json_schema:
+                        # Already in full format - use as-is but ensure strict mode
+                        schema_config = json_schema.copy()
+                        # Add strict=true as shown in official example
+                        if "json_schema" in schema_config and "strict" not in schema_config["json_schema"]:
+                            schema_config["json_schema"]["strict"] = True
+                        request_data["response_format"] = schema_config
+                    else:
+                        # Convert simple schema to ByteDance format with strict mode
+                        request_data["response_format"] = {
+                            "type": "json_schema",
+                            "json_schema": {
+                                "name": "structured_output",
+                                "schema": json_schema,
+                                "strict": True
+                            }
+                        }
+            
+            # Prepare headers
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            # Make the API request
+            response = requests.post(self.base_url, headers=headers, json=request_data, stream=stream)
+            
+            if stream:
+                # Handle streaming response
+                full_response = ""
+                last_usage = None
+                
+                for line in response.iter_lines():
+                    if line:
+                        line = line.decode('utf-8')
+                        if line.startswith('data: '):
+                            data = line[6:]
+                            if data.strip() == '[DONE]':
+                                break
+                            try:
+                                chunk = json.loads(data)
+                                if 'choices' in chunk and len(chunk['choices']) > 0:
+                                    delta = chunk['choices'][0].get('delta', {})
+                                    if 'content' in delta and delta['content']:
+                                        full_response += delta['content']
+                                
+                                # Store usage information if available
+                                if 'usage' in chunk:
+                                    last_usage = chunk['usage']
+                            except json.JSONDecodeError:
+                                continue
+                
+                # Create token usage object
+                token_usage_obj = self._create_token_usage(last_usage)
+                
+                # Import the response_format class to avoid naming conflicts
+                from src.supports.project_types import response_format as ResponseFormat
+                
+                # Create response_format object
+                response_obj = ResponseFormat(
+                    text=full_response,
+                    usage=token_usage_obj,
+                    summary="",
+                    error=""
+                )
+                
+                if return_full_response:
+                    return response_obj, response
+                else:
+                    return response_obj
             else:
-                print(f"✗ {name} connection failed!")
+                # Handle non-streaming response
+                if response.status_code == 200:
+                    result = response.json()
+                    
+                    # Extract response text
+                    response_text = ""
+                    if 'choices' in result and len(result['choices']) > 0:
+                        response_text = result['choices'][0]['message']['content']
+                    
+                    # Response text extracted directly without formatting
+                    
+                    # Create token usage object
+                    token_usage_obj = self._create_token_usage(result.get('usage'))
+                    
+                    # Import the response_format class to avoid naming conflicts
+                    from src.supports.project_types import response_format as ResponseFormat
+                    
+                    # Create response_format object
+                    response_obj = ResponseFormat(
+                        text=response_text,
+                        usage=token_usage_obj,
+                        summary="",
+                        error=""
+                    )
+                    
+                    if return_full_response:
+                        return response_obj, result
+                    else:
+                        return response_obj
+                else:
+                    raise Exception(f"HTTP {response.status_code}: {response.text}")
+                    
         except Exception as e:
             print(f"{name} Error: {e}")
 

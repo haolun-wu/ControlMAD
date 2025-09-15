@@ -10,10 +10,10 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from project_types import ground_truth, response_format, token_usage
+from utils.project_types import ground_truth, response_format, token_usage
 from debate.debate_config import DebateConfig, AgentConfig
-from utility import openai_client, gemini_client, ali_client, cstcloud, ParallelProcessor
-from prompts import kks_system_prompt, kks_response_schema
+from utils.utility import openai_client, gemini_client, ali_client, cstcloud, ParallelProcessor
+from prompts import kks_system_prompt, kks_response_schema, get_kks_system_prompt_with_confidence, get_kks_response_schema_with_confidence
 
 @dataclass
 class AgentResponse:
@@ -62,7 +62,7 @@ class MultiAgentDebateSystem:
     of results and debugging information.
     """
     
-    def __init__(self, debate_config: DebateConfig, secret_path: str = "secret.json"):
+    def __init__(self, debate_config: DebateConfig, secret_path: str = "secret.json", setup_logging: bool = True):
         self.config = debate_config
         self.secret_path = secret_path
         self.agents = {}
@@ -74,19 +74,33 @@ class MultiAgentDebateSystem:
         # Store config for later use
         self.debate_config = debate_config
         
-        # Setup logging first
-        self._setup_logging()
+        # Initialize a basic logger first
+        import logging
+        self.logger = logging.getLogger("debate_system")
+        if not self.logger.handlers:
+            # Add a console handler if no handlers exist
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+            console_handler.setFormatter(formatter)
+            self.logger.addHandler(console_handler)
+            self.logger.setLevel(logging.INFO)
+        
+        # Setup detailed logging (only if requested)
+        if setup_logging:
+            self._setup_logging()
         
         # Initialize agent clients
         self._initialize_agents()
     
-    def _setup_logging(self, game_id: int = 1):
+    def _setup_logging(self, game_id: int = 1, create_log_file: bool = True):
         """Setup logging to capture all printed output."""
         # Create organized output directory for this specific game
         self.organized_output_path = self.debate_config.get_organized_output_path(game_id)
         os.makedirs(self.organized_output_path, exist_ok=True)
         
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Use a more unique timestamp with microseconds to avoid conflicts in parallel processing
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # Include milliseconds
         log_filename = f"debate_log_game{game_id}_{timestamp}.log"
         log_path = os.path.join(self.organized_output_path, log_filename)
         
@@ -99,26 +113,39 @@ class MultiAgentDebateSystem:
         for handler in self.logger.handlers[:]:
             self.logger.removeHandler(handler)
         
-        # Create file handler
-        file_handler = logging.FileHandler(log_path, mode='w', encoding='utf-8')
-        file_handler.setLevel(logging.INFO)
+        # Only create file handler if requested
+        if create_log_file:
+            # Store the log path for later use
+            self.log_file_path = log_path
+            # Don't create the file handler yet - we'll create it when we have content to log
         
-        # Create formatter
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
-        
-        # Add handler to logger
-        self.logger.addHandler(file_handler)
-        
-        # Also log to console
+        # Always log to console
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
         console_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
         
-        self.logger.info(f"📝 Logging started for Game {game_id}")
-        self.logger.info(f"📁 Log file: {log_path}")
-        self.logger.info(f"🎯 Starting new game - all previous logs are in separate files")
+        # Don't log initialization messages to avoid multiple log files
+        # self.logger.info(f"📝 Logging started for Game {game_id}")
+        # self.logger.info(f"📁 Log file: {log_path}")
+        # self.logger.info(f"🎯 Starting new game - all previous logs are in separate files")
+    
+    def _ensure_log_file_handler(self):
+        """Create the file handler only when we actually need to log content."""
+        if hasattr(self, 'log_file_path') and self.log_file_path:
+            # Check if we already have a file handler
+            has_file_handler = any(isinstance(handler, logging.FileHandler) for handler in self.logger.handlers)
+            if not has_file_handler:
+                file_handler = logging.FileHandler(self.log_file_path, mode='w', encoding='utf-8')
+                file_handler.setLevel(logging.INFO)
+                
+                # Create formatter
+                formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+                file_handler.setFormatter(formatter)
+                
+                # Add handler to logger
+                self.logger.addHandler(file_handler)
     
     def _initialize_agents(self):
         """Initialize all agent clients."""
@@ -142,9 +169,11 @@ class MultiAgentDebateSystem:
                     "client": client,
                     "config": agent_config
                 }
-                self.logger.info(f"✓ Initialized {agent_config.name} ({agent_config.provider}/{agent_config.model})")
+                # Don't log initialization messages to avoid multiple log files
+                # self.logger.info(f"✓ Initialized {agent_config.name} ({agent_config.provider}/{agent_config.model})")
                 
             except Exception as e:
+                # Only log errors, not initialization success
                 self.logger.error(f"✗ Failed to initialize {agent_config.name}: {e}")
     
     def run_debate_session(self, game: ground_truth) -> DebateSession:
@@ -174,6 +203,13 @@ class MultiAgentDebateSystem:
                 self.logger.error(f"    ❌ Error: {proposal.error}")
             else:
                 self.logger.info(f"    ✅ Success")
+            
+            # Log per-player accuracy for initial proposals
+            self.logger.info(f"    📊 {proposal.agent_name} Initial Accuracy by Player:")
+            for player, gt_role in gt_solution.items():
+                predicted_role = proposal.player_role_assignments.get(player, "unknown")
+                correct = "✅" if predicted_role == gt_role else "❌"
+                self.logger.info(f"      {player}: {predicted_role} vs {gt_role} {correct}")
         
         # Phase 2: Debate rounds for each player
         self.logger.info("🗣️ Phase 2: Debate Rounds")
@@ -196,7 +232,15 @@ class MultiAgentDebateSystem:
             for response in debate_round.agent_responses:
                 role = response.player_role_assignments.get(player_name, "unknown")
                 correct = "✅" if role == gt_solution.get(player_name) else "❌"
-                self.logger.info(f"  {response.agent_name}: {role} {correct}")
+                confidence_info = f" (confidence: {response.confidence})" if self.config.self_reported_confidence and response.confidence > 0 else ""
+                self.logger.info(f"  {response.agent_name}: {role} {correct}{confidence_info}")
+                
+                # Log detailed per-player accuracy for this round
+                self.logger.info(f"    📊 {response.agent_name} Round {debate_round.round_number} Accuracy by Player:")
+                for player, gt_role in gt_solution.items():
+                    predicted_role = response.player_role_assignments.get(player, "unknown")
+                    correct = "✅" if predicted_role == gt_role else "❌"
+                    self.logger.info(f"      {player}: {predicted_role} vs {gt_role} {correct}")
             self.logger.info(f"🎯 Round completed - no intermediate voting")
         
         # Phase 3: Final Discussion and Fresh Voting
@@ -210,6 +254,13 @@ class MultiAgentDebateSystem:
             correct = "✅" if role == gt_solution.get(player) else "❌"
             self.logger.info(f"  {player}: {role} {correct}")
         
+        # Log detailed final vote breakdown
+        self.logger.info(f"📊 Final Vote Summary by Player:")
+        for player, gt_role in gt_solution.items():
+            final_role = final_vote.get(player, "unknown")
+            correct = "✅" if final_role == gt_role else "❌"
+            self.logger.info(f"  {player}: Final={final_role}, GroundTruth={gt_role} {correct}")
+        
         # Phase 4: Supervisor decision if needed
         supervisor_decision = None
         if not self._is_consensus_reached(final_vote):
@@ -222,6 +273,13 @@ class MultiAgentDebateSystem:
                 for player, role in supervisor_decision.items():
                     correct = "✅" if role == gt_solution.get(player) else "❌"
                     self.logger.info(f"  {player}: {role} {correct}")
+                
+                # Log detailed supervisor decision breakdown
+                self.logger.info(f"📊 Supervisor Decision Summary by Player:")
+                for player, gt_role in gt_solution.items():
+                    supervisor_role = supervisor_decision.get(player, "unknown")
+                    correct = "✅" if supervisor_role == gt_role else "❌"
+                    self.logger.info(f"  {player}: Supervisor={supervisor_role}, GroundTruth={gt_role} {correct}")
         
         # Create performance tracking
         performance_tracking = self._create_performance_tracking(
@@ -290,8 +348,8 @@ class MultiAgentDebateSystem:
             self.logger.info(f"    🤖 {agent_name} ({config.provider}/{config.model}) getting initial proposal...")
             
             try:
-                # Prepare system prompt
-                system_prompt = kks_system_prompt.replace("{num_player}", str(game.num_player))
+                # Prepare system prompt with confidence if enabled
+                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
                 
                 # Make API call based on provider
                 if config.provider == "openai":
@@ -316,7 +374,7 @@ class MultiAgentDebateSystem:
                         user_prompt=game.text_game,
                         system_prompt=system_prompt,
                         model=config.model,
-                        response_schema=kks_response_schema
+                        response_schema=get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
                     )
                 else:  # ali, cst
                     response_obj = client.chat_completion(
@@ -326,9 +384,16 @@ class MultiAgentDebateSystem:
                     )
                 
                 # Parse response
-                player_assignments, explanation = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
                 
                 self.logger.info(f"    ✅ {agent_name} completed: {player_assignments}")
+                if self.config.self_reported_confidence:
+                    self.logger.info(f"    📊 {agent_name} confidence: {confidence}")
+                    # Debug: log the raw response to see if confidence is included
+                    if confidence == 0.0:
+                        self.logger.info(f"    🔍 {agent_name} raw response preview: {response_obj.text[:200]}...")
+                else:
+                    self.logger.info(f"    📊 {agent_name} confidence: not requested (SRC disabled)")
                 
                 return AgentResponse(
                     agent_name=agent_name,
@@ -337,6 +402,7 @@ class MultiAgentDebateSystem:
                     phase="initial",
                     player_role_assignments=player_assignments,
                     explanation=explanation,
+                    confidence=confidence,
                     response_obj=response_obj,
                     timestamp=datetime.now().isoformat(),
                     error=""
@@ -351,6 +417,7 @@ class MultiAgentDebateSystem:
                     phase="initial",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
+                    confidence=0.0,
                     timestamp=datetime.now().isoformat(),
                     error=str(e)
                 )
@@ -414,12 +481,15 @@ class MultiAgentDebateSystem:
                 )
                 
                 # Make API call
+                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
+                
                 if config.provider == "openai":
                     # Check if model supports reasoning parameters
                     if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
                         response_obj = client.response_completion(
                             user_prompt=debate_prompt,
-                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            system_prompt=system_prompt,
                             model=config.model,
                             reasoning_effort=config.reasoning_effort,
                             verbosity=config.verbosity
@@ -428,27 +498,31 @@ class MultiAgentDebateSystem:
                         # Use regular response completion for models that don't support reasoning
                         response_obj = client.response_completion(
                             user_prompt=debate_prompt,
-                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            system_prompt=system_prompt,
                             model=config.model
                         )
                 elif config.provider == "gemini":
                     response_obj = client.chat_completion(
                         user_prompt=debate_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=config.model,
-                        response_schema=kks_response_schema
+                        response_schema=response_schema
                     )
                 else:
                     response_obj = client.chat_completion(
                         user_prompt=debate_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=config.model
                     )
                 
                 # Parse response
-                player_assignments, explanation = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
                 
                 self.logger.info(f"      ✅ {agent_name} debate completed")
+                if self.config.self_reported_confidence:
+                    self.logger.info(f"      📊 {agent_name} confidence: {confidence}")
+                else:
+                    self.logger.info(f"      📊 {agent_name} confidence: not requested (SRC disabled)")
                 
                 return AgentResponse(
                     agent_name=agent_name,
@@ -457,6 +531,7 @@ class MultiAgentDebateSystem:
                     phase="debate",
                     player_role_assignments=player_assignments,
                     explanation=explanation,
+                    confidence=confidence,
                     response_obj=response_obj,
                     timestamp=datetime.now().isoformat(),
                     error=""
@@ -471,6 +546,7 @@ class MultiAgentDebateSystem:
                     phase="debate",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
+                    confidence=0.0,
                     timestamp=datetime.now().isoformat(),
                     error=str(e)
                 )
@@ -502,12 +578,15 @@ class MultiAgentDebateSystem:
                 )
                 
                 # Make API call
+                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
+                
                 if config.provider == "openai":
                     # Check if model supports reasoning parameters
                     if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
                         response_obj = client.response_completion(
                             user_prompt=adjustment_prompt,
-                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            system_prompt=system_prompt,
                             model=config.model,
                             reasoning_effort=config.reasoning_effort,
                             verbosity=config.verbosity
@@ -516,27 +595,31 @@ class MultiAgentDebateSystem:
                         # Use regular response completion for models that don't support reasoning
                         response_obj = client.response_completion(
                             user_prompt=adjustment_prompt,
-                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            system_prompt=system_prompt,
                             model=config.model
                         )
                 elif config.provider == "gemini":
                     response_obj = client.chat_completion(
                         user_prompt=adjustment_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=config.model,
-                        response_schema=kks_response_schema
+                        response_schema=response_schema
                     )
                 else:
                     response_obj = client.chat_completion(
                         user_prompt=adjustment_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=config.model
                     )
                 
                 # Parse response
-                player_assignments, explanation = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
                 
                 self.logger.info(f"      ✅ {agent_name} self-adjustment completed")
+                if self.config.self_reported_confidence:
+                    self.logger.info(f"      📊 {agent_name} confidence: {confidence}")
+                else:
+                    self.logger.info(f"      📊 {agent_name} confidence: not requested (SRC disabled)")
                 
                 return AgentResponse(
                     agent_name=agent_name,
@@ -545,6 +628,7 @@ class MultiAgentDebateSystem:
                     phase="self_adjustment",
                     player_role_assignments=player_assignments,
                     explanation=explanation,
+                    confidence=confidence,
                     response_obj=response_obj,
                     timestamp=datetime.now().isoformat(),
                     error=""
@@ -559,6 +643,7 @@ class MultiAgentDebateSystem:
                     phase="self_adjustment",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
+                    confidence=0.0,
                     timestamp=datetime.now().isoformat(),
                     error=str(e)
                 )
@@ -594,11 +679,14 @@ class MultiAgentDebateSystem:
             
             try:
                 # Make API call for final decision
+                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
+                
                 if config.provider == "openai":
                     if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
                         response_obj = client.response_completion(
                             user_prompt=final_discussion_prompt,
-                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            system_prompt=system_prompt,
                             model=config.model,
                             reasoning_effort=config.reasoning_effort,
                             verbosity=config.verbosity
@@ -606,33 +694,38 @@ class MultiAgentDebateSystem:
                     else:
                         response_obj = client.response_completion(
                             user_prompt=final_discussion_prompt,
-                            system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                            system_prompt=system_prompt,
                             model=config.model
                         )
                 elif config.provider == "gemini":
                     response_obj = client.chat_completion(
                         user_prompt=final_discussion_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=config.model,
-                        response_schema=kks_response_schema
+                        response_schema=response_schema
                     )
                 else:
                     response_obj = client.chat_completion(
                         user_prompt=final_discussion_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=config.model
                     )
                 
                 # Parse response
-                player_assignments, explanation = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
                 
                 fresh_votes.append({
                     "agent_name": agent_name,
                     "player_assignments": player_assignments,
-                    "explanation": explanation
+                    "explanation": explanation,
+                    "confidence": confidence
                 })
                 
                 self.logger.info(f"  ✅ {agent_name} final decision completed")
+                if self.config.self_reported_confidence:
+                    self.logger.info(f"  📊 {agent_name} confidence: {confidence}")
+                else:
+                    self.logger.info(f"  📊 {agent_name} confidence: not requested (SRC disabled)")
                 
             except Exception as e:
                 self.logger.error(f"  ❌ {agent_name} final decision failed: {e}")
@@ -646,7 +739,8 @@ class MultiAgentDebateSystem:
                 fresh_votes.append({
                     "agent_name": agent_name,
                     "player_assignments": last_assignment,
-                    "explanation": f"Error: {str(e)}"
+                    "explanation": f"Error: {str(e)}",
+                    "confidence": 0.0
                 })
         
         # Conduct majority vote on fresh decisions
@@ -681,7 +775,10 @@ INITIAL PROPOSALS:
 """
         
         for proposal in initial_proposals:
-            prompt += f"\n{proposal.agent_name} initially thought: {proposal.player_role_assignments}"
+            confidence_info = ""
+            if self.config.self_reported_confidence and proposal.confidence > 0:
+                confidence_info = f" (confidence: {proposal.confidence})"
+            prompt += f"\n{proposal.agent_name} initially thought: {proposal.player_role_assignments}{confidence_info}"
             prompt += f"\nTheir reasoning: {proposal.explanation[:200]}...\n"
         
         prompt += "\nDEBATE ROUNDS SUMMARY:\n"
@@ -689,7 +786,10 @@ INITIAL PROPOSALS:
             prompt += f"\n--- Round {round_data.round_number}: {round_data.player_name} ---\n"
             for response in round_data.agent_responses:
                 role = response.player_role_assignments.get(round_data.player_name, "unknown")
-                prompt += f"{response.agent_name} thought {round_data.player_name} is a {role}\n"
+                confidence_info = ""
+                if self.config.self_reported_confidence and response.confidence > 0:
+                    confidence_info = f" (confidence: {response.confidence})"
+                prompt += f"{response.agent_name} thought {round_data.player_name} is a {role}{confidence_info}\n"
                 prompt += f"Reasoning: {response.explanation[:150]}...\n"
         
         prompt += f"""
@@ -733,12 +833,15 @@ Return your response in the same JSON format:
             supervisor_prompt = self._create_supervisor_prompt(game, initial_proposals, debate_rounds)
             
             # Make API call
+            system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+            response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
+            
             if self.config.supervisor_provider == "openai":
                 # Check if supervisor model supports reasoning parameters
                 if self.config.supervisor_model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
                     response_obj = supervisor_client.response_completion(
                         user_prompt=supervisor_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=self.config.supervisor_model,
                         reasoning_effort="high",
                         verbosity="high"
@@ -747,26 +850,30 @@ Return your response in the same JSON format:
                     # Use regular response completion for models that don't support reasoning
                     response_obj = supervisor_client.response_completion(
                         user_prompt=supervisor_prompt,
-                        system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                        system_prompt=system_prompt,
                         model=self.config.supervisor_model
                     )
             elif self.config.supervisor_provider == "gemini":
                 response_obj = supervisor_client.chat_completion(
                     user_prompt=supervisor_prompt,
-                    system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                    system_prompt=system_prompt,
                     model=self.config.supervisor_model,
-                    response_schema=kks_response_schema
+                    response_schema=response_schema
                 )
             else:
                 response_obj = supervisor_client.chat_completion(
                     user_prompt=supervisor_prompt,
-                    system_prompt=kks_system_prompt.replace("{num_player}", str(game.num_player)),
+                    system_prompt=system_prompt,
                     model=self.config.supervisor_model
                 )
             
             # Parse supervisor response
-            player_assignments, explanation = self._parse_agent_response(response_obj.text)
+            player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
             self.logger.info(f"Supervisor decision: {player_assignments}")
+            if self.config.self_reported_confidence:
+                self.logger.info(f"Supervisor confidence: {confidence}")
+            else:
+                self.logger.info(f"Supervisor confidence: not requested (SRC disabled)")
             
             return player_assignments
             
@@ -774,8 +881,8 @@ Return your response in the same JSON format:
             self.logger.error(f"Error getting supervisor decision: {e}")
             return {}
     
-    def _parse_agent_response(self, response_text: str) -> Tuple[Dict[str, str], str]:
-        """Parse agent response to extract player assignments and explanation."""
+    def _parse_agent_response(self, response_text: str) -> Tuple[Dict[str, str], str, float]:
+        """Parse agent response to extract player assignments, explanation, and confidence."""
         try:
             # Try to parse JSON
             response_data = json.loads(response_text)
@@ -783,6 +890,7 @@ Return your response in the same JSON format:
             # Extract player assignments
             player_assignments = {}
             explanation = ""
+            confidence = 0.0
             
             if "players" in response_data and isinstance(response_data["players"], list):
                 # New format with players array
@@ -790,14 +898,16 @@ Return your response in the same JSON format:
                     if isinstance(player_data, dict) and "name" in player_data and "role" in player_data:
                         player_assignments[player_data["name"]] = player_data["role"]
                 explanation = response_data.get("explanation", "")
+                confidence = response_data.get("confidence", 0.0)
             else:
                 # Old format - direct name: role mapping
                 for key, value in response_data.items():
-                    if key != "explanation" and isinstance(value, str):
+                    if key not in ["explanation", "confidence"] and isinstance(value, str):
                         player_assignments[key] = value
                 explanation = response_data.get("explanation", "")
+                confidence = response_data.get("confidence", 0.0)
             
-            return player_assignments, explanation
+            return player_assignments, explanation, confidence
             
         except json.JSONDecodeError:
             # If JSON parsing fails, try to extract using regex
@@ -809,7 +919,7 @@ Return your response in the same JSON format:
             for player_name, role in matches:
                 player_assignments[player_name] = role.lower()
             
-            return player_assignments, response_text
+            return player_assignments, response_text, 0.0
     
     def _parse_ground_truth_solution(self, game: ground_truth) -> Dict[str, str]:
         """Parse ground truth solution to extract player-role pairs."""
@@ -846,7 +956,10 @@ OTHER AGENTS' INITIAL PROPOSALS:
 """
         
         for proposal in initial_proposals:
-            prompt += f"\n{proposal.agent_name} thinks {player_name} is a {proposal.player_role_assignments.get(player_name, 'unknown')}."
+            confidence_info = ""
+            if self.config.self_reported_confidence and proposal.confidence > 0:
+                confidence_info = f" (confidence: {proposal.confidence})"
+            prompt += f"\n{proposal.agent_name} thinks {player_name} is a {proposal.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
             prompt += f" Their reasoning: {proposal.explanation[:200]}...\n"
         
         if previous_rounds:
@@ -855,7 +968,10 @@ OTHER AGENTS' INITIAL PROPOSALS:
                 prompt += f"\nRound {round_data.round_number} - {round_data.player_name}:\n"
                 for response in round_data.agent_responses:
                     if round_data.player_name in response.player_role_assignments:
-                        prompt += f"  {response.agent_name}: {round_data.player_name} is a {response.player_role_assignments[round_data.player_name]}\n"
+                        confidence_info = ""
+                        if self.config.self_reported_confidence and response.confidence > 0:
+                            confidence_info = f" (confidence: {response.confidence})"
+                        prompt += f"  {response.agent_name}: {round_data.player_name} is a {response.player_role_assignments[round_data.player_name]}{confidence_info}\n"
         
         prompt += f"""
 
@@ -888,7 +1004,10 @@ DEBATE SUMMARY:
 """
         
         for response in debate_responses:
-            prompt += f"\n{response.agent_name} thinks {player_name} is a {response.player_role_assignments.get(player_name, 'unknown')}."
+            confidence_info = ""
+            if self.config.self_reported_confidence and response.confidence > 0:
+                confidence_info = f" (confidence: {response.confidence})"
+            prompt += f"\n{response.agent_name} thinks {player_name} is a {response.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
             prompt += f" Their reasoning: {response.explanation[:200]}...\n"
         
         prompt += f"""
@@ -1006,36 +1125,69 @@ Return your response in the same JSON format:
             "final_accuracy": {},
             "consensus_accuracy": {},
             "agent_performance": {},
-            "round_by_round": []
+            "round_by_round": [],
+            "detailed_per_player_tracking": {
+                "initial": {},
+                "rounds": {},
+                "final": {},
+                "supervisor": {}
+            }
         }
         
-        # Calculate initial accuracy for each agent
+        # Calculate initial accuracy for each agent and detailed per-player tracking
         for proposal in initial_proposals:
             correct = 0
             total = len(gt_solution)
+            tracking["detailed_per_player_tracking"]["initial"][proposal.agent_name] = {}
+            
             for player, role in gt_solution.items():
-                if proposal.player_role_assignments.get(player) == role:
+                predicted_role = proposal.player_role_assignments.get(player, "unknown")
+                is_correct = predicted_role == role
+                if is_correct:
                     correct += 1
+                tracking["detailed_per_player_tracking"]["initial"][proposal.agent_name][player] = {
+                    "predicted": predicted_role,
+                    "ground_truth": role,
+                    "correct": is_correct
+                }
             tracking["initial_accuracy"][proposal.agent_name] = correct / total if total > 0 else 0
         
-        # Calculate final accuracy
+        # Calculate final accuracy and detailed tracking
         if final_vote:
             correct = 0
             total = len(gt_solution)
+            tracking["detailed_per_player_tracking"]["final"]["majority_vote"] = {}
+            
             for player, role in gt_solution.items():
-                if final_vote.get(player) == role:
+                predicted_role = final_vote.get(player, "unknown")
+                is_correct = predicted_role == role
+                if is_correct:
                     correct += 1
+                tracking["detailed_per_player_tracking"]["final"]["majority_vote"][player] = {
+                    "predicted": predicted_role,
+                    "ground_truth": role,
+                    "correct": is_correct
+                }
             tracking["final_accuracy"]["majority_vote"] = correct / total if total > 0 else 0
         
         if supervisor_decision:
             correct = 0
             total = len(gt_solution)
+            tracking["detailed_per_player_tracking"]["supervisor"]["supervisor"] = {}
+            
             for player, role in gt_solution.items():
-                if supervisor_decision.get(player) == role:
+                predicted_role = supervisor_decision.get(player, "unknown")
+                is_correct = predicted_role == role
+                if is_correct:
                     correct += 1
+                tracking["detailed_per_player_tracking"]["supervisor"]["supervisor"][player] = {
+                    "predicted": predicted_role,
+                    "ground_truth": role,
+                    "correct": is_correct
+                }
             tracking["final_accuracy"]["supervisor"] = correct / total if total > 0 else 0
         
-        # Round-by-round tracking
+        # Round-by-round tracking with detailed per-player data
         for round_data in debate_rounds:
             round_tracking = {
                 "player": round_data.player_name,
@@ -1043,12 +1195,28 @@ Return your response in the same JSON format:
                 "agent_accuracy": {}
             }
             
+            # Initialize round tracking for this round
+            tracking["detailed_per_player_tracking"]["rounds"][f"round_{round_data.round_number}"] = {
+                "player_focus": round_data.player_name,
+                "agents": {}
+            }
+            
             for response in round_data.agent_responses:
                 correct = 0
                 total = len(gt_solution)
+                tracking["detailed_per_player_tracking"]["rounds"][f"round_{round_data.round_number}"]["agents"][response.agent_name] = {}
+                
                 for player, role in gt_solution.items():
-                    if response.player_role_assignments.get(player) == role:
+                    predicted_role = response.player_role_assignments.get(player, "unknown")
+                    is_correct = predicted_role == role
+                    if is_correct:
                         correct += 1
+                    
+                    tracking["detailed_per_player_tracking"]["rounds"][f"round_{round_data.round_number}"]["agents"][response.agent_name][player] = {
+                        "predicted": predicted_role,
+                        "ground_truth": role,
+                        "correct": is_correct
+                    }
                 round_tracking["agent_accuracy"][response.agent_name] = correct / total if total > 0 else 0
             
             tracking["round_by_round"].append(round_tracking)
@@ -1095,14 +1263,17 @@ Return your response in the same JSON format:
         
         # Create a wrapper function that handles logging setup for each game
         def run_game_with_logging(game: ground_truth) -> DebateSession:
-            # Create a temporary system instance for this specific game
-            temp_system = MultiAgentDebateSystem(self.debate_config, self.secret_path)
+            # Create a temporary system instance for this specific game without logging
+            temp_system = MultiAgentDebateSystem(self.debate_config, self.secret_path, setup_logging=False)
             # Use the same parallel processors (shared resources)
             temp_system.parallel_processor = self.parallel_processor
             temp_system.game_parallel_processor = self.game_parallel_processor
             
-            # Setup logging for this specific game
-            temp_system._setup_logging(game.game_id)
+            # Setup logging for this specific game (this will prepare for log file creation)
+            temp_system._setup_logging(game.game_id, create_log_file=True)
+            
+            # Ensure the log file handler is created before logging
+            temp_system._ensure_log_file_handler()
             
             # Log the parallel processing message
             temp_system.logger.info(f"\n{'='*60}")

@@ -1,10 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Dict, Any
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from project_types import base_config, test_setup
+from utils.project_types import base_config, test_setup
 
 @dataclass
 class AgentConfig:
@@ -31,13 +31,14 @@ class DebateConfig:
     output_path: str = "./debate_results"
     save_detailed_logs: bool = True
     game_size: int = 4
-    game_id_range: List[int] = None  # [start_id, end_id] inclusive
+    game_id_range: List[int] = field(default_factory=lambda: [1, 1])  # [start_id, end_id] inclusive
     game_parallel_workers: int = 20  # Number of workers for game-level parallel processing
+    self_reported_confidence: bool = True  # SRC: Whether models output confidence scores (0-100)
     
     def __post_init__(self):
         """Set default game_id_range if not provided."""
-        if self.game_id_range is None:
-            self.game_id_range = [1, 1]  # Default to single game
+        # game_id_range now defaults to [1, 1] via field(default_factory)
+        pass
     
     def get_organized_output_path(self, game_id: int = None) -> str:
         """Generate organized folder structure based on agent configuration and game parameters."""
@@ -73,7 +74,8 @@ def create_default_debate_config(game_size: int = 5, game_id_range: List[int] = 
     llm_configs = [
         {
             "provider": "openai", 
-            "model": "gpt-4.1-mini",
+            "model": "gpt-5-nano",
+            "reasoning_effort": "low",
         },
         {
             "provider": "gemini",
@@ -131,7 +133,8 @@ def create_custom_debate_config(agent_configs: List[Dict[str, Any]], game_size: 
         save_detailed_logs=config.get("save_detailed_logs", True),
         game_size=game_size,
         game_id_range=game_id_range,
-        game_parallel_workers=config.get("game_parallel_workers", 20)
+        game_parallel_workers=config.get("game_parallel_workers", 20),
+        self_reported_confidence=config.get("self_reported_confidence", True)
     )
 
 def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: int = 5, game_id_range: List[int] = None) -> DebateConfig:
@@ -190,6 +193,7 @@ def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: 
         save_detailed_logs=True,
         game_size=game_size,
         game_id_range=game_id_range,
-        game_parallel_workers=20
+        game_parallel_workers=20,
+        self_reported_confidence=True
     )
 

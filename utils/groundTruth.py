@@ -1,8 +1,8 @@
-from project_types import base_config, ground_truth
-from config import game_config, test_config
-from validator import Validator
-from generator import Generator
-from utility import cstcloud
+from .project_types import base_config, ground_truth
+from .config import game_config, test_config
+from .validator import Validator
+from .generator import Generator
+from .utility import cstcloud
 from prompts import kks_system_prompt
 import json
 import time

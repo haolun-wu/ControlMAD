@@ -74,6 +74,49 @@ Be concise with the explanation.
 Please follows strictly the format of the return, or the response will be rejected.
 """
 
+def get_kks_system_prompt_with_confidence(num_player: int, include_confidence: bool = False) -> str:
+    """Get the KKS system prompt, optionally including confidence scoring."""
+    base_prompt = kks_system_prompt.replace("{num_player}", str(num_player))
+    
+    if not include_confidence:
+        return base_prompt
+    
+    # Add confidence scoring instructions
+    confidence_addition = """
+
+IMPORTANT: You must also include a confidence score in your response. This should be a number from 0 to 100 representing how confident you are in your solution (0 = completely uncertain, 100 = completely certain).
+
+The updated response format is:
+{
+    "players": [
+        {"name": "player_name", "role": "role"},
+        ...
+    ],
+    "explanation": "string",
+    "confidence": number
+}
+
+Where confidence is an integer from 0 to 100 representing your confidence level in the solution."""
+    
+    return base_prompt + confidence_addition
+
+def get_kks_response_schema_with_confidence(include_confidence: bool = False) -> dict:
+    """Get the KKS response schema, optionally including confidence field."""
+    if not include_confidence:
+        return kks_response_schema
+    
+    # Create a copy of the schema and add confidence field
+    schema_with_confidence = kks_response_schema.copy()
+    schema_with_confidence['properties']['confidence'] = {
+        'type': 'integer',
+        'minimum': 0,
+        'maximum': 100,
+        'description': 'Confidence level in the solution (0-100)'
+    }
+    schema_with_confidence['required'].append('confidence')
+    
+    return schema_with_confidence
+
 kks_response_schema = {
     'type': 'object',
     'description': "A complete solution to a Knights and Knaves puzzle.",

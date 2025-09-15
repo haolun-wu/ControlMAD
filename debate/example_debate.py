@@ -10,7 +10,7 @@ from typing import List, Dict, Any
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from project_types import ground_truth
+from utils.project_types import ground_truth
 from debate.debate_config import create_custom_debate_config
 from debate.debate_system import MultiAgentDebateSystem
 from debate.debate_visualizer import DebateVisualizer
@@ -176,7 +176,7 @@ def run_comparison_experiment():
     # Single-agent baseline (using existing test system)
     print("\n1️⃣ Running single-agent baseline...")
     from test_baseline import Test
-    from config import test_config
+    from utils.config import test_config
     
     # Configure for single agent
     test_config.provider = "openai"

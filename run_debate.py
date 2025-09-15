@@ -13,11 +13,11 @@ from typing import List, Dict, Any
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from project_types import ground_truth
+from utils.project_types import ground_truth
 from debate.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config, create_flexible_debate_config
 from debate.debate_system import MultiAgentDebateSystem
 from debate.debate_visualizer import DebateVisualizer
-from config import test_config
+from utils.config import test_config
 
 def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None) -> List[ground_truth]:
     """Load ground truth games for testing."""
@@ -31,19 +31,22 @@ def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None)
         ground_truth_path = f"./groundtruth/{game_size}.jsonl"
         with open(ground_truth_path, 'r', encoding='utf-8') as file:
             for line_num, line in enumerate(file, 1):
-                if line_num < start_id:  # Skip games before start_id
-                    continue
-                if line_num > end_id:  # Stop after end_id
-                    break
-                    
                 line = line.strip()
                 if not line:
                     continue
                 
                 try:
                     data = json.loads(line)
+                    game_id = data['game_id']
+                    
+                    # Filter by actual game_id, not line number
+                    if game_id < start_id:  # Skip games before start_id
+                        continue
+                    if game_id > end_id:  # Stop after end_id
+                        break
+                    
                     gt = ground_truth(
-                        game_id=data['game_id'],
+                        game_id=game_id,
                         num_player=data['num_player'],
                         num_spy=data['num_spy'],
                         num_hint=data['num_hint'],
@@ -84,11 +87,62 @@ def run_debates_with_system(debate_system, games, use_parallel=True):
         return debate_system.run_batch_debate(games)
 
 
+def create_visualizations_for_agent_folder(debate_config: DebateConfig):
+    """Create visualizations for all JSON files in the agent folder."""
+    # Get agent folder path
+    agent_count = len(debate_config.agents)
+    model_names = [agent.model for agent in debate_config.agents]
+    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}"
+    agent_path = os.path.join(debate_config.output_path, agent_folder)
+    
+    if not os.path.exists(agent_path):
+        print(f"❌ Agent folder not found: {agent_path}")
+        return
+    
+    print(f"📁 Processing agent folder: {agent_path}")
+    
+    # Find all game folders
+    game_folders = [d for d in os.listdir(agent_path) if d.startswith('game_size') and os.path.isdir(os.path.join(agent_path, d))]
+    
+    if not game_folders:
+        print(f"❌ No game folders found in {agent_path}")
+        return
+    
+    print(f"🎮 Found {len(game_folders)} game folders")
+    
+    # Process each game folder
+    for game_folder in sorted(game_folders):
+        game_path = os.path.join(agent_path, game_folder)
+        
+        # Find JSON files in this game folder
+        json_files = [f for f in os.listdir(game_path) if f.endswith('.json')]
+        
+        if not json_files:
+            print(f"⚠️  No JSON files found in {game_folder}")
+            continue
+        
+        print(f"📊 Processing {len(json_files)} JSON files in {game_folder}")
+        
+        # Create visualizations for this game folder
+        try:
+            visualizer = DebateVisualizer(game_path)
+            visualization_paths = visualizer.create_all_visualizations_from_folder()
+            
+            print(f"✅ Visualizations created for {game_folder}:")
+            for name, path in visualization_paths.items():
+                print(f"  - {name}: {path}")
+                
+        except Exception as e:
+            print(f"❌ Error creating visualizations for {game_folder}: {e}")
+            continue
+
+
 def run_single_debate_session(game_size: int = 5, 
                             game_id_range: List[int] = None,
                             enable_visualization: bool = True,
                             use_parallel: bool = True,
-                            game_parallel_workers: int = 20):
+                            game_parallel_workers: int = 20,
+                            self_reported_confidence: bool = False):
     """Run a single debate with default configuration."""
     
     print("🚀 Starting Multi-Agent Debate System")
@@ -100,11 +154,13 @@ def run_single_debate_session(game_size: int = 5,
     
     # Load default configuration
     debate_config = create_default_debate_config(game_size, game_id_range)
-    # Override game_parallel_workers if specified
+    # Override parameters if specified
     debate_config.game_parallel_workers = game_parallel_workers
+    debate_config.self_reported_confidence = self_reported_confidence
     print(f"📋 Using default configuration")
     print(f"🤖 Agents: {[agent.name for agent in debate_config.agents]}")
     print(f"🔧 Game parallel workers: {debate_config.game_parallel_workers}")
+    print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
     
     # Load ground truth games
     num_games = debate_config.get_num_games()
@@ -328,10 +384,12 @@ def main():
         print("  python run_debate.py run game_size=5 game_id_range=1,20")
         print("  python run_debate.py run game_size=5 game_id_range=1,20 use_parallel=false")
         print("  python run_debate.py run game_size=5 game_id_range=1,20 game_parallel_workers=10")
+        print("  python run_debate.py run game_size=5 game_id_range=1,20 self_reported_confidence=true")
         print("  python run_debate.py run 5 1,20")
         print("  python run_debate.py custom '[{\"name\":\"GPT-5\",\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_num=1")
         print("  python run_debate.py flexible '[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"},{\"provider\":\"gemini\",\"model\":\"gemini-2.5-flash\",\"temperature\":0.2}]' game_size=5 game_num=1")
         print("  # Note: temperature is optional for all models")
+        print("  # Note: self_reported_confidence enables confidence scoring (0-100) for all model outputs")
         return
     
     # Check if using new key=value format
@@ -357,11 +415,13 @@ def main():
         if command == "run":
             use_parallel = kv_args.get('use_parallel', 'true').lower() == 'true'
             game_parallel_workers = int(kv_args.get('game_parallel_workers', 20))
+            self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
             num_games = game_id_range[1] - game_id_range[0] + 1
             print(f"🎯 Running default configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
             print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
             print(f"🔧 Game parallel workers: {game_parallel_workers}")
-            run_single_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers)
+            print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
+            run_single_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence)
         else:
             print(f"Error: Command '{command}' not supported with key=value format")
         return

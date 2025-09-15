@@ -116,9 +116,15 @@ class DebateVisualizer:
         
         pivot_table = pivot_table.reindex(columns=phase_order)
         
-        # Create heatmap
+        # Create heatmap with light purple theme
         plt.figure(figsize=(max(8, len(phase_order) * 2), 6))
-        sns.heatmap(pivot_table, annot=True, cmap='RdYlGn', 
+        
+        # Create custom light purple colormap (light purple for low accuracy, dark purple for high accuracy)
+        from matplotlib.colors import LinearSegmentedColormap
+        colors = ['#E6E6FA', '#D8BFD8', '#DDA0DD', '#DA70D6', '#BA55D3', '#9370DB', '#8A2BE2', '#7B68EE', '#6A5ACD', '#483D8B']
+        purple_cmap = LinearSegmentedColormap.from_list('light_purple', colors, N=256)
+        
+        sns.heatmap(pivot_table, annot=True, cmap=purple_cmap, 
                    vmin=0, vmax=1, fmt='.2f', cbar_kws={'label': 'Accuracy'})
         plt.title('Agent Performance Matrix: Accuracy by Round\n(Shows how each agent\'s accuracy changes through debate rounds and final consensus)')
         plt.xlabel('Phase')
@@ -126,7 +132,7 @@ class DebateVisualizer:
         plt.tight_layout()
         
         if save_path is None:
-            save_path = os.path.join(self.output_path, f"performance_matrix_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png")
+            save_path = os.path.join(self.output_path, "performance_matrix.png")
         
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
@@ -184,7 +190,7 @@ class DebateVisualizer:
         plt.tight_layout()
         
         if save_path is None:
-            save_path = os.path.join(self.output_path, f"consensus_tracking_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png")
+            save_path = os.path.join(self.output_path, "consensus_tracking.png")
         
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
@@ -289,7 +295,7 @@ class DebateVisualizer:
         plt.tight_layout()
         
         if save_path is None:
-            save_path = os.path.join(self.output_path, f"agent_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png")
+            save_path = os.path.join(self.output_path, "agent_comparison.png")
         
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
@@ -374,7 +380,7 @@ class DebateVisualizer:
         plt.tight_layout()
         
         if save_path is None:
-            save_path = os.path.join(self.output_path, f"debate_flow_{session.game_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png")
+            save_path = os.path.join(self.output_path, f"debate_flow_{session.game_id}.png")
         
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
@@ -387,7 +393,7 @@ class DebateVisualizer:
         """Create a comprehensive summary report."""
         
         if save_path is None:
-            save_path = os.path.join(self.output_path, f"summary_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
+            save_path = os.path.join(self.output_path, "summary_report.txt")
         
         with open(save_path, 'w', encoding='utf-8') as f:
             f.write("MULTI-AGENT DEBATE SUMMARY REPORT\n")
@@ -568,6 +574,159 @@ class DebateVisualizer:
         print(f"📋 Detailed tracking report saved to: {save_path}")
         return save_path
     
+    def create_detailed_per_player_accuracy(self, sessions: List[DebateSession], 
+                                          save_path: Optional[str] = None) -> str:
+        """Create detailed visualization showing per-player accuracy by round for each agent."""
+        
+        if not sessions:
+            return ""
+        
+        # Collect detailed data
+        detailed_data = []
+        
+        for session in sessions:
+            # Get detailed tracking data
+            tracking = session.performance_tracking
+            if "detailed_per_player_tracking" not in tracking:
+                continue
+                
+            detailed_tracking = tracking["detailed_per_player_tracking"]
+            players = list(session.ground_truth_solution.keys())
+            
+            # Initial proposals
+            for agent_name, agent_data in detailed_tracking["initial"].items():
+                for player in players:
+                    if player in agent_data:
+                        detailed_data.append({
+                            'Game': session.game_id,
+                            'Agent': agent_name,
+                            'Player': player,
+                            'Phase': 'Initial',
+                            'Round': 0,
+                            'Correct': agent_data[player]['correct'],
+                            'Predicted': agent_data[player]['predicted'],
+                            'GroundTruth': agent_data[player]['ground_truth']
+                        })
+            
+            # Rounds
+            for round_key, round_data in detailed_tracking["rounds"].items():
+                round_num = int(round_key.split('_')[1])
+                for agent_name, agent_data in round_data["agents"].items():
+                    for player in players:
+                        if player in agent_data:
+                            detailed_data.append({
+                                'Game': session.game_id,
+                                'Agent': agent_name,
+                                'Player': player,
+                                'Phase': f'Round {round_num}',
+                                'Round': round_num,
+                                'Correct': agent_data[player]['correct'],
+                                'Predicted': agent_data[player]['predicted'],
+                                'GroundTruth': agent_data[player]['ground_truth']
+                            })
+            
+            # Final vote
+            if "majority_vote" in detailed_tracking["final"]:
+                final_data = detailed_tracking["final"]["majority_vote"]
+                for player in players:
+                    if player in final_data:
+                        detailed_data.append({
+                            'Game': session.game_id,
+                            'Agent': 'Majority Vote',
+                            'Player': player,
+                            'Phase': 'Final Vote',
+                            'Round': 999,  # Use high number for final
+                            'Correct': final_data[player]['correct'],
+                            'Predicted': final_data[player]['predicted'],
+                            'GroundTruth': final_data[player]['ground_truth']
+                        })
+            
+            # Supervisor decision
+            if "supervisor" in detailed_tracking["supervisor"]:
+                supervisor_data = detailed_tracking["supervisor"]["supervisor"]
+                for player in players:
+                    if player in supervisor_data:
+                        detailed_data.append({
+                            'Game': session.game_id,
+                            'Agent': 'Supervisor',
+                            'Player': player,
+                            'Phase': 'Supervisor',
+                            'Round': 1000,  # Use higher number for supervisor
+                            'Correct': supervisor_data[player]['correct'],
+                            'Predicted': supervisor_data[player]['predicted'],
+                            'GroundTruth': supervisor_data[player]['ground_truth']
+                        })
+        
+        if not detailed_data:
+            return ""
+        
+        df = pd.DataFrame(detailed_data)
+        
+        # Create figure with subplots
+        agents = df['Agent'].unique()
+        players = df['Player'].unique()
+        
+        fig, axes = plt.subplots(len(agents), len(players), figsize=(4*len(players), 3*len(agents)))
+        if len(agents) == 1:
+            axes = axes.reshape(1, -1)
+        if len(players) == 1:
+            axes = axes.reshape(-1, 1)
+        
+        for i, agent in enumerate(agents):
+            for j, player in enumerate(players):
+                ax = axes[i, j]
+                
+                # Filter data for this agent and player
+                agent_player_data = df[(df['Agent'] == agent) & (df['Player'] == player)]
+                
+                if len(agent_player_data) == 0:
+                    ax.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax.transAxes)
+                    ax.set_title(f'{agent}\n{player}')
+                    continue
+                
+                # Create timeline plot
+                rounds = sorted(agent_player_data['Round'].unique())
+                correctness = []
+                phases = []
+                
+                for round_num in rounds:
+                    round_data = agent_player_data[agent_player_data['Round'] == round_num]
+                    if len(round_data) > 0:
+                        correctness.append(round_data.iloc[0]['Correct'])
+                        phases.append(round_data.iloc[0]['Phase'])
+                
+                # Plot correctness over rounds
+                colors = ['red' if not correct else 'green' for correct in correctness]
+                bars = ax.bar(range(len(rounds)), [1] * len(rounds), color=colors, alpha=0.7)
+                
+                # Add phase labels
+                ax.set_xticks(range(len(rounds)))
+                ax.set_xticklabels(phases, rotation=45, ha='right')
+                ax.set_ylim(0, 1.2)
+                
+                # Add correctness labels
+                for k, (bar, correct) in enumerate(zip(bars, correctness)):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + 0.05,
+                           '✓' if correct else '✗', ha='center', va='bottom', fontsize=12)
+                
+                ax.set_title(f'{agent}\n{player}')
+                ax.set_ylabel('Correct')
+                ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        # Save plot
+        if save_path is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"detailed_per_player_accuracy_{timestamp}.png"
+            save_path = os.path.join(self.output_path, filename)
+        
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        return save_path
+    
     def create_all_visualizations(self, sessions: List[DebateSession]) -> Dict[str, str]:
         """Create all visualizations and return file paths."""
         results = {}
@@ -583,6 +742,9 @@ class DebateVisualizer:
         # Agent comparison
         results['agent_comparison'] = self.create_agent_comparison(sessions)
         
+        # Detailed per-player accuracy
+        results['detailed_per_player_accuracy'] = self.create_detailed_per_player_accuracy(sessions)
+        
         # Individual debate flows
         for session in sessions:
             results[f'debate_flow_{session.game_id}'] = self.create_debate_flow_diagram(session)
@@ -595,26 +757,78 @@ class DebateVisualizer:
         
         print(f"✅ All visualizations created in: {self.output_path}")
         return results
-
-def load_debate_sessions(results_dir: str) -> List[DebateSession]:
-    """Load debates from JSON files in the results directory."""
-    sessions = []
     
-    # Find all debate JSON files
-    for filename in os.listdir(results_dir):
-        if filename.startswith('debate_') and filename.endswith('.json'):
-            filepath = os.path.join(results_dir, filename)
+    def create_all_visualizations_from_folder(self) -> Dict[str, str]:
+        """Create all visualizations by loading JSON files from the current folder."""
+        # Find all JSON files in the current folder
+        json_files = [f for f in os.listdir(self.output_path) if f.endswith('.json')]
+        
+        if not json_files:
+            print(f"❌ No JSON files found in {self.output_path}")
+            return {}
+        
+        print(f"📊 Found {len(json_files)} JSON files")
+        
+        # Load sessions from JSON files
+        sessions = []
+        for json_file in json_files:
             try:
-                with open(filepath, 'r', encoding='utf-8') as f:
+                json_path = os.path.join(self.output_path, json_file)
+                with open(json_path, 'r', encoding='utf-8') as f:
                     session_data = json.load(f)
                 
                 # Convert back to DebateSession object
-                session = _dict_to_debate_session(session_data)
+                session = self._json_to_debate_session(session_data)
                 sessions.append(session)
-                print(f"✅ Loaded debate from {filename}")
+                print(f"✅ Loaded {json_file}")
                 
             except Exception as e:
-                print(f"❌ Error loading {filename}: {e}")
+                print(f"❌ Error loading {json_file}: {e}")
+                continue
+        
+        if not sessions:
+            print(f"❌ No valid sessions loaded")
+            return {}
+        
+        print(f"🎯 Creating visualizations for {len(sessions)} sessions")
+        return self.create_all_visualizations(sessions)
+    
+    def _json_to_debate_session(self, session_data: Dict[str, Any]) -> DebateSession:
+        """Convert JSON data back to DebateSession object."""
+        # This is a simplified conversion - you might need to handle nested objects
+        return DebateSession(
+            game_id=session_data['game_id'],
+            game_text=session_data['game_text'],
+            ground_truth_solution=session_data['ground_truth_solution'],
+            initial_proposals=[],  # Simplified for now
+            debate_rounds=[],     # Simplified for now
+            final_vote=session_data.get('final_vote'),
+            supervisor_decision=session_data.get('supervisor_decision'),
+            performance_tracking=session_data.get('performance_tracking')
+        )
+
+def load_debate_sessions(results_dir: str) -> List[DebateSession]:
+    """Load debates from JSON files in the results directory and all subdirectories."""
+    sessions = []
+    
+    # Find all debate JSON files recursively
+    for root, dirs, files in os.walk(results_dir):
+        for filename in files:
+            if filename.startswith('debate_') and filename.endswith('.json'):
+                filepath = os.path.join(root, filename)
+                try:
+                    with open(filepath, 'r', encoding='utf-8') as f:
+                        session_data = json.load(f)
+                    
+                    # Convert back to DebateSession object
+                    session = _dict_to_debate_session(session_data)
+                    # Store the source file path for later use
+                    session.source_file = filepath
+                    sessions.append(session)
+                    print(f"✅ Loaded debate from {os.path.relpath(filepath, results_dir)}")
+                    
+                except Exception as e:
+                    print(f"❌ Error loading {os.path.relpath(filepath, results_dir)}: {e}")
     
     return sessions
 
@@ -771,33 +985,39 @@ Examples:
     
     print(f"📊 Found {len(sessions)} debate(s)")
     
-    # Create visualizer
-    visualizer = DebateVisualizer(args.output_dir)
-    
-    # Generate visualizations
+    # Generate visualizations for each session individually
     print("🎨 Generating visualizations...")
     results = {}
     
-    if not args.no_performance_matrix:
-        print("  📈 Creating performance matrix...")
-        results['performance_matrix'] = visualizer.create_performance_matrix(sessions)
-    
-    if not args.no_consensus_tracking:
-        print("  📊 Creating consensus tracking...")
-        results['consensus_tracking'] = visualizer.create_consensus_tracking(sessions)
-    
-    if not args.no_agent_comparison:
-        print("  🤖 Creating agent comparison...")
-        results['agent_comparison'] = visualizer.create_agent_comparison(sessions)
-    
-    # Individual debate flows
-    print("  🔄 Creating debate flow diagrams...")
-    for session in sessions:
+    for i, session in enumerate(sessions, 1):
+        print(f"  📊 Processing session {i}/{len(sessions)} (Game ID: {session.game_id})")
+        
+        # Determine the output directory for this session (same as JSON file location)
+        session_output_dir = os.path.dirname(session.source_file) if hasattr(session, 'source_file') else args.output_dir
+        
+        # Create visualizer for this session
+        visualizer = DebateVisualizer(session_output_dir)
+        
+        # Generate visualizations for this single session
+        if not args.no_performance_matrix:
+            print(f"    📈 Creating performance matrix...")
+            results[f'performance_matrix_{session.game_id}'] = visualizer.create_performance_matrix([session])
+        
+        if not args.no_consensus_tracking:
+            print(f"    📊 Creating consensus tracking...")
+            results[f'consensus_tracking_{session.game_id}'] = visualizer.create_consensus_tracking([session])
+        
+        if not args.no_agent_comparison:
+            print(f"    🤖 Creating agent comparison...")
+            results[f'agent_comparison_{session.game_id}'] = visualizer.create_agent_comparison([session])
+        
+        # Individual debate flow
+        print(f"    🔄 Creating debate flow diagram...")
         results[f'debate_flow_{session.game_id}'] = visualizer.create_debate_flow_diagram(session)
     
     print(f"\n✅ All visualizations completed!")
-    print(f"📁 Results saved to: {args.output_dir}")
-    print("\nGenerated files:")
+    print(f"📁 Results saved in individual session directories")
+    print(f"\nGenerated files:")
     for name, path in results.items():
         print(f"  - {name}: {os.path.basename(path)}")
 

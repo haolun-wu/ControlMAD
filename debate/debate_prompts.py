@@ -27,9 +27,7 @@ Always respond in the following JSON format:
         {"name": "player_name", "role": "role"},
         ...
     ],
-    "explanation": "Your detailed reasoning and analysis",
-    "confidence": 0.0-1.0,
-    "key_insights": ["insight1", "insight2", ...]
+    "explanation": "Your detailed reasoning and analysis"
 }
 
 Be thorough in your reasoning and consider all available information.
@@ -191,10 +189,10 @@ debate_response_schema = {
             'description': 'A step-by-step logical reasoning for the solution.'
         },
         'confidence': {
-            'type': 'number',
-            'minimum': 0.0,
-            'maximum': 1.0,
-            'description': 'Confidence level in the solution (0.0 to 1.0)'
+            'type': 'integer',
+            'minimum': 0,
+            'maximum': 100,
+            'description': 'Confidence level in the solution (0 to 100)'
         },
         'key_insights': {
             'type': 'array',
@@ -254,3 +252,44 @@ def create_supervisor_prompt(game_text: str, debate_history: str,
 def create_initial_proposal_prompt(game_text: str) -> str:
     """Create an initial proposal prompt."""
     return initial_proposal_prompt.format(game_text=game_text)
+
+def get_debate_system_prompt_with_confidence(include_confidence: bool = False) -> str:
+    """Get the debate system prompt, optionally including confidence scoring."""
+    if not include_confidence:
+        return debate_system_prompt
+    
+    # Add confidence scoring instructions
+    confidence_addition = """
+
+IMPORTANT: You must also include a confidence score in your response. This should be a number from 0 to 100 representing how confident you are in your solution (0 = completely uncertain, 100 = completely certain).
+
+The updated response format is:
+{
+    "players": [
+        {"name": "player_name", "role": "role"},
+        ...
+    ],
+    "explanation": "Your detailed reasoning and analysis",
+    "confidence": number
+}
+
+Where confidence is an integer from 0 to 100 representing your confidence level in the solution."""
+    
+    return debate_system_prompt + confidence_addition
+
+def get_debate_response_schema_with_confidence(include_confidence: bool = False) -> dict:
+    """Get the debate response schema, optionally including confidence field."""
+    if not include_confidence:
+        return debate_response_schema
+    
+    # Create a copy of the schema and add confidence field
+    schema_with_confidence = debate_response_schema.copy()
+    schema_with_confidence['properties']['confidence'] = {
+        'type': 'integer',
+        'minimum': 0,
+        'maximum': 100,
+        'description': 'Confidence level in the solution (0-100)'
+    }
+    schema_with_confidence['required'].append('confidence')
+    
+    return schema_with_confidence
