@@ -1,0 +1,309 @@
+2025-09-16 13:28:30,554 - INFO - 
+============================================================
+2025-09-16 13:28:30,554 - INFO - Running parallel debate for Game 1
+2025-09-16 13:28:30,554 - INFO - ============================================================
+2025-09-16 13:28:30,554 - INFO - 🎯 Starting debate for Game 1
+2025-09-16 13:28:30,554 - INFO - Players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5']
+2025-09-16 13:28:30,554 - INFO - 📋 Ground Truth Solution: {'Tina': 'knave', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'spy', 'Wendy': 'knight'}
+2025-09-16 13:28:30,554 - INFO - 📝 Phase 1: Initial Proposals
+2025-09-16 13:28:30,554 - INFO - ========================================
+2025-09-16 13:28:30,554 - INFO -     🤖 OpenAI-gpt-5-nano (openai/gpt-5-nano) getting initial proposal...
+2025-09-16 13:28:30,555 - INFO -     🤖 Gemini-gemini-2.5-flash-lite (gemini/gemini-2.5-flash-lite) getting initial proposal...
+2025-09-16 13:28:30,555 - INFO -     🤖 Qwen-qwen-turbo-latest (ali/qwen-turbo-latest) getting initial proposal...
+2025-09-16 13:28:32,380 - INFO -     ✅ Gemini-gemini-2.5-flash-lite completed: {'Tina': 'knight', 'Sam': 'spy', 'Violet': 'knave', 'Hank': 'knave', 'Wendy': 'knave'}
+2025-09-16 13:28:32,380 - INFO -     📊 Gemini-gemini-2.5-flash-lite confidence: 4.0
+2025-09-16 13:28:33,993 - INFO -     ✅ Qwen-qwen-turbo-latest completed: {'Tina': 'knave', 'Sam': 'spy', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'knave'}
+2025-09-16 13:28:33,993 - INFO -     📊 Qwen-qwen-turbo-latest confidence: 4.0
+2025-09-16 13:29:01,188 - INFO -     ✅ OpenAI-gpt-5-nano completed: {'Tina': 'knight', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knave', 'Wendy': 'spy'}
+2025-09-16 13:29:01,190 - INFO -     📊 OpenAI-gpt-5-nano confidence: 2.0
+2025-09-16 13:29:01,192 - INFO - 🔍 Initial Proposals Summary:
+2025-09-16 13:29:01,192 - INFO -   OpenAI-gpt-5-nano: {'Tina': 'knight', 'Sam': 'knave', 'Violet': 'knave', 'Hank': 'knave', 'Wendy': 'spy'}
+2025-09-16 13:29:01,193 - INFO -     ✅ Success
+2025-09-16 13:29:01,193 - INFO -     📊 OpenAI-gpt-5-nano Initial Accuracy by Player:
+2025-09-16 13:29:01,193 - INFO -       Tina: knight vs knave ❌
+2025-09-16 13:29:01,193 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:29:01,194 - INFO -       Violet: knave vs knave ✅
+2025-09-16 13:29:01,194 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:01,194 - INFO -       Wendy: spy vs knight ❌
+2025-09-16 13:29:01,194 - INFO -   Gemini-gemini-2.5-flash-lite: {'Tina': 'knight', 'Sam': 'spy', 'Violet': 'knave', 'Hank': 'knave', 'Wendy': 'knave'}
+2025-09-16 13:29:01,197 - INFO -     ✅ Success
+2025-09-16 13:29:01,197 - INFO -     📊 Gemini-gemini-2.5-flash-lite Initial Accuracy by Player:
+2025-09-16 13:29:01,198 - INFO -       Tina: knight vs knave ❌
+2025-09-16 13:29:01,198 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:29:01,198 - INFO -       Violet: knave vs knave ✅
+2025-09-16 13:29:01,198 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:01,198 - INFO -       Wendy: knave vs knight ❌
+2025-09-16 13:29:01,199 - INFO -   Qwen-qwen-turbo-latest: {'Tina': 'knave', 'Sam': 'spy', 'Violet': 'knave', 'Hank': 'knight', 'Wendy': 'knave'}
+2025-09-16 13:29:01,199 - INFO -     ✅ Success
+2025-09-16 13:29:01,199 - INFO -     📊 Qwen-qwen-turbo-latest Initial Accuracy by Player:
+2025-09-16 13:29:01,199 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:29:01,199 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:29:01,199 - INFO -       Violet: knave vs knave ✅
+2025-09-16 13:29:01,199 - INFO -       Hank: knight vs spy ❌
+2025-09-16 13:29:01,199 - INFO -       Wendy: knave vs knight ❌
+2025-09-16 13:29:01,199 - INFO - 🗣️ Phase 2: Debate Rounds
+2025-09-16 13:29:01,200 - INFO - --- Debating Tina's role ---
+2025-09-16 13:29:01,200 - INFO - 🎯 Ground Truth: Tina is a knave
+2025-09-16 13:29:01,200 - INFO -   Step 1: Debate period for Tina
+2025-09-16 13:29:01,200 - INFO -       🤖 OpenAI-gpt-5-nano debating Tina...
+2025-09-16 13:29:01,203 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Tina...
+2025-09-16 13:29:01,208 - INFO -       🤖 Qwen-qwen-turbo-latest debating Tina...
+2025-09-16 13:29:04,376 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:29:04,377 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 4.0
+2025-09-16 13:29:07,445 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:29:07,446 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 3.0
+2025-09-16 13:29:08,338 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:29:08,339 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:29:08,341 - INFO -   Step 2: Self-adjustment for Tina
+2025-09-16 13:29:08,342 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Tina...
+2025-09-16 13:29:08,353 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Tina...
+2025-09-16 13:29:08,354 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Tina...
+2025-09-16 13:29:09,516 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:29:09,516 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:12,047 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:29:12,047 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 4.0
+2025-09-16 13:29:28,330 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:29:28,330 - INFO -       📊 OpenAI-gpt-5-nano confidence: 2.0
+2025-09-16 13:29:28,331 - INFO - 📊 Round 1 Results for Tina:
+2025-09-16 13:29:28,331 - INFO -   OpenAI-gpt-5-nano: spy ❌ (confidence: 2.0)
+2025-09-16 13:29:28,331 - INFO -     📊 OpenAI-gpt-5-nano Round 1 Accuracy by Player:
+2025-09-16 13:29:28,331 - INFO -       Tina: spy vs knave ❌
+2025-09-16 13:29:28,331 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:29:28,331 - INFO -       Violet: knave vs knave ✅
+2025-09-16 13:29:28,332 - INFO -       Hank: knight vs spy ❌
+2025-09-16 13:29:28,332 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:29:28,332 - INFO -   Gemini-gemini-2.5-flash-lite: knave ✅ (confidence: 5.0)
+2025-09-16 13:29:28,332 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 1 Accuracy by Player:
+2025-09-16 13:29:28,332 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:29:28,332 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:29:28,332 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:29:28,332 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:28,333 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:29:28,333 - INFO -   Qwen-qwen-turbo-latest: knave ✅ (confidence: 4.0)
+2025-09-16 13:29:28,333 - INFO -     📊 Qwen-qwen-turbo-latest Round 1 Accuracy by Player:
+2025-09-16 13:29:28,333 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:29:28,333 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:29:28,333 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:29:28,333 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:28,333 - INFO -       Wendy: knave vs knight ❌
+2025-09-16 13:29:28,333 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:29:28,333 - INFO - --- Debating Sam's role ---
+2025-09-16 13:29:28,333 - INFO - 🎯 Ground Truth: Sam is a knave
+2025-09-16 13:29:28,334 - INFO -   Step 1: Debate period for Sam
+2025-09-16 13:29:28,334 - INFO -       🤖 OpenAI-gpt-5-nano debating Sam...
+2025-09-16 13:29:28,335 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Sam...
+2025-09-16 13:29:28,336 - INFO -       🤖 Qwen-qwen-turbo-latest debating Sam...
+2025-09-16 13:29:30,567 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:29:30,569 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:34,824 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:29:34,826 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:29:40,622 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:29:40,622 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:40,624 - INFO -   Step 2: Self-adjustment for Sam
+2025-09-16 13:29:40,634 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Sam...
+2025-09-16 13:29:40,635 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Sam...
+2025-09-16 13:29:40,636 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Sam...
+2025-09-16 13:29:41,679 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:29:41,679 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:44,582 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:29:44,582 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:54,956 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:29:54,958 - INFO -       📊 OpenAI-gpt-5-nano confidence: 2.0
+2025-09-16 13:29:54,960 - INFO - 📊 Round 2 Results for Sam:
+2025-09-16 13:29:54,960 - INFO -   OpenAI-gpt-5-nano: knight ❌ (confidence: 2.0)
+2025-09-16 13:29:54,960 - INFO -     📊 OpenAI-gpt-5-nano Round 2 Accuracy by Player:
+2025-09-16 13:29:54,960 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:29:54,960 - INFO -       Sam: knight vs knave ❌
+2025-09-16 13:29:54,960 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:29:54,960 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:54,960 - INFO -       Wendy: spy vs knight ❌
+2025-09-16 13:29:54,961 - INFO -   Gemini-gemini-2.5-flash-lite: spy ❌ (confidence: 5.0)
+2025-09-16 13:29:54,961 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 2 Accuracy by Player:
+2025-09-16 13:29:54,961 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:29:54,961 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:29:54,961 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:29:54,961 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:54,961 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:29:54,961 - INFO -   Qwen-qwen-turbo-latest: spy ❌ (confidence: 5.0)
+2025-09-16 13:29:54,961 - INFO -     📊 Qwen-qwen-turbo-latest Round 2 Accuracy by Player:
+2025-09-16 13:29:54,961 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:29:54,961 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:29:54,962 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:29:54,962 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:54,962 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:29:54,962 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:29:54,962 - INFO - --- Debating Violet's role ---
+2025-09-16 13:29:54,962 - INFO - 🎯 Ground Truth: Violet is a knave
+2025-09-16 13:29:54,962 - INFO -   Step 1: Debate period for Violet
+2025-09-16 13:29:54,963 - INFO -       🤖 OpenAI-gpt-5-nano debating Violet...
+2025-09-16 13:29:54,964 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Violet...
+2025-09-16 13:29:54,966 - INFO -       🤖 Qwen-qwen-turbo-latest debating Violet...
+2025-09-16 13:29:56,267 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:29:56,273 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:57,288 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:29:57,288 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:59,699 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:29:59,700 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:29:59,700 - INFO -   Step 2: Self-adjustment for Violet
+2025-09-16 13:29:59,701 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Violet...
+2025-09-16 13:29:59,702 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Violet...
+2025-09-16 13:29:59,706 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Violet...
+2025-09-16 13:30:02,838 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:30:02,844 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:07,409 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:30:07,412 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:15,612 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:30:15,614 - INFO -       📊 OpenAI-gpt-5-nano confidence: 1.0
+2025-09-16 13:30:15,617 - INFO - 📊 Round 3 Results for Violet:
+2025-09-16 13:30:15,617 - INFO -   OpenAI-gpt-5-nano: knight ❌ (confidence: 1.0)
+2025-09-16 13:30:15,617 - INFO -     📊 OpenAI-gpt-5-nano Round 3 Accuracy by Player:
+2025-09-16 13:30:15,617 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:30:15,617 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:30:15,618 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:30:15,618 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:15,618 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:30:15,618 - INFO -   Gemini-gemini-2.5-flash-lite: knight ❌ (confidence: 5.0)
+2025-09-16 13:30:15,618 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 3 Accuracy by Player:
+2025-09-16 13:30:15,618 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:30:15,618 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:30:15,618 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:30:15,618 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:15,618 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:30:15,618 - INFO -   Qwen-qwen-turbo-latest: knight ❌ (confidence: 5.0)
+2025-09-16 13:30:15,618 - INFO -     📊 Qwen-qwen-turbo-latest Round 3 Accuracy by Player:
+2025-09-16 13:30:15,619 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:30:15,619 - INFO -       Sam: spy vs knave ❌
+2025-09-16 13:30:15,619 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:30:15,619 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:15,619 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:30:15,619 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:30:15,619 - INFO - --- Debating Hank's role ---
+2025-09-16 13:30:15,619 - INFO - 🎯 Ground Truth: Hank is a spy
+2025-09-16 13:30:15,619 - INFO -   Step 1: Debate period for Hank
+2025-09-16 13:30:15,620 - INFO -       🤖 OpenAI-gpt-5-nano debating Hank...
+2025-09-16 13:30:15,621 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Hank...
+2025-09-16 13:30:15,630 - INFO -       🤖 Qwen-qwen-turbo-latest debating Hank...
+2025-09-16 13:30:17,209 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:30:17,210 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:18,453 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:30:18,455 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:21,884 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:30:21,884 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:30:21,885 - INFO -   Step 2: Self-adjustment for Hank
+2025-09-16 13:30:21,886 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Hank...
+2025-09-16 13:30:21,887 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Hank...
+2025-09-16 13:30:21,894 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Hank...
+2025-09-16 13:30:22,907 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:30:22,907 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:25,322 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:30:25,325 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:39,078 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:30:39,079 - INFO -       📊 OpenAI-gpt-5-nano confidence: 2.0
+2025-09-16 13:30:39,080 - INFO - 📊 Round 4 Results for Hank:
+2025-09-16 13:30:39,080 - INFO -   OpenAI-gpt-5-nano: spy ✅ (confidence: 2.0)
+2025-09-16 13:30:39,080 - INFO -     📊 OpenAI-gpt-5-nano Round 4 Accuracy by Player:
+2025-09-16 13:30:39,080 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:30:39,080 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:30:39,080 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:30:39,081 - INFO -       Hank: spy vs spy ✅
+2025-09-16 13:30:39,081 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:30:39,081 - INFO -   Gemini-gemini-2.5-flash-lite: knave ❌ (confidence: 5.0)
+2025-09-16 13:30:39,081 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 4 Accuracy by Player:
+2025-09-16 13:30:39,081 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:30:39,081 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:30:39,082 - INFO -       Violet: spy vs knave ❌
+2025-09-16 13:30:39,082 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:39,082 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:30:39,082 - INFO -   Qwen-qwen-turbo-latest: knave ❌ (confidence: 5.0)
+2025-09-16 13:30:39,082 - INFO -     📊 Qwen-qwen-turbo-latest Round 4 Accuracy by Player:
+2025-09-16 13:30:39,082 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:30:39,083 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:30:39,083 - INFO -       Violet: spy vs knave ❌
+2025-09-16 13:30:39,083 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:39,083 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:30:39,083 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:30:39,083 - INFO - --- Debating Wendy's role ---
+2025-09-16 13:30:39,083 - INFO - 🎯 Ground Truth: Wendy is a knight
+2025-09-16 13:30:39,083 - INFO -   Step 1: Debate period for Wendy
+2025-09-16 13:30:39,084 - INFO -       🤖 OpenAI-gpt-5-nano debating Wendy...
+2025-09-16 13:30:39,085 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Wendy...
+2025-09-16 13:30:39,095 - INFO -       🤖 Qwen-qwen-turbo-latest debating Wendy...
+2025-09-16 13:30:40,342 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:30:40,342 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:41,367 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:30:41,367 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:50,961 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:30:50,962 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:30:50,964 - INFO -   Step 2: Self-adjustment for Wendy
+2025-09-16 13:30:50,965 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Wendy...
+2025-09-16 13:30:50,965 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Wendy...
+2025-09-16 13:30:50,966 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Wendy...
+2025-09-16 13:30:52,596 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:30:52,596 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:54,942 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:30:54,942 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:31:15,480 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:31:15,481 - INFO -       📊 OpenAI-gpt-5-nano confidence: 1.0
+2025-09-16 13:31:15,483 - INFO - 📊 Round 5 Results for Wendy:
+2025-09-16 13:31:15,484 - INFO -   OpenAI-gpt-5-nano: spy ❌ (confidence: 1.0)
+2025-09-16 13:31:15,484 - INFO -     📊 OpenAI-gpt-5-nano Round 5 Accuracy by Player:
+2025-09-16 13:31:15,484 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:31:15,484 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:31:15,484 - INFO -       Violet: knight vs knave ❌
+2025-09-16 13:31:15,484 - INFO -       Hank: knight vs spy ❌
+2025-09-16 13:31:15,484 - INFO -       Wendy: spy vs knight ❌
+2025-09-16 13:31:15,485 - INFO -   Gemini-gemini-2.5-flash-lite: knight ✅ (confidence: 5.0)
+2025-09-16 13:31:15,485 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 5 Accuracy by Player:
+2025-09-16 13:31:15,485 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:31:15,485 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:31:15,485 - INFO -       Violet: spy vs knave ❌
+2025-09-16 13:31:15,485 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:31:15,486 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:31:15,486 - INFO -   Qwen-qwen-turbo-latest: knight ✅ (confidence: 5.0)
+2025-09-16 13:31:15,486 - INFO -     📊 Qwen-qwen-turbo-latest Round 5 Accuracy by Player:
+2025-09-16 13:31:15,486 - INFO -       Tina: knave vs knave ✅
+2025-09-16 13:31:15,486 - INFO -       Sam: knave vs knave ✅
+2025-09-16 13:31:15,486 - INFO -       Violet: spy vs knave ❌
+2025-09-16 13:31:15,486 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:31:15,486 - INFO -       Wendy: knight vs knight ✅
+2025-09-16 13:31:15,487 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:31:15,487 - INFO - 🗣️ Phase 3: Final Discussion and Fresh Voting
+2025-09-16 13:31:15,487 - INFO - ========================================
+2025-09-16 13:31:15,487 - INFO - Conducting final discussion and fresh voting...
+2025-09-16 13:31:15,490 - INFO -   🤖 OpenAI-gpt-5-nano making final decision...
+2025-09-16 13:31:27,307 - INFO -   ✅ OpenAI-gpt-5-nano final decision completed
+2025-09-16 13:31:27,308 - INFO -   📊 OpenAI-gpt-5-nano confidence: 1.0
+2025-09-16 13:31:27,308 - INFO -   🤖 Gemini-gemini-2.5-flash-lite making final decision...
+2025-09-16 13:31:28,842 - INFO -   ✅ Gemini-gemini-2.5-flash-lite final decision completed
+2025-09-16 13:31:28,842 - INFO -   📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:31:28,842 - INFO -   🤖 Qwen-qwen-turbo-latest making final decision...
+2025-09-16 13:31:32,530 - INFO -   ✅ Qwen-qwen-turbo-latest final decision completed
+2025-09-16 13:31:32,531 - INFO -   📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:31:32,531 - INFO -   Tina: knave (fresh votes: {'knave': 3})
+2025-09-16 13:31:32,531 - INFO -   Sam: spy (fresh votes: {'spy': 3})
+2025-09-16 13:31:32,531 - INFO -   Violet: knight (fresh votes: {'knight': 2, 'knave': 1})
+2025-09-16 13:31:32,531 - INFO -   Hank: knave (fresh votes: {'knave': 3})
+2025-09-16 13:31:32,531 - INFO -   Wendy: knight (fresh votes: {'knight': 3})
+2025-09-16 13:31:32,532 - INFO - 📊 Final Vote Results:
+2025-09-16 13:31:32,532 - INFO -   Tina: knave ✅
+2025-09-16 13:31:32,532 - INFO -   Sam: spy ❌
+2025-09-16 13:31:32,532 - INFO -   Violet: knight ❌
+2025-09-16 13:31:32,532 - INFO -   Hank: knave ❌
+2025-09-16 13:31:32,532 - INFO -   Wendy: knight ✅
+2025-09-16 13:31:32,532 - INFO - 📊 Final Vote Summary by Player:
+2025-09-16 13:31:32,532 - INFO -   Tina: Final=knave, GroundTruth=knave ✅
+2025-09-16 13:31:32,532 - INFO -   Sam: Final=spy, GroundTruth=knave ❌
+2025-09-16 13:31:32,532 - INFO -   Violet: Final=knight, GroundTruth=knave ❌
+2025-09-16 13:31:32,532 - INFO -   Hank: Final=knave, GroundTruth=spy ❌
+2025-09-16 13:31:32,532 - INFO -   Wendy: Final=knight, GroundTruth=knight ✅
+2025-09-16 13:31:32,544 - INFO - 💾 Debate saved to: ./debate_results/agent3_gpt-5-nano_gemini-2.5-flash-lite_qwen-turbo-latest/game_size5_id1/debate_1_20250916_133132.json
+2025-09-16 13:31:32,544 - INFO - 📈 FINAL ACCURACY SUMMARY
+2025-09-16 13:31:32,544 - INFO - ========================================
+2025-09-16 13:31:32,544 - INFO - 🎯 Final Accuracy: 40.00% (2/5)
+2025-09-16 13:31:32,545 - INFO - 📋 Player-by-Player Results:
+2025-09-16 13:31:32,545 - INFO -   Tina: knave (GT: knave) ✅ CORRECT
+2025-09-16 13:31:32,545 - INFO -   Sam: spy (GT: knave) ❌ INCORRECT
+2025-09-16 13:31:32,545 - INFO -   Violet: knight (GT: knave) ❌ INCORRECT
+2025-09-16 13:31:32,545 - INFO -   Hank: knave (GT: spy) ❌ INCORRECT
+2025-09-16 13:31:32,545 - INFO -   Wendy: knight (GT: knight) ✅ CORRECT
+2025-09-16 13:31:32,545 - INFO - ✅ Debate completed for Game 1
