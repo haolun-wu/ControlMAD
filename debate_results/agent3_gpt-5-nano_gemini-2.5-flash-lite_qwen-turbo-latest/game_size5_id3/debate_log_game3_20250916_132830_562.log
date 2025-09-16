@@ -1,0 +1,309 @@
+2025-09-16 13:28:30,562 - INFO - 
+============================================================
+2025-09-16 13:28:30,563 - INFO - Running parallel debate for Game 3
+2025-09-16 13:28:30,563 - INFO - ============================================================
+2025-09-16 13:28:30,563 - INFO - 🎯 Starting debate for Game 3
+2025-09-16 13:28:30,563 - INFO - Players: ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5']
+2025-09-16 13:28:30,564 - INFO - 📋 Ground Truth Solution: {'Grace': 'knave', 'Mia': 'knight', 'Xavier': 'knight', 'Yara': 'knight', 'Hank': 'spy'}
+2025-09-16 13:28:30,564 - INFO - 📝 Phase 1: Initial Proposals
+2025-09-16 13:28:30,564 - INFO - ========================================
+2025-09-16 13:28:30,571 - INFO -     🤖 OpenAI-gpt-5-nano (openai/gpt-5-nano) getting initial proposal...
+2025-09-16 13:28:30,571 - INFO -     🤖 Gemini-gemini-2.5-flash-lite (gemini/gemini-2.5-flash-lite) getting initial proposal...
+2025-09-16 13:28:30,571 - INFO -     🤖 Qwen-qwen-turbo-latest (ali/qwen-turbo-latest) getting initial proposal...
+2025-09-16 13:28:32,733 - INFO -     ✅ Gemini-gemini-2.5-flash-lite completed: {'Grace': 'knight', 'Mia': 'knave', 'Xavier': 'spy', 'Yara': 'knave', 'Hank': 'knight'}
+2025-09-16 13:28:32,733 - INFO -     📊 Gemini-gemini-2.5-flash-lite confidence: 3.0
+2025-09-16 13:28:34,539 - INFO -     ✅ Qwen-qwen-turbo-latest completed: {'Grace': 'knave', 'Mia': 'knave', 'Xavier': 'knight', 'Yara': 'spy', 'Hank': 'knave'}
+2025-09-16 13:28:34,539 - INFO -     📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:02,758 - INFO -     ✅ OpenAI-gpt-5-nano completed: {'Grace': 'knave', 'Mia': 'knight', 'Xavier': 'knight', 'Yara': 'knight', 'Hank': 'spy'}
+2025-09-16 13:29:02,759 - INFO -     📊 OpenAI-gpt-5-nano confidence: 4.0
+2025-09-16 13:29:02,761 - INFO - 🔍 Initial Proposals Summary:
+2025-09-16 13:29:02,761 - INFO -   OpenAI-gpt-5-nano: {'Grace': 'knave', 'Mia': 'knight', 'Xavier': 'knight', 'Yara': 'knight', 'Hank': 'spy'}
+2025-09-16 13:29:02,761 - INFO -     ✅ Success
+2025-09-16 13:29:02,761 - INFO -     📊 OpenAI-gpt-5-nano Initial Accuracy by Player:
+2025-09-16 13:29:02,762 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:02,762 - INFO -       Mia: knight vs knight ✅
+2025-09-16 13:29:02,762 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:02,762 - INFO -       Yara: knight vs knight ✅
+2025-09-16 13:29:02,762 - INFO -       Hank: spy vs spy ✅
+2025-09-16 13:29:02,762 - INFO -   Gemini-gemini-2.5-flash-lite: {'Grace': 'knight', 'Mia': 'knave', 'Xavier': 'spy', 'Yara': 'knave', 'Hank': 'knight'}
+2025-09-16 13:29:02,762 - INFO -     ✅ Success
+2025-09-16 13:29:02,762 - INFO -     📊 Gemini-gemini-2.5-flash-lite Initial Accuracy by Player:
+2025-09-16 13:29:02,762 - INFO -       Grace: knight vs knave ❌
+2025-09-16 13:29:02,762 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:29:02,762 - INFO -       Xavier: spy vs knight ❌
+2025-09-16 13:29:02,763 - INFO -       Yara: knave vs knight ❌
+2025-09-16 13:29:02,763 - INFO -       Hank: knight vs spy ❌
+2025-09-16 13:29:02,763 - INFO -   Qwen-qwen-turbo-latest: {'Grace': 'knave', 'Mia': 'knave', 'Xavier': 'knight', 'Yara': 'spy', 'Hank': 'knave'}
+2025-09-16 13:29:02,763 - INFO -     ✅ Success
+2025-09-16 13:29:02,763 - INFO -     📊 Qwen-qwen-turbo-latest Initial Accuracy by Player:
+2025-09-16 13:29:02,763 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:02,763 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:29:02,763 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:02,763 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:29:02,763 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:02,763 - INFO - 🗣️ Phase 2: Debate Rounds
+2025-09-16 13:29:02,764 - INFO - --- Debating Grace's role ---
+2025-09-16 13:29:02,764 - INFO - 🎯 Ground Truth: Grace is a knave
+2025-09-16 13:29:02,764 - INFO -   Step 1: Debate period for Grace
+2025-09-16 13:29:02,764 - INFO -       🤖 OpenAI-gpt-5-nano debating Grace...
+2025-09-16 13:29:02,765 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Grace...
+2025-09-16 13:29:02,771 - INFO -       🤖 Qwen-qwen-turbo-latest debating Grace...
+2025-09-16 13:29:04,610 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:29:04,610 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:07,017 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:29:07,018 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:09,477 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:29:09,478 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:29:09,479 - INFO -   Step 2: Self-adjustment for Grace
+2025-09-16 13:29:09,480 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Grace...
+2025-09-16 13:29:09,484 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Grace...
+2025-09-16 13:29:09,494 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Grace...
+2025-09-16 13:29:11,014 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:29:11,015 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:12,118 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:29:12,119 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:27,444 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:29:27,445 - INFO -       📊 OpenAI-gpt-5-nano confidence: 4.0
+2025-09-16 13:29:27,446 - INFO - 📊 Round 1 Results for Grace:
+2025-09-16 13:29:27,446 - INFO -   OpenAI-gpt-5-nano: knave ✅ (confidence: 4.0)
+2025-09-16 13:29:27,446 - INFO -     📊 OpenAI-gpt-5-nano Round 1 Accuracy by Player:
+2025-09-16 13:29:27,447 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:27,447 - INFO -       Mia: knight vs knight ✅
+2025-09-16 13:29:27,447 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:27,447 - INFO -       Yara: knight vs knight ✅
+2025-09-16 13:29:27,447 - INFO -       Hank: spy vs spy ✅
+2025-09-16 13:29:27,448 - INFO -   Gemini-gemini-2.5-flash-lite: knave ✅ (confidence: 5.0)
+2025-09-16 13:29:27,448 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 1 Accuracy by Player:
+2025-09-16 13:29:27,448 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:27,448 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:29:27,448 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:27,448 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:29:27,448 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:27,448 - INFO -   Qwen-qwen-turbo-latest: knave ✅ (confidence: 5.0)
+2025-09-16 13:29:27,448 - INFO -     📊 Qwen-qwen-turbo-latest Round 1 Accuracy by Player:
+2025-09-16 13:29:27,448 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:27,448 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:29:27,449 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:27,449 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:29:27,449 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:27,449 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:29:27,449 - INFO - --- Debating Mia's role ---
+2025-09-16 13:29:27,449 - INFO - 🎯 Ground Truth: Mia is a knight
+2025-09-16 13:29:27,449 - INFO -   Step 1: Debate period for Mia
+2025-09-16 13:29:27,450 - INFO -       🤖 OpenAI-gpt-5-nano debating Mia...
+2025-09-16 13:29:27,450 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Mia...
+2025-09-16 13:29:27,456 - INFO -       🤖 Qwen-qwen-turbo-latest debating Mia...
+2025-09-16 13:29:29,008 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:29:29,009 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:29,532 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:29:29,532 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:32,529 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:29:32,530 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:29:32,531 - INFO -   Step 2: Self-adjustment for Mia
+2025-09-16 13:29:32,532 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Mia...
+2025-09-16 13:29:32,533 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Mia...
+2025-09-16 13:29:32,537 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Mia...
+2025-09-16 13:29:33,567 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:29:33,568 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:35,959 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:29:35,960 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 3.0
+2025-09-16 13:29:49,473 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:29:49,474 - INFO -       📊 OpenAI-gpt-5-nano confidence: 2.0
+2025-09-16 13:29:49,476 - INFO - 📊 Round 2 Results for Mia:
+2025-09-16 13:29:49,477 - INFO -   OpenAI-gpt-5-nano: knave ❌ (confidence: 2.0)
+2025-09-16 13:29:49,477 - INFO -     📊 OpenAI-gpt-5-nano Round 2 Accuracy by Player:
+2025-09-16 13:29:49,477 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:49,479 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:29:49,480 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:49,480 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:29:49,480 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:49,480 - INFO -   Gemini-gemini-2.5-flash-lite: knave ❌ (confidence: 5.0)
+2025-09-16 13:29:49,480 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 2 Accuracy by Player:
+2025-09-16 13:29:49,480 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:49,480 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:29:49,480 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:49,481 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:29:49,481 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:49,481 - INFO -   Qwen-qwen-turbo-latest: knave ❌ (confidence: 3.0)
+2025-09-16 13:29:49,481 - INFO -     📊 Qwen-qwen-turbo-latest Round 2 Accuracy by Player:
+2025-09-16 13:29:49,481 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:29:49,481 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:29:49,481 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:29:49,481 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:29:49,482 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:29:49,482 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:29:49,482 - INFO - --- Debating Xavier's role ---
+2025-09-16 13:29:49,482 - INFO - 🎯 Ground Truth: Xavier is a knight
+2025-09-16 13:29:49,482 - INFO -   Step 1: Debate period for Xavier
+2025-09-16 13:29:49,489 - INFO -       🤖 OpenAI-gpt-5-nano debating Xavier...
+2025-09-16 13:29:49,492 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Xavier...
+2025-09-16 13:29:49,494 - INFO -       🤖 Qwen-qwen-turbo-latest debating Xavier...
+2025-09-16 13:29:50,772 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:29:50,776 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:51,493 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:29:51,493 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:29:55,989 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:29:55,990 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:29:55,991 - INFO -   Step 2: Self-adjustment for Xavier
+2025-09-16 13:29:55,991 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Xavier...
+2025-09-16 13:29:55,992 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Xavier...
+2025-09-16 13:29:55,992 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Xavier...
+2025-09-16 13:29:57,259 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:29:57,260 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:29:58,865 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:29:58,866 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:18,847 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:30:18,848 - INFO -       📊 OpenAI-gpt-5-nano confidence: 1.0
+2025-09-16 13:30:18,855 - INFO - 📊 Round 3 Results for Xavier:
+2025-09-16 13:30:18,855 - INFO -   OpenAI-gpt-5-nano: knight ✅ (confidence: 1.0)
+2025-09-16 13:30:18,855 - INFO -     📊 OpenAI-gpt-5-nano Round 3 Accuracy by Player:
+2025-09-16 13:30:18,856 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:30:18,856 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:30:18,856 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:30:18,856 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:30:18,856 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:18,856 - INFO -   Gemini-gemini-2.5-flash-lite: knight ✅ (confidence: 5.0)
+2025-09-16 13:30:18,856 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 3 Accuracy by Player:
+2025-09-16 13:30:18,857 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:30:18,857 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:30:18,857 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:30:18,857 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:30:18,857 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:18,857 - INFO -   Qwen-qwen-turbo-latest: knight ✅ (confidence: 5.0)
+2025-09-16 13:30:18,857 - INFO -     📊 Qwen-qwen-turbo-latest Round 3 Accuracy by Player:
+2025-09-16 13:30:18,857 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:30:18,858 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:30:18,858 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:30:18,858 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:30:18,858 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:18,858 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:30:18,858 - INFO - --- Debating Yara's role ---
+2025-09-16 13:30:18,858 - INFO - 🎯 Ground Truth: Yara is a knight
+2025-09-16 13:30:18,858 - INFO -   Step 1: Debate period for Yara
+2025-09-16 13:30:18,860 - INFO -       🤖 OpenAI-gpt-5-nano debating Yara...
+2025-09-16 13:30:18,860 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Yara...
+2025-09-16 13:30:18,864 - INFO -       🤖 Qwen-qwen-turbo-latest debating Yara...
+2025-09-16 13:30:20,101 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:30:20,101 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:20,948 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:30:20,948 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:25,657 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:30:25,658 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:30:25,660 - INFO -   Step 2: Self-adjustment for Yara
+2025-09-16 13:30:25,661 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Yara...
+2025-09-16 13:30:25,662 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Yara...
+2025-09-16 13:30:25,676 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Yara...
+2025-09-16 13:30:29,170 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:30:29,171 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:29,194 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:30:29,194 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:48,356 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:30:48,357 - INFO -       📊 OpenAI-gpt-5-nano confidence: 2.0
+2025-09-16 13:30:48,360 - INFO - 📊 Round 4 Results for Yara:
+2025-09-16 13:30:48,360 - INFO -   OpenAI-gpt-5-nano: spy ❌ (confidence: 2.0)
+2025-09-16 13:30:48,361 - INFO -     📊 OpenAI-gpt-5-nano Round 4 Accuracy by Player:
+2025-09-16 13:30:48,361 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:30:48,361 - INFO -       Mia: knight vs knight ✅
+2025-09-16 13:30:48,361 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:30:48,361 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:30:48,361 - INFO -       Hank: knight vs spy ❌
+2025-09-16 13:30:48,361 - INFO -   Gemini-gemini-2.5-flash-lite: spy ❌ (confidence: 5.0)
+2025-09-16 13:30:48,361 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 4 Accuracy by Player:
+2025-09-16 13:30:48,361 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:30:48,361 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:30:48,362 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:30:48,363 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:30:48,363 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:48,367 - INFO -   Qwen-qwen-turbo-latest: spy ❌ (confidence: 5.0)
+2025-09-16 13:30:48,367 - INFO -     📊 Qwen-qwen-turbo-latest Round 4 Accuracy by Player:
+2025-09-16 13:30:48,367 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:30:48,367 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:30:48,367 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:30:48,368 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:30:48,368 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:30:48,368 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:30:48,368 - INFO - --- Debating Hank's role ---
+2025-09-16 13:30:48,368 - INFO - 🎯 Ground Truth: Hank is a spy
+2025-09-16 13:30:48,368 - INFO -   Step 1: Debate period for Hank
+2025-09-16 13:30:48,370 - INFO -       🤖 OpenAI-gpt-5-nano debating Hank...
+2025-09-16 13:30:48,374 - INFO -       🤖 Gemini-gemini-2.5-flash-lite debating Hank...
+2025-09-16 13:30:48,381 - INFO -       🤖 Qwen-qwen-turbo-latest debating Hank...
+2025-09-16 13:30:50,673 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-16 13:30:50,674 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:30:51,734 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-16 13:30:51,735 - INFO -       📊 OpenAI-gpt-5-nano confidence: 3.0
+2025-09-16 13:30:58,238 - INFO -       ✅ Gemini-gemini-2.5-flash-lite debate completed
+2025-09-16 13:30:58,240 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:30:58,242 - INFO -   Step 2: Self-adjustment for Hank
+2025-09-16 13:30:58,243 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Hank...
+2025-09-16 13:30:58,244 - INFO -       🔄 Gemini-gemini-2.5-flash-lite self-adjusting for Hank...
+2025-09-16 13:30:58,244 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Hank...
+2025-09-16 13:31:01,416 - INFO -       ✅ Gemini-gemini-2.5-flash-lite self-adjustment completed
+2025-09-16 13:31:01,417 - INFO -       📊 Gemini-gemini-2.5-flash-lite confidence: 4.0
+2025-09-16 13:31:01,652 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-16 13:31:01,653 - INFO -       📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:31:12,256 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-16 13:31:12,256 - INFO -       📊 OpenAI-gpt-5-nano confidence: 4.0
+2025-09-16 13:31:12,257 - INFO - 📊 Round 5 Results for Hank:
+2025-09-16 13:31:12,257 - INFO -   OpenAI-gpt-5-nano: spy ✅ (confidence: 4.0)
+2025-09-16 13:31:12,257 - INFO -     📊 OpenAI-gpt-5-nano Round 5 Accuracy by Player:
+2025-09-16 13:31:12,257 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:31:12,257 - INFO -       Mia: knight vs knight ✅
+2025-09-16 13:31:12,258 - INFO -       Xavier: unknown vs knight ❌
+2025-09-16 13:31:12,258 - INFO -       Yara: knight vs knight ✅
+2025-09-16 13:31:12,258 - INFO -       Hank: spy vs spy ✅
+2025-09-16 13:31:12,258 - INFO -   Gemini-gemini-2.5-flash-lite: knave ❌ (confidence: 4.0)
+2025-09-16 13:31:12,258 - INFO -     📊 Gemini-gemini-2.5-flash-lite Round 5 Accuracy by Player:
+2025-09-16 13:31:12,258 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:31:12,258 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:31:12,258 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:31:12,258 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:31:12,259 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:31:12,259 - INFO -   Qwen-qwen-turbo-latest: knave ❌ (confidence: 5.0)
+2025-09-16 13:31:12,259 - INFO -     📊 Qwen-qwen-turbo-latest Round 5 Accuracy by Player:
+2025-09-16 13:31:12,259 - INFO -       Grace: knave vs knave ✅
+2025-09-16 13:31:12,259 - INFO -       Mia: knave vs knight ❌
+2025-09-16 13:31:12,259 - INFO -       Xavier: knight vs knight ✅
+2025-09-16 13:31:12,259 - INFO -       Yara: spy vs knight ❌
+2025-09-16 13:31:12,259 - INFO -       Hank: knave vs spy ❌
+2025-09-16 13:31:12,259 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-16 13:31:12,259 - INFO - 🗣️ Phase 3: Final Discussion and Fresh Voting
+2025-09-16 13:31:12,260 - INFO - ========================================
+2025-09-16 13:31:12,260 - INFO - Conducting final discussion and fresh voting...
+2025-09-16 13:31:12,260 - INFO -   🤖 OpenAI-gpt-5-nano making final decision...
+2025-09-16 13:31:26,027 - INFO -   ✅ OpenAI-gpt-5-nano final decision completed
+2025-09-16 13:31:26,028 - INFO -   📊 OpenAI-gpt-5-nano confidence: 2.0
+2025-09-16 13:31:26,029 - INFO -   🤖 Gemini-gemini-2.5-flash-lite making final decision...
+2025-09-16 13:31:27,421 - INFO -   ✅ Gemini-gemini-2.5-flash-lite final decision completed
+2025-09-16 13:31:27,422 - INFO -   📊 Gemini-gemini-2.5-flash-lite confidence: 5.0
+2025-09-16 13:31:27,422 - INFO -   🤖 Qwen-qwen-turbo-latest making final decision...
+2025-09-16 13:31:30,727 - INFO -   ✅ Qwen-qwen-turbo-latest final decision completed
+2025-09-16 13:31:30,728 - INFO -   📊 Qwen-qwen-turbo-latest confidence: 5.0
+2025-09-16 13:31:30,728 - INFO -   Grace: knave (fresh votes: {'knave': 3})
+2025-09-16 13:31:30,728 - INFO -   Mia: knave (fresh votes: {'knight': 1, 'knave': 2})
+2025-09-16 13:31:30,728 - INFO -   Xavier: knight (fresh votes: {'knight': 3})
+2025-09-16 13:31:30,729 - INFO -   Yara: spy (fresh votes: {'spy': 3})
+2025-09-16 13:31:30,729 - INFO -   Hank: knave (fresh votes: {'knave': 3})
+2025-09-16 13:31:30,729 - INFO - 📊 Final Vote Results:
+2025-09-16 13:31:30,729 - INFO -   Grace: knave ✅
+2025-09-16 13:31:30,729 - INFO -   Mia: knave ❌
+2025-09-16 13:31:30,729 - INFO -   Xavier: knight ✅
+2025-09-16 13:31:30,729 - INFO -   Yara: spy ❌
+2025-09-16 13:31:30,730 - INFO -   Hank: knave ❌
+2025-09-16 13:31:30,730 - INFO - 📊 Final Vote Summary by Player:
+2025-09-16 13:31:30,730 - INFO -   Grace: Final=knave, GroundTruth=knave ✅
+2025-09-16 13:31:30,730 - INFO -   Mia: Final=knave, GroundTruth=knight ❌
+2025-09-16 13:31:30,730 - INFO -   Xavier: Final=knight, GroundTruth=knight ✅
+2025-09-16 13:31:30,730 - INFO -   Yara: Final=spy, GroundTruth=knight ❌
+2025-09-16 13:31:30,730 - INFO -   Hank: Final=knave, GroundTruth=spy ❌
+2025-09-16 13:31:30,773 - INFO - 💾 Debate saved to: ./debate_results/agent3_gpt-5-nano_gemini-2.5-flash-lite_qwen-turbo-latest/game_size5_id3/debate_3_20250916_133130.json
+2025-09-16 13:31:30,773 - INFO - 📈 FINAL ACCURACY SUMMARY
+2025-09-16 13:31:30,773 - INFO - ========================================
+2025-09-16 13:31:30,776 - INFO - 🎯 Final Accuracy: 40.00% (2/5)
+2025-09-16 13:31:30,776 - INFO - 📋 Player-by-Player Results:
+2025-09-16 13:31:30,776 - INFO -   Grace: knave (GT: knave) ✅ CORRECT
+2025-09-16 13:31:30,776 - INFO -   Mia: knave (GT: knight) ❌ INCORRECT
+2025-09-16 13:31:30,776 - INFO -   Xavier: knight (GT: knight) ✅ CORRECT
+2025-09-16 13:31:30,776 - INFO -   Yara: spy (GT: knight) ❌ INCORRECT
+2025-09-16 13:31:30,776 - INFO -   Hank: knave (GT: spy) ❌ INCORRECT
+2025-09-16 13:31:30,776 - INFO - ✅ Debate completed for Game 3

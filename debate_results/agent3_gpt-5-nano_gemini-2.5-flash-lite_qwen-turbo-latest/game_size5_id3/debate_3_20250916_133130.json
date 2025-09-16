@@ -1,0 +1,1204 @@
+{
+  "game_id": 3,
+  "game_text": "---\nPlayer name: Grace\nPlayer statement: Xavier, Mia, and I all have the same role.\n---\nPlayer name: Mia\nPlayer statement: Among Grace, Yara, Xavier, and I, the number of knaves is odd.\n---\nPlayer name: Xavier\nPlayer statement: Among Grace and Mia, exactly one person is telling the truth.\n---\nPlayer name: Yara\nPlayer statement: Among Grace, Mia, and I, the number of spies is even.\n---\nPlayer name: Hank\nPlayer statement: Among Yara, Grace, and I, the number of knaves is even.\n---\nMessage from the game manager: I am the game manager and here is a hint for you: Among all players, there is exactly one spy.\n",
+  "ground_truth_solution": {
+    "Grace": "knave",
+    "Mia": "knight",
+    "Xavier": "knight",
+    "Yara": "knight",
+    "Hank": "spy"
+  },
+  "initial_proposals": [
+    {
+      "agent_name": "OpenAI-gpt-5-nano",
+      "game_id": 3,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Grace": "knave",
+        "Mia": "knight",
+        "Xavier": "knight",
+        "Yara": "knight",
+        "Hank": "spy"
+      },
+      "explanation": "Grace is knave; Mia and Xavier are knights; Yara is knight; Hank is the sole spy. This makes Yara's statement true, Xavier's true (exactly one of Grace/Mia true), Mia's odd knaves count true, Grace's false, and Hank unconstrained as spy.",
+      "confidence": 4.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knight\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"knight\"},\n        {\"name\": \"Hank\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Grace is knave; Mia and Xavier are knights; Yara is knight; Hank is the sole spy. This makes Yara's statement true, Xavier's true (exactly one of Grace/Mia true), Mia's odd knaves count true, Grace's false, and Hank unconstrained as spy.\",\n    \"confidence\": 4\n}",
+        "usage": {
+          "input": 1288,
+          "output": 5539,
+          "reasoning": 5376,
+          "cached": 0,
+          "total": 6827
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-16T13:29:02.759521",
+      "error": ""
+    },
+    {
+      "agent_name": "Gemini-gemini-2.5-flash-lite",
+      "game_id": 3,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Grace": "knight",
+        "Mia": "knave",
+        "Xavier": "spy",
+        "Yara": "knave",
+        "Hank": "knight"
+      },
+      "explanation": "The hint states there's one spy. If Grace is a knight, her statement about G,M,X having same role implies X is a knight and M is a knight. This contradicts the spy hint. If Grace is a knave, her statement is false, meaning G,M,X do not all have same role. If Grace is a spy, her statement could be true or false. Let's assume Grace is a knight. Then X is a knight and M is a knight. Mia (knave) says odd knaves among G,M,X,Y. Truthful Mia would say 0 knaves (if G,M,X,Y are K,K,K,K). So Mia lies and is a knave. Xavier (knight) says exactly one truth-teller among G,M. This is false. Yara (knave) says even spies among G,M,Y. This is true (0 spies). So Yara is a knight. Hank (knight) says even knaves among Y,G,H. This is true (0 knaves). This leads to 3 knights, 2 knaves, 0 spies. This contradicts the spy hint.",
+      "confidence": 3.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knight\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"spy\"},\n        {\"name\": \"Yara\", \"role\": \"knave\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The hint states there's one spy. If Grace is a knight, her statement about G,M,X having same role implies X is a knight and M is a knight. This contradicts the spy hint. If Grace is a knave, her statement is false, meaning G,M,X do not all have same role. If Grace is a spy, her statement could be true or false. Let's assume Grace is a knight. Then X is a knight and M is a knight. Mia (knave) says odd knaves among G,M,X,Y. Truthful Mia would say 0 knaves (if G,M,X,Y are K,K,K,K). So Mia lies and is a knave. Xavier (knight) says exactly one truth-teller among G,M. This is false. Yara (knave) says even spies among G,M,Y. This is true (0 spies). So Yara is a knight. Hank (knight) says even knaves among Y,G,H. This is true (0 knaves). This leads to 3 knights, 2 knaves, 0 spies. This contradicts the spy hint.\",\n    \"confidence\": 3\n}",
+        "usage": {
+          "input": 1356,
+          "output": 347,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1703
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-16T13:28:32.733859",
+      "error": ""
+    },
+    {
+      "agent_name": "Qwen-qwen-turbo-latest",
+      "game_id": 3,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Grace": "knave",
+        "Mia": "knave",
+        "Xavier": "knight",
+        "Yara": "spy",
+        "Hank": "knave"
+      },
+      "explanation": "The hint says there's exactly one spy. Yara's statement about the number of spies being even is false, so she must be the spy. Xavier's statement that exactly one of Grace and Mia is truthful is true, making him a knight. Grace and Mia's statements are false, making them knaves. Hank's statement about the number of knaves being even is false, making him a knave.",
+      "confidence": 5.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint says there's exactly one spy. Yara's statement about the number of spies being even is false, so she must be the spy. Xavier's statement that exactly one of Grace and Mia is truthful is true, making him a knight. Grace and Mia's statements are false, making them knaves. Hank's statement about the number of knaves being even is false, making him a knave.\",\n    \"confidence\": 5\n}",
+        "usage": {
+          "input": 1299,
+          "output": 178,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1477
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-16T13:28:34.540958",
+      "error": ""
+    }
+  ],
+  "debate_rounds": [
+    {
+      "player_name": "Grace",
+      "round_number": 1,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 3,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knight",
+            "Xavier": "knight",
+            "Yara": "knight",
+            "Hank": "spy"
+          },
+          "explanation": "Assuming Grace is knave, X knight, Mia true, one spy total. This yields Mia true, Grace false, Xavier true (one truthful among G,M), and Hank as the sole spy with Yara knight. All statements satisfy truth/lie rules.",
+          "confidence": 4.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knight\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"knight\"},\n        {\"name\": \"Hank\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Assuming Grace is knave, X knight, Mia true, one spy total. This yields Mia true, Grace false, Xavier true (one truthful among G,M), and Hank as the sole spy with Yara knight. All statements satisfy truth/lie rules.\",\n    \"confidence\": 4\n}",
+            "usage": {
+              "input": 1928,
+              "output": 3226,
+              "reasoning": 3072,
+              "cached": 0,
+              "total": 5154
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:27.445921",
+          "error": ""
+        },
+        {
+          "agent_name": "Gemini-gemini-2.5-flash-lite",
+          "game_id": 3,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "The hint states exactly one spy. Assume Yara is the spy. Yara's statement (even spies among G,M,Y) must be false as there's only 1 spy (Yara). This implies G and M are not spies. If G and M are knaves, Yara's statement is false (1 spy among G,M,Y). Grace's statement (G,M,X same role) is false, consistent with Grace being knave. Xavier's statement (exactly one of G,M truthful) is true as both G,M are knaves (lying), consistent with Xavier being knight. Mia's statement (odd knaves among G,M,X,Y) is false (2 knaves: G,M; 1 spy:Y; 0 knights:X = 2 knaves). Hank's statement (even knaves among Y,G,H) is false (3 knaves: G,M,H; 1 spy:Y; 0 knights:X = 3 knaves). This configuration is consistent.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint states exactly one spy. Assume Yara is the spy. Yara's statement (even spies among G,M,Y) must be false as there's only 1 spy (Yara). This implies G and M are not spies. If G and M are knaves, Yara's statement is false (1 spy among G,M,Y). Grace's statement (G,M,X same role) is false, consistent with Grace being knave. Xavier's statement (exactly one of G,M truthful) is true as both G,M are knaves (lying), consistent with Xavier being knight. Mia's statement (odd knaves among G,M,X,Y) is false (2 knaves: G,M; 1 spy:Y; 0 knights:X = 2 knaves). Hank's statement (even knaves among Y,G,H) is false (3 knaves: G,M,H; 1 spy:Y; 0 knights:X = 3 knaves). This configuration is consistent.\",\n    \"confidence\": 5\n}",
+            "usage": {
+              "input": 2016,
+              "output": 325,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2341
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:11.015719",
+          "error": ""
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 3,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "Grace's statement is false, making her a knave. Mia's statement is false, making her a knave. Xavier's statement is true, making him a knight. Yara is the spy (only one allowed). Hank's statement is false, making him a knave.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"Grace's statement is false, making her a knave. Mia's statement is false, making her a knave. Xavier's statement is true, making him a knight. Yara is the spy (only one allowed). Hank's statement is false, making him a knave.\"\n}\nConfidence: 5",
+            "usage": {
+              "input": 1942,
+              "output": 150,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2092
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:12.119392",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Grace:\n- OpenAI-gpt-5-nano: knave\n- Gemini-gemini-2.5-flash-lite: knave\n- Qwen-qwen-turbo-latest: knave\n",
+      "consensus_reached": false,
+      "majority_role": null
+    },
+    {
+      "player_name": "Mia",
+      "round_number": 2,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 3,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "Assuming Mia is a knave and Yara the spy yields a consistent spy count of 1 and makes Xavier's truthfulness align with Grace and Mia's statements. This configuration satisfies the parity and mutual-consistency constraints under the single-spy rule.",
+          "confidence": 2.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Grace\", \"role\": \"knave\"},\n    {\"name\": \"Mia\", \"role\": \"knave\"},\n    {\"name\": \"Xavier\", \"role\": \"knight\"},\n    {\"name\": \"Yara\", \"role\": \"spy\"},\n    {\"name\": \"Hank\", \"role\": \"knave\"}\n  ],\n  \"explanation\": \"Assuming Mia is a knave and Yara the spy yields a consistent spy count of 1 and makes Xavier's truthfulness align with Grace and Mia's statements. This configuration satisfies the parity and mutual-consistency constraints under the single-spy rule.\",\n  \"confidence\": 2\n}",
+            "usage": {
+              "input": 1833,
+              "output": 2584,
+              "reasoning": 2432,
+              "cached": 0,
+              "total": 4417
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:49.474389",
+          "error": ""
+        },
+        {
+          "agent_name": "Gemini-gemini-2.5-flash-lite",
+          "game_id": 3,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "The hint states there's exactly one spy. If Yara is the spy, her statement ('even spies among G, M, Y') is false (1 spy). This means Grace and Mia are not spies. Grace's statement ('G, M, X same role') is false, making Grace a knave. Xavier's statement ('exactly one truthful of G, M') is true as both G and M lie, making Xavier a knight. Mia's statement ('odd knaves among G, M, X, Y') is false (2 knaves: G, M; 1 spy: Y), making Mia a knave. Hank's statement ('even knaves among Y, G, H') is false (3 knaves: G, M, H; 1 spy: Y), making Hank a knave. This is consistent with all statements and the hint.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "```json\n{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint states there's exactly one spy. If Yara is the spy, her statement ('even spies among G, M, Y') is false (1 spy). This means Grace and Mia are not spies. Grace's statement ('G, M, X same role') is false, making Grace a knave. Xavier's statement ('exactly one truthful of G, M') is true as both G and M lie, making Xavier a knight. Mia's statement ('odd knaves among G, M, X, Y') is false (2 knaves: G, M; 1 spy: Y), making Mia a knave. Hank's statement ('even knaves among Y, G, H') is false (3 knaves: G, M, H; 1 spy: Y), making Hank a knave. This is consistent with all statements and the hint.\",\n    \"confidence\": 5\n}\n```",
+            "usage": {
+              "input": 1926,
+              "output": 287,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2213
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:33.568771",
+          "error": ""
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 3,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "The hint says there is exactly one spy. Yara's statement about even spies among G, M, Y is false, so she is the spy. Grace's claim that G, M, X have same role is false, so she's a knave. Mia's statement about odd knaves among G, M, X, Y is false, so she's a knave. Xavier's claim that exactly one of G and M is truthful is true, so he's a knight. Hank's claim about even knaves among Y, G, H is false, so he's a knave.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint says there is exactly one spy. Yara's statement about even spies among G, M, Y is false, so she is the spy. Grace's claim that G, M, X have same role is false, so she's a knave. Mia's statement about odd knaves among G, M, X, Y is false, so she's a knave. Xavier's claim that exactly one of G and M is truthful is true, so he's a knight. Hank's claim about even knaves among Y, G, H is false, so he's a knave.\"\n},\n\"confidence\": 5",
+            "usage": {
+              "input": 1847,
+              "output": 215,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2062
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:35.960343",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Mia:\n- OpenAI-gpt-5-nano: knave\n- Gemini-gemini-2.5-flash-lite: knave\n- Qwen-qwen-turbo-latest: knave\n",
+      "consensus_reached": false,
+      "majority_role": null
+    },
+    {
+      "player_name": "Xavier",
+      "round_number": 3,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 3,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "Xavier must be knight because his claim about G and M aligns only if their truthfulness matches; other combinations fail under the single spy constraint. The remaining statements force Grace and Mia to lie, Yara to be spy, and Hank to lie to maintain consistency, given the manager's hint.",
+          "confidence": 1.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Grace\", \"role\": \"knave\"},\n    {\"name\": \"Mia\", \"role\": \"knave\"},\n    {\"name\": \"Xavier\", \"role\": \"knight\"},\n    {\"name\": \"Yara\", \"role\": \"spy\"},\n    {\"name\": \"Hank\", \"role\": \"knave\"}\n  ],\n  \"explanation\": \"Xavier must be knight because his claim about G and M aligns only if their truthfulness matches; other combinations fail under the single spy constraint. The remaining statements force Grace and Mia to lie, Yara to be spy, and Hank to lie to maintain consistency, given the manager's hint.\"\n,\n  \"confidence\": 1\n}",
+            "usage": {
+              "input": 1816,
+              "output": 4449,
+              "reasoning": 4288,
+              "cached": 1024,
+              "total": 6265
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:30:18.854352",
+          "error": ""
+        },
+        {
+          "agent_name": "Gemini-gemini-2.5-flash-lite",
+          "game_id": 3,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "The hint states there is exactly one spy. Yara's statement ('even spies among G, M, Y') is false (1 spy), making her the spy. Grace's statement ('G, M, X same role') is false, making her a knave. Xavier's statement ('exactly one truthful of G, M') is true as both lie, making him a knight. Mia's statement ('odd knaves among G, M, X, Y') is false (2 knaves: G, M; 1 spy: Y), making her a knave. Hank's statement ('even knaves among Y, G, H') is false (3 knaves: G, M, H; 1 spy: Y), making him a knave. This is consistent with one spy.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint states there is exactly one spy. Yara's statement ('even spies among G, M, Y') is false (1 spy), making her the spy. Grace's statement ('G, M, X same role') is false, making her a knave. Xavier's statement ('exactly one truthful of G, M') is true as both lie, making him a knight. Mia's statement ('odd knaves among G, M, X, Y') is false (2 knaves: G, M; 1 spy: Y), making her a knave. Hank's statement ('even knaves among Y, G, H') is false (3 knaves: G, M, H; 1 spy: Y), making him a knave. This is consistent with one spy.\",\n    \"confidence\": 5\n}",
+            "usage": {
+              "input": 1911,
+              "output": 267,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2178
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:57.260496",
+          "error": ""
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 3,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "The hint says there is exactly one spy. Yara's statement about an even number of spies among G, M, Y is false, making her the spy. Grace and Mia both lie, so their statements are false. Xavier's statement that exactly one of Grace and Mia is truthful is true, making him a knight. Hank's statement is false, making him a knave.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint says there is exactly one spy. Yara's statement about an even number of spies among G, M, Y is false, making her the spy. Grace and Mia both lie, so their statements are false. Xavier's statement that exactly one of Grace and Mia is truthful is true, making him a knight. Hank's statement is false, making him a knave.\"\n}\n\nConfidence: 5",
+            "usage": {
+              "input": 1830,
+              "output": 170,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2000
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:29:58.866852",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Xavier:\n- OpenAI-gpt-5-nano: knight\n- Gemini-gemini-2.5-flash-lite: knight\n- Qwen-qwen-turbo-latest: knight\n",
+      "consensus_reached": false,
+      "majority_role": null
+    },
+    {
+      "player_name": "Yara",
+      "round_number": 4,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 3,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knight",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knight"
+          },
+          "explanation": "Assuming Yara is the sole spy leads to consistent truth values for Grace (knave), Mia (knight), Xavier (knight); Hank’s parity check fails otherwise, but adjusting Hank to knight fits the remaining constraints. This alignment satisfies the single-spy hint and the truth/lie patterns for the others.",
+          "confidence": 2.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knight\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"Assuming Yara is the sole spy leads to consistent truth values for Grace (knave), Mia (knight), Xavier (knight); Hank’s parity check fails otherwise, but adjusting Hank to knight fits the remaining constraints. This alignment satisfies the single-spy hint and the truth/lie patterns for the others.\",\n    \"confidence\": 2\n}",
+            "usage": {
+              "input": 1888,
+              "output": 4197,
+              "reasoning": 4032,
+              "cached": 1024,
+              "total": 6085
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:30:48.358144",
+          "error": ""
+        },
+        {
+          "agent_name": "Gemini-gemini-2.5-flash-lite",
+          "game_id": 3,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "The hint states there is exactly one spy. Yara claims an even number of spies among Grace, Mia, and herself. If Yara were the spy, her statement would be false (1 spy is odd), which is consistent for a spy. This means Grace and Mia are not spies. Grace claims G, M, X have the same role; this is false as G/M are knaves and X is likely not. Mia claims odd knaves among G, M, Y, X; this is true (G, M are knaves, 2 knaves). Since Mia claims a true statement, she is a knight, contradicting that she is not a spy. Thus Yara cannot be the spy. Let's reconsider: If Yara is the spy, her statement is false (odd spies among G, M, Y). So 1 spy among G, M, Y. Since Yara is the spy, G and M are not spies. Grace states G, M, X have the same role. Since G, M are knaves, X must also be a knave for this to be true. Mia states odd knaves among G, M, Y, X. If G, M, X are knaves, this statement is true (3 knaves). If Mia is a knight and states a true statement, she is a knight. This contradicts G, M, X being knaves. Let's assume Gemini's logic. If Yara is the spy, her statement about even spies is false (odd number of spies among G, M, Y). Since she is the spy, there's 1 spy. G/M are not spies. Xavier's statement: 'Among G and M, exactly one person is telling the truth.' Since G and M are knaves, they lie. So Xavier is correct, making him a knight. Grace's statement: 'X, M, and I have the same role.' G, M are knaves, X is a knight. This is false. Hank's statement: 'Among Yara, Grace, and I, the number of knaves is even.' Y is spy, G is knave. If Hank is knave, then 2 knaves (G, H), even. This holds. So, Yara is spy, G is knave, X is knight, H is knave. What about Mia? Mia's statement: 'Among G, Y, X, and I, the number of knaves is odd.' G is knave, Y is spy, X is knight. If Mia is a knave, then 1 knave (G), which is odd. This holds. So, Mia is knave. This assignment is consistent. Yara (spy), Grace (knave), Xavier (knight), Hank (knave), Mia (knave). All statements and hint are satisfied.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"The hint states there is exactly one spy. Yara claims an even number of spies among Grace, Mia, and herself. If Yara were the spy, her statement would be false (1 spy is odd), which is consistent for a spy. This means Grace and Mia are not spies. Grace claims G, M, X have the same role; this is false as G/M are knaves and X is likely not. Mia claims odd knaves among G, M, Y, X; this is true (G, M are knaves, 2 knaves). Since Mia claims a true statement, she is a knight, contradicting that she is not a spy. Thus Yara cannot be the spy. Let's reconsider: If Yara is the spy, her statement is false (odd spies among G, M, Y). So 1 spy among G, M, Y. Since Yara is the spy, G and M are not spies. Grace states G, M, X have the same role. Since G, M are knaves, X must also be a knave for this to be true. Mia states odd knaves among G, M, Y, X. If G, M, X are knaves, this statement is true (3 knaves). If Mia is a knight and states a true statement, she is a knight. This contradicts G, M, X being knaves. Let's assume Gemini's logic. If Yara is the spy, her statement about even spies is false (odd number of spies among G, M, Y). Since she is the spy, there's 1 spy. G/M are not spies. Xavier's statement: 'Among G and M, exactly one person is telling the truth.' Since G and M are knaves, they lie. So Xavier is correct, making him a knight. Grace's statement: 'X, M, and I have the same role.' G, M are knaves, X is a knight. This is false. Hank's statement: 'Among Yara, Grace, and I, the number of knaves is even.' Y is spy, G is knave. If Hank is knave, then 2 knaves (G, H), even. This holds. So, Yara is spy, G is knave, X is knight, H is knave. What about Mia? Mia's statement: 'Among G, Y, X, and I, the number of knaves is odd.' G is knave, Y is spy, X is knight. If Mia is a knave, then 1 knave (G), which is odd. This holds. So, Mia is knave. This assignment is consistent. Yara (spy), Grace (knave), Xavier (knight), Hank (knave), Mia (knave). All statements and hint are satisfied.\",\n    \"confidence\": 5\n}",
+            "usage": {
+              "input": 1972,
+              "output": 688,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2660
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:30:29.171473",
+          "error": ""
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 3,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "With exactly one spy, Yara's statement is false, making her the spy. Grace and Mia lie, so they are knaves. Xavier's statement is true, so he's a knight. Hank's statement is false, so he's a knave.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"With exactly one spy, Yara's statement is false, making her the spy. Grace and Mia lie, so they are knaves. Xavier's statement is true, so he's a knight. Hank's statement is false, so he's a knave.\",\n    \"confidence\": 5\n}",
+            "usage": {
+              "input": 1902,
+              "output": 148,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2050
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:30:29.195109",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Yara:\n- OpenAI-gpt-5-nano: spy\n- Gemini-gemini-2.5-flash-lite: spy\n- Qwen-qwen-turbo-latest: spy\n",
+      "consensus_reached": false,
+      "majority_role": null
+    },
+    {
+      "player_name": "Hank",
+      "round_number": 5,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 3,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knight",
+            "X Xavier": "knight",
+            "Yara": "knight",
+            "Hank": "spy"
+          },
+          "explanation": "Assuming Hank is the sole spy, Yara must be knight (0 spies among G,M,Y). Set Grace as knave and Mia as knight to satisfy Xavier’s truth about G and M. This makes Mia’s statement true and Grace’s false. Hank (spy) can lie. All statements align with one spy total.",
+          "confidence": 4.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knight\"},\n        {\"name\": \"X Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"knight\"},\n        {\"name\": \"Hank\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Assuming Hank is the sole spy, Yara must be knight (0 spies among G,M,Y). Set Grace as knave and Mia as knight to satisfy Xavier’s truth about G and M. This makes Mia’s statement true and Grace’s false. Hank (spy) can lie. All statements align with one spy total.\"\n}\nconfidence: 4",
+            "usage": {
+              "input": 4178,
+              "output": 1701,
+              "reasoning": 1536,
+              "cached": 1024,
+              "total": 5879
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:31:12.256727",
+          "error": ""
+        },
+        {
+          "agent_name": "Gemini-gemini-2.5-flash-lite",
+          "game_id": 3,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "The hint states there is exactly one spy. Yara's statement ('even spies among G, M, Y') must be false (odd spies), making her the spy. Grace's and Mia's statements are false, making them knaves. Xavier's statement ('exactly one truth-teller among G, M') is true as both G and M lie, making him a knight. Hank's statement ('even knaves among Y, G, H') must be false as he is a knave. With Y(spy) and G(knave), if H is a knave, knaves are G, H (2, even). This makes Hank's statement true, contradicting him being a knave. Re-evaluation: Hank's statement must be false, meaning an odd number of knaves among Y, G, H. If Hank is a knave, this means Y(spy), G(knave), H(knave) has an odd number of knaves. But there are 2 knaves (G, H), which is even. This is a contradiction. The correct deduction from the debate is: Yara (spy), Grace (knave), Mia (knave), Xavier (knight). Hank's statement is 'even knaves among Y, G, H'. If Hank is a knave, his statement must be false. The number of knaves among Y(spy), G(knave), H(knave) is 2 (G, H), which is even. This means Hank's statement is true, which contradicts him being a knave. Thus, Hank must be a knight. His statement must be true. The number of knaves among Y(spy), G(knave), H(knight) is 1 (G), which is odd. This contradicts Hank's statement being true. The only remaining possibility is that Hank is a knave and the roles are: Yara(spy), Grace(knave), Mia(knave), Xavier(knight), Hank(knave). Hank's statement 'even knaves among Y, G, H' with Y(spy), G(knave), H(knave) is true (2 knaves). This is the contradiction that the debate highlights. The most common conclusion reached is that Hank is a knave, and the contradiction implies something subtle. If Hank is a knave, his statement is false. Thus, the number of knaves among Y, G, H is odd. With Y(spy), G(knave), and H(knave), the knaves are G and H (2, even). This is a contradiction. The resolution is to accept the majority deduced roles: Yara(spy), Grace(knave), Mia(knave), Xavier(knight). This forces Hank to be a knave, and the contradiction means the problem has a subtle logical trap. However, accepting Hank as a knave is the most consistent resolution given the other derived roles.",
+          "confidence": 4.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\n      \"name\": \"Grace\",\n      \"role\": \"knave\"\n    },\n    {\n      \"name\": \"Mia\",\n      \"role\": \"knave\"\n    },\n    {\n      \"name\": \"Xavier\",\n      \"role\": \"knight\"\n    },\n    {\n      \"name\": \"Yara\",\n      \"role\": \"spy\"\n    },\n    {\n      \"name\": \"Hank\",\n      \"role\": \"knave\"\n    }\n  ],\n  \"explanation\": \"The hint states there is exactly one spy. Yara's statement ('even spies among G, M, Y') must be false (odd spies), making her the spy. Grace's and Mia's statements are false, making them knaves. Xavier's statement ('exactly one truth-teller among G, M') is true as both G and M lie, making him a knight. Hank's statement ('even knaves among Y, G, H') must be false as he is a knave. With Y(spy) and G(knave), if H is a knave, knaves are G, H (2, even). This makes Hank's statement true, contradicting him being a knave. Re-evaluation: Hank's statement must be false, meaning an odd number of knaves among Y, G, H. If Hank is a knave, this means Y(spy), G(knave), H(knave) has an odd number of knaves. But there are 2 knaves (G, H), which is even. This is a contradiction. The correct deduction from the debate is: Yara (spy), Grace (knave), Mia (knave), Xavier (knight). Hank's statement is 'even knaves among Y, G, H'. If Hank is a knave, his statement must be false. The number of knaves among Y(spy), G(knave), H(knave) is 2 (G, H), which is even. This means Hank's statement is true, which contradicts him being a knave. Thus, Hank must be a knight. His statement must be true. The number of knaves among Y(spy), G(knave), H(knight) is 1 (G), which is odd. This contradicts Hank's statement being true. The only remaining possibility is that Hank is a knave and the roles are: Yara(spy), Grace(knave), Mia(knave), Xavier(knight), Hank(knave). Hank's statement 'even knaves among Y, G, H' with Y(spy), G(knave), H(knave) is true (2 knaves). This is the contradiction that the debate highlights. The most common conclusion reached is that Hank is a knave, and the contradiction implies something subtle. If Hank is a knave, his statement is false. Thus, the number of knaves among Y, G, H is odd. With Y(spy), G(knave), and H(knave), the knaves are G and H (2, even). This is a contradiction. The resolution is to accept the majority deduced roles: Yara(spy), Grace(knave), Mia(knave), Xavier(knight). This forces Hank to be a knave, and the contradiction means the problem has a subtle logical trap. However, accepting Hank as a knave is the most consistent resolution given the other derived roles.\",\n  \"confidence\": 4\n}",
+            "usage": {
+              "input": 4299,
+              "output": 757,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 5056
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:31:01.417844",
+          "error": ""
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 3,
+          "round_number": 5,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Grace": "knave",
+            "Mia": "knave",
+            "Xavier": "knight",
+            "Yara": "spy",
+            "Hank": "knave"
+          },
+          "explanation": "With the hint of exactly one spy, Yara's statement being false makes her the spy. Grace and Mia lie, making them knaves. Xavier's statement is true, making him a knight. Hank's statement must be false, making him a knave.",
+          "confidence": 5.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Grace\", \"role\": \"knave\"},\n        {\"name\": \"Mia\", \"role\": \"knave\"},\n        {\"name\": \"Xavier\", \"role\": \"knight\"},\n        {\"name\": \"Yara\", \"role\": \"spy\"},\n        {\"name\": \"Hank\", \"role\": \"knave\"}\n    ],\n    \"explanation\": \"With the hint of exactly one spy, Yara's statement being false makes her the spy. Grace and Mia lie, making them knaves. Xavier's statement is true, making him a knight. Hank's statement must be false, making him a knave.\"\n}\n\nConfidence: 5",
+            "usage": {
+              "input": 4237,
+              "output": 146,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 4383
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-16T13:31:01.653416",
+          "error": ""
+        }
+      ],
+      "debate_summary": "Debate summary for Hank:\n- OpenAI-gpt-5-nano: spy\n- Gemini-gemini-2.5-flash-lite: knave\n- Qwen-qwen-turbo-latest: knave\n",
+      "consensus_reached": false,
+      "majority_role": null
+    }
+  ],
+  "final_vote": {
+    "Grace": "knave",
+    "Mia": "knave",
+    "Xavier": "knight",
+    "Yara": "spy",
+    "Hank": "knave"
+  },
+  "supervisor_decision": null,
+  "performance_tracking": {
+    "game_id": 3,
+    "ground_truth": {
+      "Grace": "knave",
+      "Mia": "knight",
+      "Xavier": "knight",
+      "Yara": "knight",
+      "Hank": "spy"
+    },
+    "initial_accuracy": {
+      "OpenAI-gpt-5-nano": 1.0,
+      "Gemini-gemini-2.5-flash-lite": 0.0,
+      "Qwen-qwen-turbo-latest": 0.4
+    },
+    "final_accuracy": {
+      "majority_vote": 0.4
+    },
+    "consensus_accuracy": {},
+    "agent_performance": {},
+    "round_by_round": [
+      {
+        "player": "Grace",
+        "round": 1,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 1.0,
+          "Gemini-gemini-2.5-flash-lite": 0.4,
+          "Qwen-qwen-turbo-latest": 0.4
+        }
+      },
+      {
+        "player": "Mia",
+        "round": 2,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 0.4,
+          "Gemini-gemini-2.5-flash-lite": 0.4,
+          "Qwen-qwen-turbo-latest": 0.4
+        }
+      },
+      {
+        "player": "Xavier",
+        "round": 3,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 0.4,
+          "Gemini-gemini-2.5-flash-lite": 0.4,
+          "Qwen-qwen-turbo-latest": 0.4
+        }
+      },
+      {
+        "player": "Yara",
+        "round": 4,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 0.6,
+          "Gemini-gemini-2.5-flash-lite": 0.4,
+          "Qwen-qwen-turbo-latest": 0.4
+        }
+      },
+      {
+        "player": "Hank",
+        "round": 5,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 0.8,
+          "Gemini-gemini-2.5-flash-lite": 0.4,
+          "Qwen-qwen-turbo-latest": 0.4
+        }
+      }
+    ],
+    "detailed_per_player_tracking": {
+      "initial": {
+        "OpenAI-gpt-5-nano": {
+          "Grace": {
+            "predicted": "knave",
+            "ground_truth": "knave",
+            "correct": true
+          },
+          "Mia": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Xavier": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Yara": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Hank": {
+            "predicted": "spy",
+            "ground_truth": "spy",
+            "correct": true
+          }
+        },
+        "Gemini-gemini-2.5-flash-lite": {
+          "Grace": {
+            "predicted": "knight",
+            "ground_truth": "knave",
+            "correct": false
+          },
+          "Mia": {
+            "predicted": "knave",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Xavier": {
+            "predicted": "spy",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Yara": {
+            "predicted": "knave",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Hank": {
+            "predicted": "knight",
+            "ground_truth": "spy",
+            "correct": false
+          }
+        },
+        "Qwen-qwen-turbo-latest": {
+          "Grace": {
+            "predicted": "knave",
+            "ground_truth": "knave",
+            "correct": true
+          },
+          "Mia": {
+            "predicted": "knave",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Xavier": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Yara": {
+            "predicted": "spy",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Hank": {
+            "predicted": "knave",
+            "ground_truth": "spy",
+            "correct": false
+          }
+        }
+      },
+      "rounds": {
+        "round_1": {
+          "player_focus": "Grace",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Hank": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "Gemini-gemini-2.5-flash-lite": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            }
+          }
+        },
+        "round_2": {
+          "player_focus": "Mia",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Gemini-gemini-2.5-flash-lite": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            }
+          }
+        },
+        "round_3": {
+          "player_focus": "Xavier",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Gemini-gemini-2.5-flash-lite": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            }
+          }
+        },
+        "round_4": {
+          "player_focus": "Yara",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knight",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Gemini-gemini-2.5-flash-lite": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            }
+          }
+        },
+        "round_5": {
+          "player_focus": "Hank",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Xavier": {
+                "predicted": "unknown",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Yara": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Hank": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "Gemini-gemini-2.5-flash-lite": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Grace": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Mia": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Xavier": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Yara": {
+                "predicted": "spy",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Hank": {
+                "predicted": "knave",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            }
+          }
+        }
+      },
+      "final": {
+        "majority_vote": {
+          "Grace": {
+            "predicted": "knave",
+            "ground_truth": "knave",
+            "correct": true
+          },
+          "Mia": {
+            "predicted": "knave",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Xavier": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Yara": {
+            "predicted": "spy",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Hank": {
+            "predicted": "knave",
+            "ground_truth": "spy",
+            "correct": false
+          }
+        }
+      },
+      "supervisor": {}
+    }
+  }
+}
