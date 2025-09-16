@@ -379,12 +379,14 @@ def main():
         print("  custom <agent_configs_json> [game_size] [num_games]")
         print("  flexible <llm_configs_json> [game_size] [num_games]")
         print("\nNew format (recommended):")
-        print("  python run_debate.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>]")
+        print("  python run_debate.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>]")
+        print("  python run_debate.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>]")
         print("\nExamples:")
         print("  python run_debate.py run game_size=5 game_id_range=1,20")
         print("  python run_debate.py run game_size=5 game_id_range=1,20 use_parallel=false")
         print("  python run_debate.py run game_size=5 game_id_range=1,20 game_parallel_workers=10")
         print("  python run_debate.py run game_size=5 game_id_range=1,20 self_reported_confidence=true")
+        print("  python run_debate.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_id_range=1,20")
         print("  python run_debate.py run 5 1,20")
         print("  python run_debate.py custom '[{\"name\":\"GPT-5\",\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_num=1")
         print("  python run_debate.py flexible '[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"},{\"provider\":\"gemini\",\"model\":\"gemini-2.5-flash\",\"temperature\":0.2}]' game_size=5 game_num=1")
@@ -422,6 +424,53 @@ def main():
             print(f"🔧 Game parallel workers: {game_parallel_workers}")
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
             run_single_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence)
+        elif command == "flexible":
+            # Support flexible command with key=value format
+            if 'llm_configs' not in kv_args:
+                print("Error: llm_configs is required for flexible command")
+                return
+            
+            try:
+                llm_configs = json.loads(kv_args['llm_configs'])
+            except json.JSONDecodeError as e:
+                print(f"Error: Invalid JSON for llm_configs: {e}")
+                return
+            
+            use_parallel = kv_args.get('use_parallel', 'true').lower() == 'true'
+            self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
+            num_games = game_id_range[1] - game_id_range[0] + 1
+            
+            print(f"🎯 Running flexible configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
+            print(f"🤖 Agents: {[config.get('provider', 'unknown') + '-' + config.get('model', 'unknown') for config in llm_configs]}")
+            print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
+            print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
+            
+            # Create debate config with custom LLM configs
+            debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
+            debate_config.self_reported_confidence = self_reported_confidence
+            
+            # Load ground truth games
+            games = load_ground_truth_games(game_size, game_id_range)
+            if not games:
+                print("❌ No games loaded. Please generate ground truth data first.")
+                return
+            
+            print(f"✅ Loaded {len(games)} games")
+            
+            # Initialize debate system
+            print(f"\n🔧 Initializing debate system...")
+            debate_system = MultiAgentDebateSystem(debate_config)
+            
+            # Run debates
+            print(f"\n🎯 Running debates...")
+            sessions = run_debates_with_system(debate_system, games, use_parallel)
+            
+            # Create visualizations
+            print(f"\n📊 Creating visualizations...")
+            create_visualizations_for_agent_folder(debate_config)
+            
+            print(f"\n🎉 Debate completed successfully!")
+            print(f"📁 Results saved to: {debate_config.get_organized_output_path()}")
         else:
             print(f"Error: Command '{command}' not supported with key=value format")
         return

@@ -84,7 +84,19 @@ def get_kks_system_prompt_with_confidence(num_player: int, include_confidence: b
     # Add confidence scoring instructions
     confidence_addition = """
 
-IMPORTANT: You must also include a confidence score in your response. This should be a number from 0 to 100 representing how confident you are in your solution (0 = completely uncertain, 100 = completely certain).
+IMPORTANT: You must also include a confidence score in your response. Please also report your self-confidence on a scale from 1 to 5. Clearly format it as: Confidence: [1–5] 
+
+Confidence Scale Guidelines: 
+- 1 = Very low confidence. You are guessing, highly uncertain, or the information may be incorrect. 
+- 2 = Low confidence. You have some partial knowledge but significant uncertainty remains. 
+- 3 = Medium confidence. You believe your answer is plausible, but there are noticeable gaps or potential errors. 
+- 4 = High confidence. You are fairly sure your answer is correct, with only minor doubts. 
+- 5 = Very high confidence. You are strongly convinced your answer is correct, with little or no doubt.
+
+REASONING GUIDELINES:
+- Keep your explanation concise and focused (aim for under 200 characters)
+- Provide clear, logical reasoning for your conclusions
+- Be specific about which statements or evidence led to your decisions
 
 The updated response format is:
 {
@@ -96,7 +108,7 @@ The updated response format is:
     "confidence": number
 }
 
-Where confidence is an integer from 0 to 100 representing your confidence level in the solution."""
+Where confidence is an integer from 1 to 5 representing your confidence level in the solution."""
     
     return base_prompt + confidence_addition
 
@@ -109,9 +121,9 @@ def get_kks_response_schema_with_confidence(include_confidence: bool = False) ->
     schema_with_confidence = kks_response_schema.copy()
     schema_with_confidence['properties']['confidence'] = {
         'type': 'integer',
-        'minimum': 0,
-        'maximum': 100,
-        'description': 'Confidence level in the solution (0-100)'
+        'minimum': 1,
+        'maximum': 5,
+        'description': 'Confidence level in the solution (1-5)'
     }
     schema_with_confidence['required'].append('confidence')
     

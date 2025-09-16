@@ -15,6 +15,14 @@ from debate.debate_config import DebateConfig, AgentConfig
 from utils.utility import openai_client, gemini_client, ali_client, cstcloud, ParallelProcessor
 from prompts import kks_system_prompt, kks_response_schema, get_kks_system_prompt_with_confidence, get_kks_response_schema_with_confidence
 
+# Import visualizer (with try-except to handle potential import issues)
+try:
+    from debate.debate_visualizer import DebateVisualizer
+    VISUALIZER_AVAILABLE = True
+except ImportError as e:
+    VISUALIZER_AVAILABLE = False
+    print(f"⚠️ Visualizer not available: {e}")
+
 @dataclass
 class AgentResponse:
     """Response from a single agent."""
@@ -24,7 +32,7 @@ class AgentResponse:
     phase: str  # "initial", "debate", "self_adjustment", "final"
     player_role_assignments: Dict[str, str]  # {player_name: role}
     explanation: str
-    confidence: float = 0.0
+    confidence: float = 3.0
     response_obj: Optional[response_format] = None
     timestamp: str = ""
     error: str = ""
@@ -218,14 +226,20 @@ class MultiAgentDebateSystem:
         # Get player names from ground truth
         player_names = list(gt_solution.keys())
         
+        # Track the current state of all agents (starts with initial proposals)
+        current_agent_states = initial_proposals
+        
         for player_name in player_names:
             self.logger.info(f"--- Debating {player_name}'s role ---")
             self.logger.info(f"🎯 Ground Truth: {player_name} is a {gt_solution.get(player_name, 'unknown')}")
             debate_round = self._run_debate_round(
                 game, player_name, len(debate_rounds) + 1, 
-                initial_proposals, debate_rounds
+                current_agent_states, debate_rounds
             )
             debate_rounds.append(debate_round)
+            
+            # Update current agent states to the self-adjustment results from this round
+            current_agent_states = debate_round.agent_responses
             
             # Show round results
             self.logger.info(f"📊 Round {debate_round.round_number} Results for {player_name}:")
@@ -325,6 +339,9 @@ class MultiAgentDebateSystem:
         
         self.logger.info(f"✅ Debate completed for Game {game.game_id}")
         
+        # Generate visualizations automatically
+        self._generate_visualizations(session)
+        
         return session
     
     def _run_single_game_debate(self, game: ground_truth) -> DebateSession:
@@ -389,9 +406,6 @@ class MultiAgentDebateSystem:
                 self.logger.info(f"    ✅ {agent_name} completed: {player_assignments}")
                 if self.config.self_reported_confidence:
                     self.logger.info(f"    📊 {agent_name} confidence: {confidence}")
-                    # Debug: log the raw response to see if confidence is included
-                    if confidence == 0.0:
-                        self.logger.info(f"    🔍 {agent_name} raw response preview: {response_obj.text[:200]}...")
                 else:
                     self.logger.info(f"    📊 {agent_name} confidence: not requested (SRC disabled)")
                 
@@ -417,7 +431,7 @@ class MultiAgentDebateSystem:
                     phase="initial",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
-                    confidence=0.0,
+                    confidence=1.0,  # Low confidence for errors
                     timestamp=datetime.now().isoformat(),
                     error=str(e)
                 )
@@ -431,14 +445,14 @@ class MultiAgentDebateSystem:
         return [p for p in proposals if p is not None]
     
     def _run_debate_round(self, game: ground_truth, player_name: str, 
-                         round_num: int, initial_proposals: List[AgentResponse],
+                         round_num: int, current_agent_states: List[AgentResponse],
                          previous_rounds: List[DebateRound]) -> DebateRound:
         """Run a debate round for a specific player's role."""
         
         # Step 1: Debate period
         self.logger.info(f"  Step 1: Debate period for {player_name}")
         debate_responses = self._conduct_debate_for_player(
-            game, player_name, round_num, initial_proposals, previous_rounds
+            game, player_name, round_num, current_agent_states, previous_rounds
         )
         
         # Step 2: Self-adjustment
@@ -463,7 +477,7 @@ class MultiAgentDebateSystem:
         )
     
     def _conduct_debate_for_player(self, game: ground_truth, player_name: str,
-                                 round_num: int, initial_proposals: List[AgentResponse],
+                                 round_num: int, current_agent_states: List[AgentResponse],
                                  previous_rounds: List[DebateRound]) -> List[AgentResponse]:
         """Conduct debate for a specific player's role."""
         
@@ -477,7 +491,7 @@ class MultiAgentDebateSystem:
             try:
                 # Create debate prompt
                 debate_prompt = self._create_debate_prompt(
-                    game, player_name, initial_proposals, previous_rounds
+                    game, player_name, current_agent_states, previous_rounds
                 )
                 
                 # Make API call
@@ -516,7 +530,7 @@ class MultiAgentDebateSystem:
                     )
                 
                 # Parse response
-                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text, "debate")
                 
                 self.logger.info(f"      ✅ {agent_name} debate completed")
                 if self.config.self_reported_confidence:
@@ -546,7 +560,7 @@ class MultiAgentDebateSystem:
                     phase="debate",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
-                    confidence=0.0,
+                    confidence=1.0,  # Low confidence for errors
                     timestamp=datetime.now().isoformat(),
                     error=str(e)
                 )
@@ -613,7 +627,7 @@ class MultiAgentDebateSystem:
                     )
                 
                 # Parse response
-                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text, "self_adjustment")
                 
                 self.logger.info(f"      ✅ {agent_name} self-adjustment completed")
                 if self.config.self_reported_confidence:
@@ -643,7 +657,7 @@ class MultiAgentDebateSystem:
                     phase="self_adjustment",
                     player_role_assignments={},
                     explanation=f"Error: {str(e)}",
-                    confidence=0.0,
+                    confidence=1.0,  # Low confidence for errors
                     timestamp=datetime.now().isoformat(),
                     error=str(e)
                 )
@@ -740,7 +754,7 @@ class MultiAgentDebateSystem:
                     "agent_name": agent_name,
                     "player_assignments": last_assignment,
                     "explanation": f"Error: {str(e)}",
-                    "confidence": 0.0
+                    "confidence": 1.0  # Low confidence for errors
                 })
         
         # Conduct majority vote on fresh decisions
@@ -881,35 +895,46 @@ Return your response in the same JSON format:
             self.logger.error(f"Error getting supervisor decision: {e}")
             return {}
     
-    def _parse_agent_response(self, response_text: str) -> Tuple[Dict[str, str], str, float]:
+    def _parse_agent_response(self, response_text: str, phase: str = "initial") -> Tuple[Dict[str, str], str, float]:
         """Parse agent response to extract player assignments, explanation, and confidence."""
         try:
-            # Try to parse JSON
-            response_data = json.loads(response_text)
+            # First try to extract JSON from the response (handle extra text after JSON)
+            json_text = self._extract_json_from_response(response_text)
+            response_data = json.loads(json_text)
             
             # Extract player assignments
             player_assignments = {}
             explanation = ""
-            confidence = 0.0
+            confidence = 3.0  # Default to medium confidence (1-5 scale)
             
-            if "players" in response_data and isinstance(response_data["players"], list):
+            if phase == "debate":
+                # Debate phase format: single player role
+                if "player_role" in response_data and "role" in response_data:
+                    player_assignments[response_data["player_role"]] = response_data["role"]
+                explanation = self._clean_explanation(response_data.get("explanation", ""))
+                confidence = self._parse_confidence(response_data.get("confidence", 3))
+            elif "players" in response_data and isinstance(response_data["players"], list):
                 # New format with players array
                 for player_data in response_data["players"]:
                     if isinstance(player_data, dict) and "name" in player_data and "role" in player_data:
                         player_assignments[player_data["name"]] = player_data["role"]
-                explanation = response_data.get("explanation", "")
-                confidence = response_data.get("confidence", 0.0)
+                explanation = self._clean_explanation(response_data.get("explanation", ""))
+                confidence = self._parse_confidence(response_data.get("confidence", 3))
             else:
                 # Old format - direct name: role mapping
                 for key, value in response_data.items():
                     if key not in ["explanation", "confidence"] and isinstance(value, str):
                         player_assignments[key] = value
-                explanation = response_data.get("explanation", "")
-                confidence = response_data.get("confidence", 0.0)
+                explanation = self._clean_explanation(response_data.get("explanation", ""))
+                confidence = self._parse_confidence(response_data.get("confidence", 3))
+            
+            # If confidence not found in JSON, try to extract from extra text
+            if confidence == 3.0 and "confidence" not in response_data:
+                confidence = self._extract_confidence_from_text(response_text)
             
             return player_assignments, explanation, confidence
             
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, ValueError):
             # If JSON parsing fails, try to extract using regex
             import re
             pattern = r'(\w+)\s+is\s+a\s+(knight|knave|spy)\.'
@@ -919,7 +944,102 @@ Return your response in the same JSON format:
             for player_name, role in matches:
                 player_assignments[player_name] = role.lower()
             
-            return player_assignments, response_text, 0.0
+            # Try to extract confidence from text even in regex fallback
+            confidence = self._extract_confidence_from_text(response_text)
+            
+            return player_assignments, self._clean_explanation(response_text), confidence
+    
+    def _extract_json_from_response(self, response_text: str) -> str:
+        """Extract JSON from response text, handling extra text after JSON."""
+        import re
+        
+        # Try to find JSON object boundaries
+        # Look for opening brace and try to find matching closing brace
+        start_idx = response_text.find('{')
+        if start_idx == -1:
+            raise ValueError("No JSON object found")
+        
+        # Count braces to find the end of the JSON object
+        brace_count = 0
+        end_idx = start_idx
+        
+        for i, char in enumerate(response_text[start_idx:], start_idx):
+            if char == '{':
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    end_idx = i + 1
+                    break
+        
+        if brace_count != 0:
+            raise ValueError("Unmatched braces in JSON")
+        
+        return response_text[start_idx:end_idx]
+    
+    def _extract_confidence_from_text(self, response_text: str) -> float:
+        """Extract confidence value from text patterns like 'Confidence: 5'."""
+        import re
+        
+        # Try different patterns for confidence
+        patterns = [
+            r'confidence:\s*(\d+)',  # "Confidence: 5"
+            r'my confidence is\s*(\d+)',  # "My confidence is 5"
+            r'confidence level:\s*(\d+)',  # "Confidence level: 5"
+            r'confidence\s*=\s*(\d+)',  # "confidence = 5"
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, response_text, re.IGNORECASE)
+            if match:
+                try:
+                    confidence = float(match.group(1))
+                    return self._parse_confidence(confidence)
+                except (ValueError, TypeError):
+                    continue
+        
+        # If no confidence found, return default
+        return 3.0
+    
+    def _clean_explanation(self, explanation: str) -> str:
+        """Clean explanation text to remove extra formatting and keep only the core content."""
+        if not explanation:
+            return ""
+        
+        # Remove common prefixes/suffixes that models sometimes add
+        explanation = explanation.strip()
+        
+        # Remove "Explanation:" prefix if present
+        if explanation.lower().startswith("explanation:"):
+            explanation = explanation[12:].strip()
+        
+        # Remove "Reasoning:" prefix if present
+        if explanation.lower().startswith("reasoning:"):
+            explanation = explanation[10:].strip()
+        
+        # Remove confidence statements that might be mixed in
+        import re
+        explanation = re.sub(r'confidence:\s*\d+', '', explanation, flags=re.IGNORECASE)
+        explanation = re.sub(r'my confidence is\s*\d+', '', explanation, flags=re.IGNORECASE)
+        
+        # Clean up extra whitespace
+        explanation = re.sub(r'\s+', ' ', explanation).strip()
+        
+        return explanation
+    
+    def _parse_confidence(self, confidence_value) -> float:
+        """Parse confidence value and ensure it's in the 1-5 range."""
+        try:
+            confidence = float(confidence_value)
+            # Ensure confidence is in valid range (1-5)
+            if confidence < 1.0:
+                confidence = 1.0
+            elif confidence > 5.0:
+                confidence = 5.0
+            return confidence
+        except (ValueError, TypeError):
+            # If parsing fails, return default medium confidence
+            return 3.0
     
     def _parse_ground_truth_solution(self, game: ground_truth) -> Dict[str, str]:
         """Parse ground truth solution to extract player-role pairs."""
@@ -941,7 +1061,7 @@ Return your response in the same JSON format:
             return {}
     
     def _create_debate_prompt(self, game: ground_truth, player_name: str,
-                            initial_proposals: List[AgentResponse],
+                            current_agent_states: List[AgentResponse],
                             previous_rounds: List[DebateRound]) -> str:
         """Create debate prompt for a specific player's role."""
         
@@ -952,15 +1072,15 @@ GAME INFORMATION:
 
 CURRENT FOCUS: We are debating the role of {player_name}.
 
-OTHER AGENTS' INITIAL PROPOSALS:
+OTHER AGENTS' CURRENT POSITIONS (from last step):
 """
         
-        for proposal in initial_proposals:
+        for agent_state in current_agent_states:
             confidence_info = ""
-            if self.config.self_reported_confidence and proposal.confidence > 0:
-                confidence_info = f" (confidence: {proposal.confidence})"
-            prompt += f"\n{proposal.agent_name} thinks {player_name} is a {proposal.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
-            prompt += f" Their reasoning: {proposal.explanation[:200]}...\n"
+            if self.config.self_reported_confidence and agent_state.confidence > 0:
+                confidence_info = f" (confidence: {agent_state.confidence})"
+            prompt += f"\n{agent_state.agent_name} thinks {player_name} is a {agent_state.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
+            prompt += f" Their reasoning: {agent_state.explanation}\n"
         
         if previous_rounds:
             prompt += "\nPREVIOUS DEBATE ROUNDS:\n"
@@ -975,15 +1095,15 @@ OTHER AGENTS' INITIAL PROPOSALS:
         
         prompt += f"""
 
-Please provide your updated analysis focusing on {player_name}'s role. Consider the other agents' arguments and provide your reasoning. 
+Please provide your debate analysis focusing specifically on {player_name}'s role. Consider the other agents' arguments and provide your reasoning.
 
-Return your response in the same JSON format as before:
+IMPORTANT: For this debate phase, you should focus ONLY on {player_name}'s role and provide your debate reasoning. You will have a chance to provide your complete solution in the self-adjustment phase.
+
+Return your response in the following JSON format:
 {{
-    "players": [
-        {{"name": "player_name", "role": "role"}},
-        ...
-    ],
-    "explanation": "Your detailed reasoning focusing on {player_name}'s role"
+    "player_role": "{player_name}",
+    "role": "knight/knave/spy",
+    "explanation": "Your debate reasoning focusing specifically on {player_name}'s role"
 }}"""
         
         return prompt
@@ -1008,13 +1128,15 @@ DEBATE SUMMARY:
             if self.config.self_reported_confidence and response.confidence > 0:
                 confidence_info = f" (confidence: {response.confidence})"
             prompt += f"\n{response.agent_name} thinks {player_name} is a {response.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
-            prompt += f" Their reasoning: {response.explanation[:200]}...\n"
+            prompt += f" Their reasoning: {response.explanation}\n"
         
         prompt += f"""
 
 Based on the debate, please provide your final assessment. You may adjust your position on {player_name} or any other players if you've been convinced by the arguments.
 
-Return your response in the same JSON format:
+IMPORTANT: For this self-adjustment phase, provide your complete solution for ALL players, not just {player_name}.
+
+Return your response in the following JSON format:
 {{
     "players": [
         {{"name": "player_name", "role": "role"}},
@@ -1292,3 +1414,27 @@ Return your response in the same JSON format:
         
         print(f"✅ Completed parallel processing of {len(sessions)} games")
         return sessions
+    
+    def _generate_visualizations(self, session: DebateSession):
+        """Generate visualizations for a completed debate session."""
+        if not VISUALIZER_AVAILABLE:
+            self.logger.warning("📊 Visualizer not available - skipping visualization generation")
+            return
+        
+        try:
+            self.logger.info("📊 Generating visualizations...")
+            
+            # Create visualizer instance
+            visualizer = DebateVisualizer(output_path=self.organized_output_path)
+            
+            # Generate all visualizations
+            results = visualizer.create_all_visualizations([session])
+            
+            # Log the generated files
+            self.logger.info("📈 Generated visualizations:")
+            for name, path in results.items():
+                self.logger.info(f"  - {name}: {os.path.basename(path)}")
+                
+        except Exception as e:
+            self.logger.error(f"❌ Failed to generate visualizations: {e}")
+            # Don't raise the exception - visualization failure shouldn't stop the debate

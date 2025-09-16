@@ -727,14 +727,251 @@ class DebateVisualizer:
         
         return save_path
     
+    def create_per_player_prediction_matrix(self, sessions: List[DebateSession], 
+                                          save_path: Optional[str] = None) -> str:
+        """Create a fine-grained matrix showing each agent's prediction (correct/wrong) for each player at different checkpoints."""
+        
+        # Collect data for all phases
+        data = []
+        
+        for session in sessions:
+            gt_solution = session.ground_truth_solution
+            
+            # Initial proposals
+            for proposal in session.initial_proposals:
+                for player, gt_role in gt_solution.items():
+                    predicted_role = proposal.player_role_assignments.get(player, "unknown")
+                    is_correct = predicted_role == gt_role
+                    
+                    data.append({
+                        'Game': session.game_id,
+                        'Agent': proposal.agent_name,
+                        'Player': player,
+                        'Phase': 'Initial',
+                        'Predicted': predicted_role,
+                        'Ground_Truth': gt_role,
+                        'Correct': is_correct
+                    })
+            
+            # Self-adjustment phases for each round
+            for round_data in session.debate_rounds:
+                for response in round_data.agent_responses:
+                    if response.phase == 'self_adjustment':
+                        for player, gt_role in gt_solution.items():
+                            predicted_role = response.player_role_assignments.get(player, "unknown")
+                            is_correct = predicted_role == gt_role
+                            
+                            data.append({
+                                'Game': session.game_id,
+                                'Agent': response.agent_name,
+                                'Player': player,
+                                'Phase': f'After Round {round_data.round_number}',
+                                'Predicted': predicted_role,
+                                'Ground_Truth': gt_role,
+                                'Correct': is_correct
+                            })
+            
+            # Final consensus (if available)
+            if session.final_vote:
+                for player, gt_role in gt_solution.items():
+                    predicted_role = session.final_vote.get(player, "unknown")
+                    is_correct = predicted_role == gt_role
+                    
+                    # Add final consensus for all agents (they should all have the same result)
+                    for proposal in session.initial_proposals:
+                        data.append({
+                            'Game': session.game_id,
+                            'Agent': proposal.agent_name,
+                            'Player': player,
+                            'Phase': 'Final Consensus',
+                            'Predicted': predicted_role,
+                            'Ground_Truth': gt_role,
+                            'Correct': is_correct
+                        })
+        
+        df = pd.DataFrame(data)
+        
+        # Create a pivot table showing correctness for each agent-player-phase combination
+        pivot_table = df.pivot_table(
+            values='Correct', 
+            index=['Agent', 'Player'], 
+            columns='Phase', 
+            aggfunc='first'
+        )
+        
+        # Convert boolean values to 1/0 for visualization
+        pivot_table = pivot_table.astype(float)
+        
+        # Reorder columns for logical flow
+        phase_columns = list(pivot_table.columns)
+        initial_col = 'Initial'
+        round_cols = [col for col in phase_columns if col.startswith('After Round')]
+        final_consensus_col = 'Final Consensus' if 'Final Consensus' in phase_columns else None
+        
+        # Sort round columns by round number
+        def extract_round_number(col):
+            if col.startswith('After Round'):
+                return int(col.split(' ')[2])
+            return 0
+        
+        round_cols.sort(key=extract_round_number)
+        
+        # Build phase order: Initial -> Rounds -> Final Consensus
+        phase_order = [initial_col] + round_cols
+        if final_consensus_col:
+            phase_order.append(final_consensus_col)
+        
+        pivot_table = pivot_table.reindex(columns=phase_order)
+        
+        # Create heatmap
+        plt.figure(figsize=(max(10, len(phase_order) * 2), max(8, len(pivot_table) * 0.8)))
+        
+        # Create custom colormap (red for wrong, green for correct)
+        from matplotlib.colors import LinearSegmentedColormap
+        colors = ['#FF6B6B', '#4ECDC4']  # Red for 0 (wrong), Green for 1 (correct)
+        correctness_cmap = LinearSegmentedColormap.from_list('correctness', colors, N=256)
+        
+        sns.heatmap(
+            pivot_table, 
+            annot=True, 
+            cmap=correctness_cmap,
+            cbar_kws={'label': 'Correct (1) / Wrong (0)'},
+            fmt='.0f',
+            vmin=0, vmax=1
+        )
+        
+        plt.title('Per-Player Prediction Accuracy Matrix\n(1=Correct, 0=Wrong)', fontsize=14, fontweight='bold')
+        plt.xlabel('Debate Phase', fontsize=12)
+        plt.ylabel('Agent & Player', fontsize=12)
+        plt.xticks(rotation=45, ha='right')
+        plt.yticks(rotation=0)
+        
+        # Adjust layout
+        plt.tight_layout()
+        
+        # Save
+        if save_path is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            save_path = os.path.join(self.output_path, f"per_player_prediction_matrix_{timestamp}.png")
+        
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        return save_path
+    
+    def create_player_centric_analysis(self, sessions: List[DebateSession], 
+                                      save_path: Optional[str] = None) -> str:
+        """Create analysis showing initial vs final prediction accuracy for each player."""
+        
+        # Collect data
+        data = []
+        
+        for session in sessions:
+            gt_solution = session.ground_truth_solution
+            
+            # Get initial predictions for each agent
+            initial_predictions = {}
+            for proposal in session.initial_proposals:
+                initial_predictions[proposal.agent_name] = proposal.player_role_assignments
+            
+            # Get final predictions (consensus or supervisor decision)
+            final_predictions = session.final_vote if session.final_vote else session.supervisor_decision
+            
+            # For each player, calculate initial and final accuracy
+            for player, gt_role in gt_solution.items():
+                # Calculate initial accuracy (how many agents got it right initially)
+                initial_correct = 0
+                total_agents = len(initial_predictions)
+                
+                for agent_name, predictions in initial_predictions.items():
+                    if predictions.get(player) == gt_role:
+                        initial_correct += 1
+                
+                initial_accuracy = initial_correct / total_agents if total_agents > 0 else 0
+                
+                # Calculate final accuracy (whether final consensus got it right)
+                final_correct = 1 if final_predictions and final_predictions.get(player) == gt_role else 0
+                
+                data.append({
+                    'Game': session.game_id,
+                    'Player': player,
+                    'Ground_Truth': gt_role,
+                    'Initial_Accuracy': initial_accuracy,
+                    'Final_Correct': final_correct,
+                    'Improvement': final_correct - initial_accuracy
+                })
+        
+        df = pd.DataFrame(data)
+        
+        # Create visualization
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+        
+        # Plot 1: Initial vs Final accuracy by player
+        players = df['Player'].unique()
+        x_pos = np.arange(len(players))
+        
+        initial_acc = [df[df['Player'] == p]['Initial_Accuracy'].mean() for p in players]
+        final_acc = [df[df['Player'] == p]['Final_Correct'].mean() for p in players]
+        
+        width = 0.35
+        ax1.bar(x_pos - width/2, initial_acc, width, label='Initial Accuracy', alpha=0.8, color='#FF6B6B')
+        ax1.bar(x_pos + width/2, final_acc, width, label='Final Correct', alpha=0.8, color='#4ECDC4')
+        
+        ax1.set_xlabel('Player')
+        ax1.set_ylabel('Accuracy')
+        ax1.set_title('Initial vs Final Prediction Accuracy by Player')
+        ax1.set_xticks(x_pos)
+        ax1.set_xticklabels(players)
+        ax1.legend()
+        ax1.set_ylim(0, 1.1)
+        
+        # Add value labels on bars
+        for i, (init, final) in enumerate(zip(initial_acc, final_acc)):
+            ax1.text(i - width/2, init + 0.02, f'{init:.2f}', ha='center', va='bottom')
+            ax1.text(i + width/2, final + 0.02, f'{final:.2f}', ha='center', va='bottom')
+        
+        # Plot 2: Improvement analysis
+        improvement_data = df.groupby('Player')['Improvement'].mean()
+        colors = ['#4ECDC4' if x >= 0 else '#FF6B6B' for x in improvement_data.values]
+        
+        bars = ax2.bar(improvement_data.index, improvement_data.values, color=colors, alpha=0.8)
+        ax2.set_xlabel('Player')
+        ax2.set_ylabel('Improvement (Final - Initial)')
+        ax2.set_title('Prediction Improvement by Player')
+        ax2.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        ax2.set_ylim(-1.1, 1.1)
+        
+        # Add value labels on bars
+        for bar, value in zip(bars, improvement_data.values):
+            ax2.text(bar.get_x() + bar.get_width()/2, value + (0.05 if value >= 0 else -0.05), 
+                    f'{value:.2f}', ha='center', va='bottom' if value >= 0 else 'top')
+        
+        plt.tight_layout()
+        
+        # Save
+        if save_path is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            save_path = os.path.join(self.output_path, f"player_centric_analysis_{timestamp}.png")
+        
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        return save_path
+    
     def create_all_visualizations(self, sessions: List[DebateSession]) -> Dict[str, str]:
         """Create all visualizations and return file paths."""
         results = {}
         
         print("🎨 Creating visualizations...")
         
-        # Performance matrix
+        # Performance matrix (overall accuracy)
         results['performance_matrix'] = self.create_performance_matrix(sessions)
+        
+        # Fine-grained per-player prediction matrix
+        results['per_player_prediction_matrix'] = self.create_per_player_prediction_matrix(sessions)
+        
+        # Player-centric analysis: Initial vs Final
+        results['player_centric_analysis'] = self.create_player_centric_analysis(sessions)
         
         # Consensus tracking
         results['consensus_tracking'] = self.create_consensus_tracking(sessions)
@@ -744,10 +981,6 @@ class DebateVisualizer:
         
         # Detailed per-player accuracy
         results['detailed_per_player_accuracy'] = self.create_detailed_per_player_accuracy(sessions)
-        
-        # Individual debate flows
-        for session in sessions:
-            results[f'debate_flow_{session.game_id}'] = self.create_debate_flow_diagram(session)
         
         # Summary report
         results['summary_report'] = self.create_summary_report(sessions)
@@ -1003,6 +1236,14 @@ Examples:
             print(f"    📈 Creating performance matrix...")
             results[f'performance_matrix_{session.game_id}'] = visualizer.create_performance_matrix([session])
         
+        # Fine-grained per-player prediction matrix
+        print(f"    🎯 Creating per-player prediction matrix...")
+        results[f'per_player_prediction_matrix_{session.game_id}'] = visualizer.create_per_player_prediction_matrix([session])
+        
+        # Player-centric analysis: Initial vs Final
+        print(f"    📊 Creating player-centric analysis...")
+        results[f'player_centric_analysis_{session.game_id}'] = visualizer.create_player_centric_analysis([session])
+        
         if not args.no_consensus_tracking:
             print(f"    📊 Creating consensus tracking...")
             results[f'consensus_tracking_{session.game_id}'] = visualizer.create_consensus_tracking([session])
@@ -1010,10 +1251,6 @@ Examples:
         if not args.no_agent_comparison:
             print(f"    🤖 Creating agent comparison...")
             results[f'agent_comparison_{session.game_id}'] = visualizer.create_agent_comparison([session])
-        
-        # Individual debate flow
-        print(f"    🔄 Creating debate flow diagram...")
-        results[f'debate_flow_{session.game_id}'] = visualizer.create_debate_flow_diagram(session)
     
     print(f"\n✅ All visualizations completed!")
     print(f"📁 Results saved in individual session directories")

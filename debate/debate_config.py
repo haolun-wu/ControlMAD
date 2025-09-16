@@ -33,7 +33,7 @@ class DebateConfig:
     game_size: int = 4
     game_id_range: List[int] = field(default_factory=lambda: [1, 1])  # [start_id, end_id] inclusive
     game_parallel_workers: int = 20  # Number of workers for game-level parallel processing
-    self_reported_confidence: bool = True  # SRC: Whether models output confidence scores (0-100)
+    self_reported_confidence: bool = True  # SRC: Whether models output confidence scores (1-5)
     
     def __post_init__(self):
         """Set default game_id_range if not provided."""

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import List, Dict
 
 @dataclass
 class player:
@@ -8,11 +9,11 @@ class player:
 
 @dataclass
 class base_config:
-    name_pool: list[str]
-    role_map: dict[int, str]
-    tf_map: dict[int, str]
-    eo_map: dict[int, str]
-    number_map: dict[int, str]
+    name_pool: List[str]
+    role_map: Dict[int, str]
+    tf_map: Dict[int, str]
+    eo_map: Dict[int, str]
+    number_map: Dict[int, str]
     game_size: int
     num_spy: int
     num_hint: int
