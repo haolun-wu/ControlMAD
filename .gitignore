@@ -1,3 +1,4 @@
 secret.json
 debate_results/
 *.pyc
+__pycache__/

@@ -1085,7 +1085,11 @@ def _dict_to_debate_session(data: Dict[str, Any]) -> DebateSession:
             explanation=proposal_data['explanation'],
             confidence=proposal_data.get('confidence', 0.0),
             timestamp=proposal_data.get('timestamp', ''),
-            error=proposal_data.get('error', '')
+            error=proposal_data.get('error', ''),
+            agree_with=proposal_data.get('agree_with'),
+            disagree_with=proposal_data.get('disagree_with'),
+            agree_reasoning=proposal_data.get('agree_reasoning'),
+            disagree_reasoning=proposal_data.get('disagree_reasoning')
         )
         initial_proposals.append(proposal)
     
@@ -1103,7 +1107,11 @@ def _dict_to_debate_session(data: Dict[str, Any]) -> DebateSession:
                 explanation=response_data['explanation'],
                 confidence=response_data.get('confidence', 0.0),
                 timestamp=response_data.get('timestamp', ''),
-                error=response_data.get('error', '')
+                error=response_data.get('error', ''),
+                agree_with=response_data.get('agree_with'),
+                disagree_with=response_data.get('disagree_with'),
+                agree_reasoning=response_data.get('agree_reasoning'),
+                disagree_reasoning=response_data.get('disagree_reasoning')
             )
             agent_responses.append(response)
         

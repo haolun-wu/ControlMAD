@@ -1,5 +1,14 @@
 from dataclasses import dataclass
-from typing import List, Dict
+import sys
+
+# Handle Python version compatibility for type hints
+if sys.version_info >= (3, 9):
+    # Python 3.9+ supports built-in generic types
+    from typing import Dict
+    List = list
+else:
+    # Python < 3.9 requires typing.List
+    from typing import List, Dict
 
 @dataclass
 class player:
@@ -24,9 +33,9 @@ class ground_truth:
     num_player: int
     num_spy: int
     num_hint: int
-    raw_schema: list[int]
-    raw_statement: list
-    raw_solution: list[int]
+    raw_schema: List[int]
+    raw_statement: List
+    raw_solution: List[int]
     text_game: str
     text_solution: str
 

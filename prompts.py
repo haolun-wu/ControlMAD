@@ -84,14 +84,22 @@ def get_kks_system_prompt_with_confidence(num_player: int, include_confidence: b
     # Add confidence scoring instructions
     confidence_addition = """
 
-IMPORTANT: You must also include a confidence score in your response. Please also report your self-confidence on a scale from 1 to 5. Clearly format it as: Confidence: [1–5] 
+IMPORTANT: You must also include a confidence score in your response. Please also report your self-confidence on a scale from 1 to 10. Clearly format it as: Confidence: [1–10] 
+
+**CRITICAL CONFIDENCE GUIDELINES - BE HONEST AND CONSERVATIVE:**
+Notice this is a serious logic task. Again, very welcome to be honest to give low confidence if you are uncertain.
+
+**STRONG EMPHASIS ON HONESTY:**
+- Do NOT overclaim confidence. It is better to be honest about uncertainty than to be wrong with high confidence.
+- If you are not certain, it is GOOD and WELCOME to give low confidence scores (1-4).
+- Being honest about uncertainty is better than being overconfident about a wrong answer.
 
 Confidence Scale Guidelines: 
-- 1 = Very low confidence. You are guessing, highly uncertain, or the information may be incorrect. 
-- 2 = Low confidence. You have some partial knowledge but significant uncertainty remains. 
-- 3 = Medium confidence. You believe your answer is plausible, but there are noticeable gaps or potential errors. 
-- 4 = High confidence. You are fairly sure your answer is correct, with only minor doubts. 
-- 5 = Very high confidence. You are strongly convinced your answer is correct, with little or no doubt.
+- 1-2 (Uncertain): The puzzle provides insufficient or minimal evidence. The solution is largely based on weak assumptions or indirect reasoning. Very welcome to be honest about uncertainty.
+- 3-4 (Moderately Confident): There is noticeable evidence supporting your solution, though it is not comprehensive, and other interpretations are possible.
+- 5-6 (Quite Confident): You find clear and convincing evidence that supports your solution, though it is not entirely decisive.
+- 7-8 (Confident): The puzzle contains strong evidence that clearly supports your solution, with very little ambiguity.
+- 9-10 (Highly Confident): The puzzle provides direct and explicit evidence that decisively supports your solution. Use these scores VERY sparingly.
 
 REASONING GUIDELINES:
 - Keep your explanation concise and focused (aim for under 200 characters)
@@ -108,7 +116,7 @@ The updated response format is:
     "confidence": number
 }
 
-Where confidence is an integer from 1 to 5 representing your confidence level in the solution."""
+Where confidence is an integer from 1 to 10 representing your confidence level in the solution."""
     
     return base_prompt + confidence_addition
 
@@ -122,8 +130,8 @@ def get_kks_response_schema_with_confidence(include_confidence: bool = False) ->
     schema_with_confidence['properties']['confidence'] = {
         'type': 'integer',
         'minimum': 1,
-        'maximum': 5,
-        'description': 'Confidence level in the solution (1-5)'
+        'maximum': 10,
+        'description': 'Confidence level in the solution (1-10)'
     }
     schema_with_confidence['required'].append('confidence')
     

@@ -36,6 +36,11 @@ class AgentResponse:
     response_obj: Optional[response_format] = None
     timestamp: str = ""
     error: str = ""
+    # New fields for debate phase
+    agree_with: Optional[List[str]] = None  # List of agent names this agent agrees with
+    disagree_with: Optional[List[str]] = None  # List of agent names this agent disagrees with
+    agree_reasoning: Optional[str] = None  # Reasoning for agreements
+    disagree_reasoning: Optional[str] = None  # Reasoning for disagreements
 
 @dataclass
 class DebateRound:
@@ -256,6 +261,29 @@ class MultiAgentDebateSystem:
                     correct = "✅" if predicted_role == gt_role else "❌"
                     self.logger.info(f"      {player}: {predicted_role} vs {gt_role} {correct}")
             self.logger.info(f"🎯 Round completed - no intermediate voting")
+            
+            # DEBUG: Comprehensive summary of all agents' debate responses
+            self.logger.info(f"🔍 DEBUG - COMPREHENSIVE DEBATE ROUND {debate_round.round_number} SUMMARY:")
+            self.logger.info(f"      {'='*80}")
+            for response in debate_round.agent_responses:
+                if response.phase == "debate":  # Only show debate phase responses
+                    # Get agent config info
+                    agent_info = self.agents.get(response.agent_name, {})
+                    config = agent_info.get("config", None)
+                    provider_model = f"{config.provider}/{config.model}" if config else "unknown/unknown"
+                    
+                    self.logger.info(f"      🤖 {response.agent_name} ({provider_model}):")
+                    self.logger.info(f"          Decision: {response.player_role_assignments}")
+                    self.logger.info(f"          Agrees with: {response.agree_with if response.agree_with else 'None'}")
+                    self.logger.info(f"          Disagrees with: {response.disagree_with if response.disagree_with else 'None'}")
+                    if response.agree_reasoning:
+                        self.logger.info(f"          Agree reasoning: {response.agree_reasoning}")
+                    if response.disagree_reasoning:
+                        self.logger.info(f"          Disagree reasoning: {response.disagree_reasoning}")
+                    if response.error:
+                        self.logger.warning(f"          ⚠️ ERROR: {response.error}")
+                    self.logger.info(f"          {'-'*60}")
+            self.logger.info(f"      {'='*80}")
         
         # Phase 3: Final Discussion and Fresh Voting
         self.logger.info("🗣️ Phase 3: Final Discussion and Fresh Voting")
@@ -401,7 +429,7 @@ class MultiAgentDebateSystem:
                     )
                 
                 # Parse response
-                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence, _, _, _, _ = self._parse_agent_response(response_obj.text)
                 
                 self.logger.info(f"    ✅ {agent_name} completed: {player_assignments}")
                 if self.config.self_reported_confidence:
@@ -533,13 +561,46 @@ class MultiAgentDebateSystem:
                     )
                 
                 # Parse response
-                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text, "debate")
+                player_assignments, explanation, confidence, agree_with, disagree_with, agree_reasoning, disagree_reasoning = self._parse_agent_response(response_obj.text, "debate")
+                
+                # DEBUG: Log raw response for debugging
+                self.logger.info(f"      🔍 DEBUG - {agent_name} RAW DEBATE RESPONSE:")
+                self.logger.info(f"      {'='*60}")
+                self.logger.info(f"      Raw text: {response_obj.text}")
+                self.logger.info(f"      {'='*60}")
                 
                 self.logger.info(f"      ✅ {agent_name} debate completed")
                 if self.config.self_reported_confidence:
                     self.logger.info(f"      📊 {agent_name} confidence: {confidence}")
                 else:
                     self.logger.info(f"      📊 {agent_name} confidence: not requested (SRC disabled)")
+                
+                # Log agreement/disagreement analysis with warnings
+                self.logger.info(f"      🔍 DEBUG - {agent_name} AGREEMENT/DISAGREEMENT ANALYSIS:")
+                if agree_with and len(agree_with) > 0:
+                    self.logger.info(f"      🤝 {agent_name} agrees with: {', '.join(agree_with)}")
+                    if agree_reasoning and agree_reasoning.strip():
+                        self.logger.info(f"      💭 Agree reasoning: {agree_reasoning}")
+                    else:
+                        self.logger.warning(f"      ⚠️ WARNING: {agent_name} has no agree_reasoning despite agreeing with agents")
+                else:
+                    self.logger.warning(f"      ⚠️ WARNING: {agent_name} has no agree_with information")
+                
+                if disagree_with and len(disagree_with) > 0:
+                    self.logger.info(f"      ❌ {agent_name} disagrees with: {', '.join(disagree_with)}")
+                    if disagree_reasoning and disagree_reasoning.strip():
+                        self.logger.info(f"      💭 Disagree reasoning: {disagree_reasoning}")
+                    else:
+                        self.logger.warning(f"      ⚠️ WARNING: {agent_name} has no disagree_reasoning despite disagreeing with agents")
+                else:
+                    self.logger.warning(f"      ⚠️ WARNING: {agent_name} has no disagree_with information")
+                
+                # Log final decision
+                if player_assignments:
+                    for player, role in player_assignments.items():
+                        self.logger.info(f"      🎯 {agent_name} final decision: {player} is a {role}")
+                else:
+                    self.logger.warning(f"      ⚠️ WARNING: {agent_name} has no player role assignments")
                 
                 return AgentResponse(
                     agent_name=agent_name,
@@ -551,11 +612,16 @@ class MultiAgentDebateSystem:
                     confidence=confidence,
                     response_obj=response_obj,
                     timestamp=datetime.now().isoformat(),
-                    error=""
+                    error="",
+                    agree_with=agree_with,
+                    disagree_with=disagree_with,
+                    agree_reasoning=agree_reasoning,
+                    disagree_reasoning=disagree_reasoning
                 )
                 
             except Exception as e:
                 self.logger.error(f"      ❌ {agent_name} debate failed: {e}")
+                self.logger.warning(f"      ⚠️ WARNING: {agent_name} debate phase failed - no raw output available")
                 return AgentResponse(
                     agent_name=agent_name,
                     game_id=game.game_id,
@@ -565,7 +631,11 @@ class MultiAgentDebateSystem:
                     explanation=f"Error: {str(e)}",
                     confidence=1.0,  # Low confidence for errors
                     timestamp=datetime.now().isoformat(),
-                    error=str(e)
+                    error=str(e),
+                    agree_with=None,
+                    disagree_with=None,
+                    agree_reasoning=None,
+                    disagree_reasoning=None
                 )
         
         # Get debate responses from all agents
@@ -630,7 +700,7 @@ class MultiAgentDebateSystem:
                     )
                 
                 # Parse response
-                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text, "self_adjustment")
+                player_assignments, explanation, confidence, _, _, _, _ = self._parse_agent_response(response_obj.text, "self_adjustment")
                 
                 self.logger.info(f"      ✅ {agent_name} self-adjustment completed")
                 if self.config.self_reported_confidence:
@@ -729,7 +799,7 @@ class MultiAgentDebateSystem:
                     )
                 
                 # Parse response
-                player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
+                player_assignments, explanation, confidence, _, _, _, _ = self._parse_agent_response(response_obj.text)
                 
                 fresh_votes.append({
                     "agent_name": agent_name,
@@ -885,7 +955,7 @@ Return your response in the same JSON format:
                 )
             
             # Parse supervisor response
-            player_assignments, explanation, confidence = self._parse_agent_response(response_obj.text)
+            player_assignments, explanation, confidence, _, _, _, _ = self._parse_agent_response(response_obj.text)
             self.logger.info(f"Supervisor decision: {player_assignments}")
             if self.config.self_reported_confidence:
                 self.logger.info(f"Supervisor confidence: {confidence}")
@@ -898,8 +968,8 @@ Return your response in the same JSON format:
             self.logger.error(f"Error getting supervisor decision: {e}")
             return {}
     
-    def _parse_agent_response(self, response_text: str, phase: str = "initial") -> Tuple[Dict[str, str], str, float]:
-        """Parse agent response to extract player assignments, explanation, and confidence."""
+    def _parse_agent_response(self, response_text: str, phase: str = "initial") -> Tuple[Dict[str, str], str, float, Optional[List[str]], Optional[List[str]], Optional[str], Optional[str]]:
+        """Parse agent response to extract player assignments, explanation, confidence, and debate analysis."""
         try:
             # First try to extract JSON from the response (handle extra text after JSON)
             json_text = self._extract_json_from_response(response_text)
@@ -909,12 +979,24 @@ Return your response in the same JSON format:
             player_assignments = {}
             explanation = ""
             confidence = 3.0  # Default to medium confidence (1-5 scale)
+            agree_with = None
+            disagree_with = None
+            agree_reasoning = None
+            disagree_reasoning = None
             
             if phase == "debate":
-                # Debate phase format: single player role
+                # Debate phase format: single player role with agreement/disagreement analysis
                 if "player_role" in response_data and "role" in response_data:
                     player_assignments[response_data["player_role"]] = response_data["role"]
-                explanation = self._clean_explanation(response_data.get("explanation", ""))
+                
+                # Extract agreement/disagreement information
+                agree_with = response_data.get("agree_with", [])
+                disagree_with = response_data.get("disagree_with", [])
+                agree_reasoning = self._clean_explanation(response_data.get("agree_reasoning", ""))
+                disagree_reasoning = self._clean_explanation(response_data.get("disagree_reasoning", ""))
+                
+                # For debate phase, we don't use explanation field anymore
+                explanation = ""
                 confidence = self._parse_confidence(response_data.get("confidence", 3))
             elif "players" in response_data and isinstance(response_data["players"], list):
                 # New format with players array
@@ -926,7 +1008,7 @@ Return your response in the same JSON format:
             else:
                 # Old format - direct name: role mapping
                 for key, value in response_data.items():
-                    if key not in ["explanation", "confidence"] and isinstance(value, str):
+                    if key not in ["explanation", "confidence", "agree_with", "disagree_with", "agree_reasoning", "disagree_reasoning"] and isinstance(value, str):
                         player_assignments[key] = value
                 explanation = self._clean_explanation(response_data.get("explanation", ""))
                 confidence = self._parse_confidence(response_data.get("confidence", 3))
@@ -935,7 +1017,7 @@ Return your response in the same JSON format:
             if confidence == 3.0 and "confidence" not in response_data:
                 confidence = self._extract_confidence_from_text(response_text)
             
-            return player_assignments, explanation, confidence
+            return player_assignments, explanation, confidence, agree_with, disagree_with, agree_reasoning, disagree_reasoning
             
         except (json.JSONDecodeError, ValueError):
             # If JSON parsing fails, try to extract using regex
@@ -950,7 +1032,8 @@ Return your response in the same JSON format:
             # Try to extract confidence from text even in regex fallback
             confidence = self._extract_confidence_from_text(response_text)
             
-            return player_assignments, self._clean_explanation(response_text), confidence
+            # For regex fallback, return None for debate-specific fields
+            return player_assignments, self._clean_explanation(response_text), confidence, None, None, None, None
     
     def _extract_json_from_response(self, response_text: str) -> str:
         """Extract JSON from response text, handling extra text after JSON."""
@@ -1100,13 +1183,20 @@ OTHER AGENTS' CURRENT POSITIONS (from last step):
 
 Please provide your debate analysis focusing specifically on {player_name}'s role. Consider the other agents' arguments and provide your reasoning.
 
-IMPORTANT: For this debate phase, you should focus ONLY on {player_name}'s role and provide your debate reasoning. You will have a chance to provide your complete solution in the self-adjustment phase.
+IMPORTANT: For this debate phase, you should:
+1. Analyze which agents you agree with and which you disagree with regarding {player_name}'s role
+2. Provide reasoning for your agreements and disagreements
+3. Make your final decision on {player_name}'s role
+4. You will have a chance to provide your complete solution in the self-adjustment phase
 
 Return your response in the following JSON format:
 {{
     "player_role": "{player_name}",
     "role": "knight/knave/spy",
-    "explanation": "Your debate reasoning focusing specifically on {player_name}'s role"
+    "agree_with": ["agent_name1", "agent_name2"],
+    "disagree_with": ["agent_name3"],
+    "agree_reasoning": "Your reasoning for why you agree with the specified agents",
+    "disagree_reasoning": "Your reasoning for why you disagree with the specified agents"
 }}"""
         
         return prompt
