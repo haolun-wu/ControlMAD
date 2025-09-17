@@ -42,7 +42,7 @@ class DebateRound:
     """A single round of debate for a specific player's role."""
     player_name: str
     round_number: int
-    agent_responses: List[AgentResponse]
+    agent_responses: List[AgentResponse]  # This will contain both debate and self_adjustment phases
     debate_summary: str = ""
     consensus_reached: bool = False
     majority_role: Optional[str] = None
@@ -464,13 +464,16 @@ class MultiAgentDebateSystem:
         else:
             adjusted_responses = debate_responses
         
+        # Combine both phases into a single list
+        all_responses = debate_responses + adjusted_responses
+        
         # Create debate summary
         debate_summary = self._create_debate_summary(adjusted_responses, player_name)
         
         return DebateRound(
             player_name=player_name,
             round_number=round_num,
-            agent_responses=adjusted_responses,
+            agent_responses=all_responses,  # Now includes both debate and self_adjustment phases
             debate_summary=debate_summary,
             consensus_reached=False,  # No intermediate consensus checking
             majority_role=None  # No intermediate majority voting

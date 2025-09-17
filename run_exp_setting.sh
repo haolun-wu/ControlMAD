@@ -18,7 +18,7 @@ LLM_CONFIGS='[
 ]'
 
 # Run the debate with flexible configuration using key=value format
-python run_debate.py flexible llm_configs="$LLM_CONFIGS" game_size=5 game_id_range=1,5 self_reported_confidence=true
+python run_debate.py flexible llm_configs="$LLM_CONFIGS" game_size=4 game_id_range=1,1 self_reported_confidence=false
 
 # Visualization
-python debate/debate_visualizer.py --results-dir ./debate_results/agent3_gpt-5-nano_gemini-2.5-flash-lite_qwen-turbo-latest
+# python debate/debate_visualizer.py --results-dir ./debate_results/agent3_gpt-5-nano_gemini-2.5-flash-lite_qwen-turbo-latest

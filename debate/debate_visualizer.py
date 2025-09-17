@@ -48,10 +48,10 @@ class DebateVisualizer:
                     'Accuracy': accuracy
                 })
             
-            # Self-adjustment phases for each round
+            # Debate phases for each round
             for round_data in session.debate_rounds:
                 for response in round_data.agent_responses:
-                    if response.phase == 'self_adjustment':
+                    if response.phase in ['debate', 'self_adjustment']:
                         correct = 0
                         total = len(session.ground_truth_solution)
                         for player, role in session.ground_truth_solution.items():
@@ -59,10 +59,11 @@ class DebateVisualizer:
                                 correct += 1
                         accuracy = correct / total if total > 0 else 0
                         
+                        phase_label = 'Debate' if response.phase == 'debate' else 'Self-Adjustment'
                         data.append({
                             'Game': session.game_id,
                             'Agent': response.agent_name,
-                            'Phase': f'After Round {round_data.round_number} Self-Adjust',
+                            'Phase': f'Round {round_data.round_number} - {phase_label}',
                             'Accuracy': accuracy
                         })
             
@@ -281,7 +282,9 @@ class DebateVisualizer:
         for agent_name in agent_names:
             data = agent_data[agent_name]
             initial_acc = np.mean([item['Accuracy'] for item in data if item['Phase'] == 'initial'])
-            final_acc = np.mean([item['Accuracy'] for item in data if item['Phase'] == 'self_adjustment'])
+            # Get the final self-adjustment accuracy (last self-adjustment phase)
+            self_adjustment_data = [item for item in data if 'Self-Adjustment' in item['Phase']]
+            final_acc = np.mean([item['Accuracy'] for item in self_adjustment_data]) if self_adjustment_data else 0
             improvement = final_acc - initial_acc
             
             axes[1, 1].bar(agent_name, improvement, 
@@ -337,12 +340,13 @@ class DebateVisualizer:
                 ax.scatter(x, y_pos, s=80, alpha=0.6, color='orange')
                 y_pos -= 0.3
             
-            # Plot self-adjustment responses
+            # Plot debate and self-adjustment responses
             y_pos -= 0.5
             for response in round_data.agent_responses:
-                if response.phase == 'self_adjustment':
+                if response.phase in ['debate', 'self_adjustment']:
                     x = agent_positions[response.agent_name]
-                    ax.scatter(x, y_pos, s=80, alpha=0.6, color='green')
+                    color = 'blue' if response.phase == 'debate' else 'green'
+                    ax.scatter(x, y_pos, s=80, alpha=0.6, color=color)
                     y_pos -= 0.3
         
         # Plot final vote
@@ -753,10 +757,11 @@ class DebateVisualizer:
                         'Correct': is_correct
                     })
             
-            # Self-adjustment phases for each round
+            # Debate phases for each round
             for round_data in session.debate_rounds:
                 for response in round_data.agent_responses:
-                    if response.phase == 'self_adjustment':
+                    if response.phase in ['debate', 'self_adjustment']:
+                        phase_label = 'Debate' if response.phase == 'debate' else 'Self-Adjustment'
                         for player, gt_role in gt_solution.items():
                             predicted_role = response.player_role_assignments.get(player, "unknown")
                             is_correct = predicted_role == gt_role
@@ -765,7 +770,7 @@ class DebateVisualizer:
                                 'Game': session.game_id,
                                 'Agent': response.agent_name,
                                 'Player': player,
-                                'Phase': f'After Round {round_data.round_number}',
+                                'Phase': f'Round {round_data.round_number} - {phase_label}',
                                 'Predicted': predicted_role,
                                 'Ground_Truth': gt_role,
                                 'Correct': is_correct

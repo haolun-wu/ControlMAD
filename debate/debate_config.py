@@ -13,7 +13,7 @@ class AgentConfig:
     provider: str  # "openai", "gemini", "ali", "cst"
     model: str
     temperature: float = 0.1
-    max_tokens: int = 2000
+    max_tokens: int = 1000
     reasoning_effort: str = "medium"  # for OpenAI
     verbosity: str = "low"  # for OpenAI
     enabled: bool = True
@@ -167,14 +167,14 @@ def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: 
             agent_name = f"Agent-{i+1}-{model}"
         
         # Temperature is optional - use it if provided, otherwise use default
-        temperature = config.get("temperature", 0.7)  # Default temperature if not specified
+        temperature = config.get("temperature", 0.1)  # Default temperature if not specified
         
         agent = AgentConfig(
             name=agent_name,
             provider=provider,
             model=model,
             temperature=temperature,
-            max_tokens=config.get("max_tokens", 2000),
+            max_tokens=config.get("max_tokens", 1000),
             reasoning_effort=config.get("reasoning_effort", "medium"),
             verbosity=config.get("verbosity", "low"),
             enabled=config.get("enabled", True)
