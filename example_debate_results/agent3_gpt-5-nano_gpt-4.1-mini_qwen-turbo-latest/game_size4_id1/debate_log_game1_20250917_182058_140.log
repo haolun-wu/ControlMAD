@@ -1,0 +1,624 @@
+2025-09-17 18:20:58,140 - INFO - 
+============================================================
+2025-09-17 18:20:58,140 - INFO - Running parallel debate for Game 1
+2025-09-17 18:20:58,141 - INFO - ============================================================
+2025-09-17 18:20:58,141 - INFO - 🎯 Starting debate for Game 1
+2025-09-17 18:20:58,141 - INFO - Players: ['Player 1', 'Player 2', 'Player 3', 'Player 4']
+2025-09-17 18:20:58,141 - INFO - 📋 Ground Truth Solution: {'Rachel': 'knight', 'Violet': 'knight', 'Olivia': 'knave', 'Peter': 'spy'}
+2025-09-17 18:20:58,141 - INFO - 📝 Phase 1: Initial Proposals
+2025-09-17 18:20:58,141 - INFO - ========================================
+2025-09-17 18:20:58,142 - INFO -     🤖 OpenAI-gpt-5-nano (openai/gpt-5-nano) getting initial proposal...
+2025-09-17 18:20:58,142 - INFO -     🤖 OpenAI-gpt-4.1-mini (openai/gpt-4.1-mini) getting initial proposal...
+2025-09-17 18:20:58,142 - INFO -     🤖 Qwen-qwen-turbo-latest (ali/qwen-turbo-latest) getting initial proposal...
+2025-09-17 18:21:03,424 - INFO -     ✅ Qwen-qwen-turbo-latest completed: {'Rachel': 'knave', 'Violet': 'knave', 'Olivia': 'spy', 'Peter': 'knight'}
+2025-09-17 18:21:03,440 - INFO -     📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:21:03,470 - INFO -     ✅ OpenAI-gpt-4.1-mini completed: {'Rachel': 'knight', 'Violet': 'knight', 'Olivia': 'knave', 'Peter': 'spy'}
+2025-09-17 18:21:03,470 - INFO -     📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:21:14,237 - INFO -     ✅ OpenAI-gpt-5-nano completed: {'Rachel': 'knave', 'Violet': 'knight', 'Olivia': 'spy', 'Peter': 'knight'}
+2025-09-17 18:21:14,257 - INFO -     📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:21:14,263 - INFO - 🔍 Initial Proposals Summary:
+2025-09-17 18:21:14,264 - INFO -   OpenAI-gpt-5-nano: {'Rachel': 'knave', 'Violet': 'knight', 'Olivia': 'spy', 'Peter': 'knight'}
+2025-09-17 18:21:14,264 - INFO -     ✅ Success
+2025-09-17 18:21:14,264 - INFO -     📊 OpenAI-gpt-5-nano Initial Accuracy by Player:
+2025-09-17 18:21:14,264 - INFO -       Rachel: knave vs knight ❌
+2025-09-17 18:21:14,264 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:14,264 - INFO -       Olivia: spy vs knave ❌
+2025-09-17 18:21:14,264 - INFO -       Peter: knight vs spy ❌
+2025-09-17 18:21:14,265 - INFO -   OpenAI-gpt-4.1-mini: {'Rachel': 'knight', 'Violet': 'knight', 'Olivia': 'knave', 'Peter': 'spy'}
+2025-09-17 18:21:14,265 - INFO -     ✅ Success
+2025-09-17 18:21:14,265 - INFO -     📊 OpenAI-gpt-4.1-mini Initial Accuracy by Player:
+2025-09-17 18:21:14,265 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:21:14,265 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:14,265 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:21:14,265 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:21:14,265 - INFO -   Qwen-qwen-turbo-latest: {'Rachel': 'knave', 'Violet': 'knave', 'Olivia': 'spy', 'Peter': 'knight'}
+2025-09-17 18:21:14,265 - INFO -     ✅ Success
+2025-09-17 18:21:14,266 - INFO -     📊 Qwen-qwen-turbo-latest Initial Accuracy by Player:
+2025-09-17 18:21:14,266 - INFO -       Rachel: knave vs knight ❌
+2025-09-17 18:21:14,266 - INFO -       Violet: knave vs knight ❌
+2025-09-17 18:21:14,266 - INFO -       Olivia: spy vs knave ❌
+2025-09-17 18:21:14,266 - INFO -       Peter: knight vs spy ❌
+2025-09-17 18:21:14,266 - INFO - 🗣️ Phase 2: Debate Rounds
+2025-09-17 18:21:14,266 - INFO - --- Debating Rachel's role ---
+2025-09-17 18:21:14,266 - INFO - 🎯 Ground Truth: Rachel is a knight
+2025-09-17 18:21:14,266 - INFO -   Step 1: Debate period for Rachel
+2025-09-17 18:21:14,267 - INFO -       🤖 OpenAI-gpt-5-nano debating Rachel...
+2025-09-17 18:21:14,268 - INFO -       🤖 OpenAI-gpt-4.1-mini debating Rachel...
+2025-09-17 18:21:14,268 - INFO -       🤖 Qwen-qwen-turbo-latest debating Rachel...
+2025-09-17 18:21:19,142 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini RAW DEBATE RESPONSE:
+2025-09-17 18:21:19,146 - INFO -       ============================================================
+2025-09-17 18:21:19,146 - INFO -       Raw text: {
+  "player_role": "Rachel",
+  "role": "knave",
+  "agree_with": ["OpenAI-gpt-5-nano", "Qwen-qwen-turbo-latest"],
+  "disagree_with": ["OpenAI-gpt-4.1-mini"],
+  "agree_reasoning": "Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly identify that Rachel and Violet must share the same role and analyze Olivia's statement about them. Given Olivia's claim that exactly one of Rachel and Violet tells the truth, they cannot both be knights (both telling truth) because then Olivia's statement would be false, and only one spy exists, so Olivia cannot be the sole liar if Peter is also truthful or a knight. This makes the scenario of Rachel being a knave consistent and aligns with the hint of exactly one spy. The reasoning that Rachel is a knave avoids contradictions in the number of liars and knaves and satisfies Peter’s complex statement on truth distribution.",
+  "disagree_reasoning": "OpenAI-gpt-4.1-mini argues Rachel is a knight and claims Olivia is lying because both Rachel and Violet would then be truthful. However, this makes Olivia’s statement that exactly one of Rachel and Violet is telling the truth false, so Olivia is lying, which makes her knave. The problem is that the subsequent balancing of the number of knaves and the truthfulness of Peter’s statements becomes contradictory with only one spy and the distribution of knights and knaves, especially given Rachel and Violet’s identical roles and Peter’s complex conditional statement. Therefore, the knight assignment to Rachel does not hold consistently under the constraints."
+}
+2025-09-17 18:21:19,147 - INFO -       ============================================================
+2025-09-17 18:21:19,147 - INFO -       ✅ OpenAI-gpt-4.1-mini debate completed
+2025-09-17 18:21:19,147 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:21:19,147 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:21:19,147 - INFO -       🤝 OpenAI-gpt-4.1-mini agrees with: OpenAI-gpt-5-nano, Qwen-qwen-turbo-latest
+2025-09-17 18:21:19,147 - INFO -       💭 Agree reasoning: Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly identify that Rachel and Violet must share the same role and analyze Olivia's statement about them. Given Olivia's claim that exactly one of Rachel and Violet tells the truth, they cannot both be knights (both telling truth) because then Olivia's statement would be false, and only one spy exists, so Olivia cannot be the sole liar if Peter is also truthful or a knight. This makes the scenario of Rachel being a knave consistent and aligns with the hint of exactly one spy. The reasoning that Rachel is a knave avoids contradictions in the number of liars and knaves and satisfies Peter’s complex statement on truth distribution.
+2025-09-17 18:21:19,150 - INFO -       ❌ OpenAI-gpt-4.1-mini disagrees with: OpenAI-gpt-4.1-mini
+2025-09-17 18:21:19,150 - INFO -       💭 Disagree reasoning: OpenAI-gpt-4.1-mini argues Rachel is a knight and claims Olivia is lying because both Rachel and Violet would then be truthful. However, this makes Olivia’s statement that exactly one of Rachel and Violet is telling the truth false, so Olivia is lying, which makes her knave. The problem is that the subsequent balancing of the number of knaves and the truthfulness of Peter’s statements becomes contradictory with only one spy and the distribution of knights and knaves, especially given Rachel and Violet’s identical roles and Peter’s complex conditional statement. Therefore, the knight assignment to Rachel does not hold consistently under the constraints.
+2025-09-17 18:21:19,150 - INFO -       🎯 OpenAI-gpt-4.1-mini final decision: Rachel is a knave
+2025-09-17 18:21:19,499 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest RAW DEBATE RESPONSE:
+2025-09-17 18:21:19,499 - INFO -       ============================================================
+2025-09-17 18:21:19,500 - INFO -       Raw text: {
+    "player_role": "Rachel",
+    "role": "knave",
+    "agree_with": ["OpenAI-gpt-5-nano", "Qwen-qwen-turbo-latest"],
+    "disagree_with": ["OpenAI-gpt-4.1-mini"],
+    "agree_reasoning": "Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly deduce that Rachel must be a knave. If Rachel were a knight, then her statement that she and Violet have the same role would be true, and Violet's statement that Rachel is telling the truth would also be true, making both knights. However, this contradicts Olivia's statement that exactly one of Rachel and Violet is telling the truth. If both are knights, Olivia is lying, which makes her a knave or spy. But if Rachel and Violet are both knights, then Olivia’s statement is false, and Peter’s statement could still hold. However, the key contradiction arises when assuming Rachel is a knight: it leads to inconsistencies in the truth values of other statements, especially with the hint that there is exactly one spy. The consistent scenario is that Rachel is a knave, Violet is a knight, Olivia is a spy, and Peter is a knight.",
+    "disagree_reasoning": "OpenAI-gpt-4.1-mini assumes Rachel and Violet are both knights, but this leads to contradictions with Olivia’s statement and the overall consistency of the roles. If both Rachel and Violet are knights, then Olivia’s claim that exactly one of them is truthful is false, making her a knave or spy. However, this setup doesn’t fully align with the truth values of Peter’s complex statement and the requirement for exactly one spy. Therefore, the assumption that Rachel is a knight is less consistent with the given constraints."
+}
+2025-09-17 18:21:19,500 - INFO -       ============================================================
+2025-09-17 18:21:19,500 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-17 18:21:19,500 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:21:19,501 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:21:19,501 - INFO -       🤝 Qwen-qwen-turbo-latest agrees with: OpenAI-gpt-5-nano, Qwen-qwen-turbo-latest
+2025-09-17 18:21:19,501 - INFO -       💭 Agree reasoning: Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly deduce that Rachel must be a knave. If Rachel were a knight, then her statement that she and Violet have the same role would be true, and Violet's statement that Rachel is telling the truth would also be true, making both knights. However, this contradicts Olivia's statement that exactly one of Rachel and Violet is telling the truth. If both are knights, Olivia is lying, which makes her a knave or spy. But if Rachel and Violet are both knights, then Olivia’s statement is false, and Peter’s statement could still hold. However, the key contradiction arises when assuming Rachel is a knight: it leads to inconsistencies in the truth values of other statements, especially with the hint that there is exactly one spy. The consistent scenario is that Rachel is a knave, Violet is a knight, Olivia is a spy, and Peter is a knight.
+2025-09-17 18:21:19,501 - INFO -       ❌ Qwen-qwen-turbo-latest disagrees with: OpenAI-gpt-4.1-mini
+2025-09-17 18:21:19,501 - INFO -       💭 Disagree reasoning: OpenAI-gpt-4.1-mini assumes Rachel and Violet are both knights, but this leads to contradictions with Olivia’s statement and the overall consistency of the roles. If both Rachel and Violet are knights, then Olivia’s claim that exactly one of them is truthful is false, making her a knave or spy. However, this setup doesn’t fully align with the truth values of Peter’s complex statement and the requirement for exactly one spy. Therefore, the assumption that Rachel is a knight is less consistent with the given constraints.
+2025-09-17 18:21:19,501 - INFO -       🎯 Qwen-qwen-turbo-latest final decision: Rachel is a knave
+2025-09-17 18:21:26,152 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano RAW DEBATE RESPONSE:
+2025-09-17 18:21:26,153 - INFO -       ============================================================
+2025-09-17 18:21:26,154 - INFO -       Raw text: {
+  "player_role": "Rachel",
+  "role": "knight",
+  "agree_with": ["OpenAI-gpt-4.1-mini"],
+  "disagree_with": ["OpenAI-gpt-5-nano", "Qwen-qwen-turbo-latest"],
+  "agree_reasoning": "Agree with the scenario where Rachel is a knight because the configuration R=knight, V=knight, O=knave, P=spy yields a consistent solution with exactly one spy and all statements truth-conditions satisfied.",
+  "disagree_reasoning": "Disagree with those arguing Rachel is knave (or other roles) because they lead to contradictions under the exactly-one-spy hint and the truth/Lie constraints in at least one consistent assignment (e.g., R=knight, V=knight, O=knave, P=spy)."
+}
+2025-09-17 18:21:26,154 - INFO -       ============================================================
+2025-09-17 18:21:26,154 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-17 18:21:26,154 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:21:26,154 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:21:26,154 - INFO -       🤝 OpenAI-gpt-5-nano agrees with: OpenAI-gpt-4.1-mini
+2025-09-17 18:21:26,154 - INFO -       💭 Agree reasoning: Agree with the scenario where Rachel is a knight because the configuration R=knight, V=knight, O=knave, P=spy yields a consistent solution with exactly one spy and all statements truth-conditions satisfied.
+2025-09-17 18:21:26,155 - INFO -       ❌ OpenAI-gpt-5-nano disagrees with: OpenAI-gpt-5-nano, Qwen-qwen-turbo-latest
+2025-09-17 18:21:26,155 - INFO -       💭 Disagree reasoning: Disagree with those arguing Rachel is knave (or other roles) because they lead to contradictions under the exactly-one-spy hint and the truth/Lie constraints in at least one consistent assignment (e.g., R=knight, V=knight, O=knave, P=spy).
+2025-09-17 18:21:26,155 - INFO -       🎯 OpenAI-gpt-5-nano final decision: Rachel is a knight
+2025-09-17 18:21:26,156 - INFO -   Step 2: Self-adjustment for Rachel
+2025-09-17 18:21:26,158 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Rachel...
+2025-09-17 18:21:26,158 - INFO -       🔄 OpenAI-gpt-4.1-mini self-adjusting for Rachel...
+2025-09-17 18:21:26,165 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Rachel...
+2025-09-17 18:21:30,632 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-17 18:21:30,633 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:21:30,824 - INFO -       ✅ OpenAI-gpt-4.1-mini self-adjustment completed
+2025-09-17 18:21:30,825 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:21:36,973 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-17 18:21:36,974 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:21:36,981 - INFO - 📊 Round 1 Results for Rachel:
+2025-09-17 18:21:36,982 - INFO -   OpenAI-gpt-5-nano: knight ✅
+2025-09-17 18:21:36,982 - INFO -     📊 OpenAI-gpt-5-nano Round 1 Accuracy by Player:
+2025-09-17 18:21:36,982 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:21:36,982 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:21:36,983 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:21:36,983 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:21:36,983 - INFO -   OpenAI-gpt-4.1-mini: knave ❌
+2025-09-17 18:21:36,983 - INFO -     📊 OpenAI-gpt-4.1-mini Round 1 Accuracy by Player:
+2025-09-17 18:21:36,984 - INFO -       Rachel: knave vs knight ❌
+2025-09-17 18:21:36,984 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:21:36,984 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:21:36,984 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:21:36,984 - INFO -   Qwen-qwen-turbo-latest: knave ❌
+2025-09-17 18:21:36,984 - INFO -     📊 Qwen-qwen-turbo-latest Round 1 Accuracy by Player:
+2025-09-17 18:21:36,984 - INFO -       Rachel: knave vs knight ❌
+2025-09-17 18:21:36,984 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:21:36,984 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:21:36,985 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:21:36,985 - INFO -   OpenAI-gpt-5-nano: knight ✅
+2025-09-17 18:21:36,985 - INFO -     📊 OpenAI-gpt-5-nano Round 1 Accuracy by Player:
+2025-09-17 18:21:36,985 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:21:36,985 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:36,985 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:21:36,985 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:21:36,985 - INFO -   OpenAI-gpt-4.1-mini: knave ❌
+2025-09-17 18:21:36,985 - INFO -     📊 OpenAI-gpt-4.1-mini Round 1 Accuracy by Player:
+2025-09-17 18:21:36,986 - INFO -       Rachel: knave vs knight ❌
+2025-09-17 18:21:36,986 - INFO -       Violet: knave vs knight ❌
+2025-09-17 18:21:36,986 - INFO -       Olivia: knight vs knave ❌
+2025-09-17 18:21:36,986 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:21:36,987 - INFO -   Qwen-qwen-turbo-latest: knave ❌
+2025-09-17 18:21:36,987 - INFO -     📊 Qwen-qwen-turbo-latest Round 1 Accuracy by Player:
+2025-09-17 18:21:36,987 - INFO -       Rachel: knave vs knight ❌
+2025-09-17 18:21:36,987 - INFO -       Violet: knave vs knight ❌
+2025-09-17 18:21:36,987 - INFO -       Olivia: spy vs knave ❌
+2025-09-17 18:21:36,987 - INFO -       Peter: knight vs spy ❌
+2025-09-17 18:21:36,987 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-17 18:21:36,989 - INFO - 🔍 DEBUG - COMPREHENSIVE DEBATE ROUND 1 SUMMARY:
+2025-09-17 18:21:36,989 - INFO -       ================================================================================
+2025-09-17 18:21:36,992 - INFO -       🤖 OpenAI-gpt-5-nano (openai/gpt-5-nano):
+2025-09-17 18:21:36,992 - INFO -           Decision: {'Rachel': 'knight'}
+2025-09-17 18:21:36,993 - INFO -           Agrees with: ['OpenAI-gpt-4.1-mini']
+2025-09-17 18:21:36,993 - INFO -           Disagrees with: ['OpenAI-gpt-5-nano', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:21:36,993 - INFO -           Agree reasoning: Agree with the scenario where Rachel is a knight because the configuration R=knight, V=knight, O=knave, P=spy yields a consistent solution with exactly one spy and all statements truth-conditions satisfied.
+2025-09-17 18:21:36,994 - INFO -           Disagree reasoning: Disagree with those arguing Rachel is knave (or other roles) because they lead to contradictions under the exactly-one-spy hint and the truth/Lie constraints in at least one consistent assignment (e.g., R=knight, V=knight, O=knave, P=spy).
+2025-09-17 18:21:36,994 - INFO -           ------------------------------------------------------------
+2025-09-17 18:21:36,994 - INFO -       🤖 OpenAI-gpt-4.1-mini (openai/gpt-4.1-mini):
+2025-09-17 18:21:36,994 - INFO -           Decision: {'Rachel': 'knave'}
+2025-09-17 18:21:36,994 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:21:36,994 - INFO -           Disagrees with: ['OpenAI-gpt-4.1-mini']
+2025-09-17 18:21:36,995 - INFO -           Agree reasoning: Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly identify that Rachel and Violet must share the same role and analyze Olivia's statement about them. Given Olivia's claim that exactly one of Rachel and Violet tells the truth, they cannot both be knights (both telling truth) because then Olivia's statement would be false, and only one spy exists, so Olivia cannot be the sole liar if Peter is also truthful or a knight. This makes the scenario of Rachel being a knave consistent and aligns with the hint of exactly one spy. The reasoning that Rachel is a knave avoids contradictions in the number of liars and knaves and satisfies Peter’s complex statement on truth distribution.
+2025-09-17 18:21:36,995 - INFO -           Disagree reasoning: OpenAI-gpt-4.1-mini argues Rachel is a knight and claims Olivia is lying because both Rachel and Violet would then be truthful. However, this makes Olivia’s statement that exactly one of Rachel and Violet is telling the truth false, so Olivia is lying, which makes her knave. The problem is that the subsequent balancing of the number of knaves and the truthfulness of Peter’s statements becomes contradictory with only one spy and the distribution of knights and knaves, especially given Rachel and Violet’s identical roles and Peter’s complex conditional statement. Therefore, the knight assignment to Rachel does not hold consistently under the constraints.
+2025-09-17 18:21:36,995 - INFO -           ------------------------------------------------------------
+2025-09-17 18:21:36,995 - INFO -       🤖 Qwen-qwen-turbo-latest (ali/qwen-turbo-latest):
+2025-09-17 18:21:36,995 - INFO -           Decision: {'Rachel': 'knave'}
+2025-09-17 18:21:36,997 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:21:36,997 - INFO -           Disagrees with: ['OpenAI-gpt-4.1-mini']
+2025-09-17 18:21:36,997 - INFO -           Agree reasoning: Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly deduce that Rachel must be a knave. If Rachel were a knight, then her statement that she and Violet have the same role would be true, and Violet's statement that Rachel is telling the truth would also be true, making both knights. However, this contradicts Olivia's statement that exactly one of Rachel and Violet is telling the truth. If both are knights, Olivia is lying, which makes her a knave or spy. But if Rachel and Violet are both knights, then Olivia’s statement is false, and Peter’s statement could still hold. However, the key contradiction arises when assuming Rachel is a knight: it leads to inconsistencies in the truth values of other statements, especially with the hint that there is exactly one spy. The consistent scenario is that Rachel is a knave, Violet is a knight, Olivia is a spy, and Peter is a knight.
+2025-09-17 18:21:36,997 - INFO -           Disagree reasoning: OpenAI-gpt-4.1-mini assumes Rachel and Violet are both knights, but this leads to contradictions with Olivia’s statement and the overall consistency of the roles. If both Rachel and Violet are knights, then Olivia’s claim that exactly one of them is truthful is false, making her a knave or spy. However, this setup doesn’t fully align with the truth values of Peter’s complex statement and the requirement for exactly one spy. Therefore, the assumption that Rachel is a knight is less consistent with the given constraints.
+2025-09-17 18:21:36,997 - INFO -           ------------------------------------------------------------
+2025-09-17 18:21:36,997 - INFO -       ================================================================================
+2025-09-17 18:21:36,998 - INFO - --- Debating Violet's role ---
+2025-09-17 18:21:36,998 - INFO - 🎯 Ground Truth: Violet is a knight
+2025-09-17 18:21:36,998 - INFO -   Step 1: Debate period for Violet
+2025-09-17 18:21:36,999 - INFO -       🤖 OpenAI-gpt-5-nano debating Violet...
+2025-09-17 18:21:37,016 - INFO -       🤖 OpenAI-gpt-4.1-mini debating Violet...
+2025-09-17 18:21:37,023 - INFO -       🤖 Qwen-qwen-turbo-latest debating Violet...
+2025-09-17 18:21:41,501 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest RAW DEBATE RESPONSE:
+2025-09-17 18:21:41,503 - INFO -       ============================================================
+2025-09-17 18:21:41,505 - INFO -       Raw text: {
+    "player_role": "Violet",
+    "role": "knight",
+    "agree_with": ["OpenAI-gpt-5-nano"],
+    "disagree_with": ["OpenAI-gpt-4.1-mini", "Qwen-qwen-turbo-latest"],
+    "agree_reasoning": "OpenAI-gpt-5-nano's reasoning is consistent with the game rules and the hint. Assuming Rachel is a knight leads to Violet also being a knight, which makes her statement true. Olivia's statement that exactly one of Rachel and Violet is telling the truth would then be false, making her a knave. Peter, as the spy, can make a true statement about the meta-condition, which aligns with the hint of exactly one spy. This scenario is logically consistent.",
+    "disagree_reasoning": "OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest assume Violet is a knave, but their reasoning leads to contradictions when analyzing Peter's statement. Specifically, Qwen-qwen-turbo-latest's conclusion that Olivia is a spy conflicts with the hint that there is exactly one spy. Additionally, OpenAI-gpt-4.1-mini's assumption that both Rachel and Violet are knaves leads to Olivia's statement being true, which would make her a knight, but this creates inconsistencies in the overall role distribution." 
+}
+2025-09-17 18:21:41,532 - INFO -       ============================================================
+2025-09-17 18:21:41,545 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-17 18:21:41,546 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:21:41,547 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:21:41,547 - INFO -       🤝 Qwen-qwen-turbo-latest agrees with: OpenAI-gpt-5-nano
+2025-09-17 18:21:41,547 - INFO -       💭 Agree reasoning: OpenAI-gpt-5-nano's reasoning is consistent with the game rules and the hint. Assuming Rachel is a knight leads to Violet also being a knight, which makes her statement true. Olivia's statement that exactly one of Rachel and Violet is telling the truth would then be false, making her a knave. Peter, as the spy, can make a true statement about the meta-condition, which aligns with the hint of exactly one spy. This scenario is logically consistent.
+2025-09-17 18:21:41,547 - INFO -       ❌ Qwen-qwen-turbo-latest disagrees with: OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:21:41,564 - INFO -       💭 Disagree reasoning: OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest assume Violet is a knave, but their reasoning leads to contradictions when analyzing Peter's statement. Specifically, Qwen-qwen-turbo-latest's conclusion that Olivia is a spy conflicts with the hint that there is exactly one spy. Additionally, OpenAI-gpt-4.1-mini's assumption that both Rachel and Violet are knaves leads to Olivia's statement being true, which would make her a knight, but this creates inconsistencies in the overall role distribution.
+2025-09-17 18:21:41,566 - INFO -       🎯 Qwen-qwen-turbo-latest final decision: Violet is a knight
+2025-09-17 18:21:42,079 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini RAW DEBATE RESPONSE:
+2025-09-17 18:21:42,080 - INFO -       ============================================================
+2025-09-17 18:21:42,080 - INFO -       Raw text: {
+  "player_role": "Violet",
+  "role": "knave",
+  "agree_with": ["OpenAI-gpt-4.1-mini", "Qwen-qwen-turbo-latest"],
+  "disagree_with": ["OpenAI-gpt-5-nano"],
+  "agree_reasoning": "I agree with OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest because their analysis aligns well with the logical constraints and the game manager's hint of exactly one spy. They correctly deduce that if Rachel were a knight, Violet would also be a knight, making both truthful, which contradicts Olivia's statement that exactly one of them tells the truth. With Rachel and Violet both lying (knaves), Olivia's statement becomes true, making Olivia either knight or spy, and Peter fitting the remaining role as spy or knight. Their assignments avoid contradictions in all statements and roles.",
+  "disagree_reasoning": "I disagree with OpenAI-gpt-5-nano's conclusion that Violet is a knight because assuming both Rachel and Violet are knights conflicts with Olivia's statement. Olivia states exactly one of Violet and Rachel tell the truth, but if both are knights, both tell truth, making Olivia's statement false and forcing contradicting role assignments for Olivia and Peter. Furthermore, Peter's compound statement is difficult to satisfy under that assumption without contradiction."
+}
+2025-09-17 18:21:42,080 - INFO -       ============================================================
+2025-09-17 18:21:42,080 - INFO -       ✅ OpenAI-gpt-4.1-mini debate completed
+2025-09-17 18:21:42,081 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:21:42,081 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:21:42,081 - INFO -       🤝 OpenAI-gpt-4.1-mini agrees with: OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:21:42,081 - INFO -       💭 Agree reasoning: I agree with OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest because their analysis aligns well with the logical constraints and the game manager's hint of exactly one spy. They correctly deduce that if Rachel were a knight, Violet would also be a knight, making both truthful, which contradicts Olivia's statement that exactly one of them tells the truth. With Rachel and Violet both lying (knaves), Olivia's statement becomes true, making Olivia either knight or spy, and Peter fitting the remaining role as spy or knight. Their assignments avoid contradictions in all statements and roles.
+2025-09-17 18:21:42,081 - INFO -       ❌ OpenAI-gpt-4.1-mini disagrees with: OpenAI-gpt-5-nano
+2025-09-17 18:21:42,081 - INFO -       💭 Disagree reasoning: I disagree with OpenAI-gpt-5-nano's conclusion that Violet is a knight because assuming both Rachel and Violet are knights conflicts with Olivia's statement. Olivia states exactly one of Violet and Rachel tell the truth, but if both are knights, both tell truth, making Olivia's statement false and forcing contradicting role assignments for Olivia and Peter. Furthermore, Peter's compound statement is difficult to satisfy under that assumption without contradiction.
+2025-09-17 18:21:42,082 - INFO -       🎯 OpenAI-gpt-4.1-mini final decision: Violet is a knave
+2025-09-17 18:21:48,166 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano RAW DEBATE RESPONSE:
+2025-09-17 18:21:48,167 - INFO -       ============================================================
+2025-09-17 18:21:48,167 - INFO -       Raw text: {
+  "player_role": "Violet",
+  "role": "knight",
+  "agree_with": ["OpenAI-gpt-5-nano"],
+  "disagree_with": ["OpenAI-gpt-4.1-mini", "Qwen-qwen-turbo-latest"],
+  "agree_reasoning": "Both the OpenAI-gpt-5-nano argument and this phase’s consensus lean toward Violet being a truth-teller (knight) under the given constraints, given the exactly-one-spy hint and the structure of mutual statements.",
+  "disagree_reasoning": "OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest argued for Violet being knave (or produced scenarios leading away from Violet as knight). Their deductions either lead to contradictions with the exact-one-spy hint or rely on assumptions not forced by the statements and the rule set. Hence I disagree with their conclusion."
+}
+2025-09-17 18:21:48,167 - INFO -       ============================================================
+2025-09-17 18:21:48,167 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-17 18:21:48,167 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:21:48,167 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:21:48,167 - INFO -       🤝 OpenAI-gpt-5-nano agrees with: OpenAI-gpt-5-nano
+2025-09-17 18:21:48,169 - INFO -       💭 Agree reasoning: Both the OpenAI-gpt-5-nano argument and this phase’s consensus lean toward Violet being a truth-teller (knight) under the given constraints, given the exactly-one-spy hint and the structure of mutual statements.
+2025-09-17 18:21:48,171 - INFO -       ❌ OpenAI-gpt-5-nano disagrees with: OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:21:48,171 - INFO -       💭 Disagree reasoning: OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest argued for Violet being knave (or produced scenarios leading away from Violet as knight). Their deductions either lead to contradictions with the exact-one-spy hint or rely on assumptions not forced by the statements and the rule set. Hence I disagree with their conclusion.
+2025-09-17 18:21:48,171 - INFO -       🎯 OpenAI-gpt-5-nano final decision: Violet is a knight
+2025-09-17 18:21:48,173 - INFO -   Step 2: Self-adjustment for Violet
+2025-09-17 18:21:48,175 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Violet...
+2025-09-17 18:21:48,176 - INFO -       🔄 OpenAI-gpt-4.1-mini self-adjusting for Violet...
+2025-09-17 18:21:48,178 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Violet...
+2025-09-17 18:21:52,248 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-17 18:21:52,249 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:21:53,329 - INFO -       ✅ OpenAI-gpt-4.1-mini self-adjustment completed
+2025-09-17 18:21:53,330 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:21:58,596 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-17 18:21:58,600 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:21:58,606 - INFO - 📊 Round 2 Results for Violet:
+2025-09-17 18:21:58,606 - INFO -   OpenAI-gpt-5-nano: knight ✅
+2025-09-17 18:21:58,607 - INFO -     📊 OpenAI-gpt-5-nano Round 2 Accuracy by Player:
+2025-09-17 18:21:58,607 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:21:58,607 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:58,607 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:21:58,607 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:21:58,607 - INFO -   OpenAI-gpt-4.1-mini: knave ❌
+2025-09-17 18:21:58,607 - INFO -     📊 OpenAI-gpt-4.1-mini Round 2 Accuracy by Player:
+2025-09-17 18:21:58,607 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:21:58,607 - INFO -       Violet: knave vs knight ❌
+2025-09-17 18:21:58,608 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:21:58,608 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:21:58,608 - INFO -   Qwen-qwen-turbo-latest: knight ✅
+2025-09-17 18:21:58,608 - INFO -     📊 Qwen-qwen-turbo-latest Round 2 Accuracy by Player:
+2025-09-17 18:21:58,608 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:21:58,608 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:58,608 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:21:58,608 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:21:58,608 - INFO -   OpenAI-gpt-5-nano: knight ✅
+2025-09-17 18:21:58,609 - INFO -     📊 OpenAI-gpt-5-nano Round 2 Accuracy by Player:
+2025-09-17 18:21:58,609 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:21:58,609 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:58,609 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:21:58,609 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:21:58,609 - INFO -   OpenAI-gpt-4.1-mini: knight ✅
+2025-09-17 18:21:58,609 - INFO -     📊 OpenAI-gpt-4.1-mini Round 2 Accuracy by Player:
+2025-09-17 18:21:58,609 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:21:58,609 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:58,609 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:21:58,609 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:21:58,609 - INFO -   Qwen-qwen-turbo-latest: knight ✅
+2025-09-17 18:21:58,609 - INFO -     📊 Qwen-qwen-turbo-latest Round 2 Accuracy by Player:
+2025-09-17 18:21:58,609 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:21:58,611 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:21:58,611 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:21:58,611 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:21:58,611 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-17 18:21:58,611 - INFO - 🔍 DEBUG - COMPREHENSIVE DEBATE ROUND 2 SUMMARY:
+2025-09-17 18:21:58,611 - INFO -       ================================================================================
+2025-09-17 18:21:58,612 - INFO -       🤖 OpenAI-gpt-5-nano (openai/gpt-5-nano):
+2025-09-17 18:21:58,612 - INFO -           Decision: {'Violet': 'knight'}
+2025-09-17 18:21:58,612 - INFO -           Agrees with: ['OpenAI-gpt-5-nano']
+2025-09-17 18:21:58,612 - INFO -           Disagrees with: ['OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:21:58,612 - INFO -           Agree reasoning: Both the OpenAI-gpt-5-nano argument and this phase’s consensus lean toward Violet being a truth-teller (knight) under the given constraints, given the exactly-one-spy hint and the structure of mutual statements.
+2025-09-17 18:21:58,616 - INFO -           Disagree reasoning: OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest argued for Violet being knave (or produced scenarios leading away from Violet as knight). Their deductions either lead to contradictions with the exact-one-spy hint or rely on assumptions not forced by the statements and the rule set. Hence I disagree with their conclusion.
+2025-09-17 18:21:58,616 - INFO -           ------------------------------------------------------------
+2025-09-17 18:21:58,616 - INFO -       🤖 OpenAI-gpt-4.1-mini (openai/gpt-4.1-mini):
+2025-09-17 18:21:58,616 - INFO -           Decision: {'Violet': 'knave'}
+2025-09-17 18:21:58,616 - INFO -           Agrees with: ['OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:21:58,616 - INFO -           Disagrees with: ['OpenAI-gpt-5-nano']
+2025-09-17 18:21:58,616 - INFO -           Agree reasoning: I agree with OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest because their analysis aligns well with the logical constraints and the game manager's hint of exactly one spy. They correctly deduce that if Rachel were a knight, Violet would also be a knight, making both truthful, which contradicts Olivia's statement that exactly one of them tells the truth. With Rachel and Violet both lying (knaves), Olivia's statement becomes true, making Olivia either knight or spy, and Peter fitting the remaining role as spy or knight. Their assignments avoid contradictions in all statements and roles.
+2025-09-17 18:21:58,616 - INFO -           Disagree reasoning: I disagree with OpenAI-gpt-5-nano's conclusion that Violet is a knight because assuming both Rachel and Violet are knights conflicts with Olivia's statement. Olivia states exactly one of Violet and Rachel tell the truth, but if both are knights, both tell truth, making Olivia's statement false and forcing contradicting role assignments for Olivia and Peter. Furthermore, Peter's compound statement is difficult to satisfy under that assumption without contradiction.
+2025-09-17 18:21:58,616 - INFO -           ------------------------------------------------------------
+2025-09-17 18:21:58,616 - INFO -       🤖 Qwen-qwen-turbo-latest (ali/qwen-turbo-latest):
+2025-09-17 18:21:58,616 - INFO -           Decision: {'Violet': 'knight'}
+2025-09-17 18:21:58,616 - INFO -           Agrees with: ['OpenAI-gpt-5-nano']
+2025-09-17 18:21:58,616 - INFO -           Disagrees with: ['OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:21:58,616 - INFO -           Agree reasoning: OpenAI-gpt-5-nano's reasoning is consistent with the game rules and the hint. Assuming Rachel is a knight leads to Violet also being a knight, which makes her statement true. Olivia's statement that exactly one of Rachel and Violet is telling the truth would then be false, making her a knave. Peter, as the spy, can make a true statement about the meta-condition, which aligns with the hint of exactly one spy. This scenario is logically consistent.
+2025-09-17 18:21:58,616 - INFO -           Disagree reasoning: OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest assume Violet is a knave, but their reasoning leads to contradictions when analyzing Peter's statement. Specifically, Qwen-qwen-turbo-latest's conclusion that Olivia is a spy conflicts with the hint that there is exactly one spy. Additionally, OpenAI-gpt-4.1-mini's assumption that both Rachel and Violet are knaves leads to Olivia's statement being true, which would make her a knight, but this creates inconsistencies in the overall role distribution.
+2025-09-17 18:21:58,616 - INFO -           ------------------------------------------------------------
+2025-09-17 18:21:58,616 - INFO -       ================================================================================
+2025-09-17 18:21:58,616 - INFO - --- Debating Olivia's role ---
+2025-09-17 18:21:58,616 - INFO - 🎯 Ground Truth: Olivia is a knave
+2025-09-17 18:21:58,616 - INFO -   Step 1: Debate period for Olivia
+2025-09-17 18:21:58,622 - INFO -       🤖 OpenAI-gpt-5-nano debating Olivia...
+2025-09-17 18:21:58,627 - INFO -       🤖 OpenAI-gpt-4.1-mini debating Olivia...
+2025-09-17 18:21:58,633 - INFO -       🤖 Qwen-qwen-turbo-latest debating Olivia...
+2025-09-17 18:22:02,017 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest RAW DEBATE RESPONSE:
+2025-09-17 18:22:02,018 - INFO -       ============================================================
+2025-09-17 18:22:02,018 - INFO -       Raw text: {
+    "player_role": "Olivia",
+    "role": "knave",
+    "agree_with": ["OpenAI-gpt-5-nano", "OpenAI-gpt-4.1-mini", "Qwen-qwen-turbo-latest"],
+    "disagree_with": [],
+    "agree_reasoning": "All three agents correctly deduce that Olivia is a knave based on the consistency of the statements and the game manager's hint. If Rachel and Violet have the same role, and Violet says Rachel is telling the truth, then both must be knights. This makes Olivia's statement ('among Violet and Rachel, exactly one person is telling the truth') false, which means Olivia is lying and therefore a knave.",
+    "disagree_reasoning": "There are no agents to disagree with, as all relevant agents agree that Olivia is a knave, and their reasoning aligns with the logical deductions from the statements and the hint."
+}
+2025-09-17 18:22:02,018 - INFO -       ============================================================
+2025-09-17 18:22:02,019 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-17 18:22:02,020 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:22:02,020 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:22:02,020 - INFO -       🤝 Qwen-qwen-turbo-latest agrees with: OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:22:02,020 - INFO -       💭 Agree reasoning: All three agents correctly deduce that Olivia is a knave based on the consistency of the statements and the game manager's hint. If Rachel and Violet have the same role, and Violet says Rachel is telling the truth, then both must be knights. This makes Olivia's statement ('among Violet and Rachel, exactly one person is telling the truth') false, which means Olivia is lying and therefore a knave.
+2025-09-17 18:22:02,021 - WARNING -       ⚠️ WARNING: Qwen-qwen-turbo-latest has no disagree_with information
+2025-09-17 18:22:02,021 - INFO -       🎯 Qwen-qwen-turbo-latest final decision: Olivia is a knave
+2025-09-17 18:22:02,635 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini RAW DEBATE RESPONSE:
+2025-09-17 18:22:02,635 - INFO -       ============================================================
+2025-09-17 18:22:02,636 - INFO -       Raw text: {
+  "player_role": "Olivia",
+  "role": "knave",
+  "agree_with": ["OpenAI-gpt-5-nano", "OpenAI-gpt-4.1-mini", "Qwen-qwen-turbo-latest"],
+  "disagree_with": [],
+  "agree_reasoning": "The arguments by OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, and Qwen-qwen-turbo-latest are consistent and well supported by the game rules and hint. Rachel and Violet both affirm Rachel's statement is true, meaning they share the same role, which must be knights to both tell truth. Olivia's statement that exactly one of them is telling the truth thus becomes false, making Olivia a knave. Peter's statement about knaves being even and lying counts among Rachel, Violet, and Olivia fits perfectly with Olivia as the sole knave, Peter as the spy, and Rachel and Violet as knights. There are no contradictions, and this satisfies the hint of exactly one spy.",
+  "disagree_reasoning": "No disagreement with any agent's reasoning on Olivia's role since all three agents have logically aligned conclusions that fit the constraints provided by the game manager's hint and the players' statements."
+}
+2025-09-17 18:22:02,636 - INFO -       ============================================================
+2025-09-17 18:22:02,636 - INFO -       ✅ OpenAI-gpt-4.1-mini debate completed
+2025-09-17 18:22:02,636 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:22:02,636 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:22:02,636 - INFO -       🤝 OpenAI-gpt-4.1-mini agrees with: OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:22:02,636 - INFO -       💭 Agree reasoning: The arguments by OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, and Qwen-qwen-turbo-latest are consistent and well supported by the game rules and hint. Rachel and Violet both affirm Rachel's statement is true, meaning they share the same role, which must be knights to both tell truth. Olivia's statement that exactly one of them is telling the truth thus becomes false, making Olivia a knave. Peter's statement about knaves being even and lying counts among Rachel, Violet, and Olivia fits perfectly with Olivia as the sole knave, Peter as the spy, and Rachel and Violet as knights. There are no contradictions, and this satisfies the hint of exactly one spy.
+2025-09-17 18:22:02,636 - WARNING -       ⚠️ WARNING: OpenAI-gpt-4.1-mini has no disagree_with information
+2025-09-17 18:22:02,636 - INFO -       🎯 OpenAI-gpt-4.1-mini final decision: Olivia is a knave
+2025-09-17 18:22:03,842 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano RAW DEBATE RESPONSE:
+2025-09-17 18:22:03,843 - INFO -       ============================================================
+2025-09-17 18:22:03,843 - INFO -       Raw text: {
+  "player_role": "Olivia",
+  "role": "knave",
+  "agree_with": ["OpenAI-gpt-5-nano", "OpenAI-gpt-4.1-mini", "Qwen-qwen-turbo-latest"],
+  "disagree_with": [],
+  "agree_reasoning": "If Olivia is a knave, her statement about Violet and Rachel (that exactly one tells the truth) must be false. This aligns with the scenario where Violet and Rachel are both truthful (knights), making exactly two truth-tellers among them. Given the game manager's hint of exactly one spy, the only consistent assignment that satisfies all statements is Olivia as a knave and the spy role being assigned to Peter, with Rachel and Violet as knights.",
+  "disagree_reasoning": "No disagreement: all three agents cited support Olivia being a knave, which is the consistent conclusion under the single-spy constraint and the other statements."
+}
+2025-09-17 18:22:03,843 - INFO -       ============================================================
+2025-09-17 18:22:03,844 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-17 18:22:03,844 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:22:03,844 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:22:03,844 - INFO -       🤝 OpenAI-gpt-5-nano agrees with: OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:22:03,844 - INFO -       💭 Agree reasoning: If Olivia is a knave, her statement about Violet and Rachel (that exactly one tells the truth) must be false. This aligns with the scenario where Violet and Rachel are both truthful (knights), making exactly two truth-tellers among them. Given the game manager's hint of exactly one spy, the only consistent assignment that satisfies all statements is Olivia as a knave and the spy role being assigned to Peter, with Rachel and Violet as knights.
+2025-09-17 18:22:03,844 - WARNING -       ⚠️ WARNING: OpenAI-gpt-5-nano has no disagree_with information
+2025-09-17 18:22:03,844 - INFO -       🎯 OpenAI-gpt-5-nano final decision: Olivia is a knave
+2025-09-17 18:22:03,849 - INFO -   Step 2: Self-adjustment for Olivia
+2025-09-17 18:22:03,853 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Olivia...
+2025-09-17 18:22:03,853 - INFO -       🔄 OpenAI-gpt-4.1-mini self-adjusting for Olivia...
+2025-09-17 18:22:03,873 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Olivia...
+2025-09-17 18:22:06,909 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-17 18:22:06,910 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:22:11,185 - INFO -       ✅ OpenAI-gpt-4.1-mini self-adjustment completed
+2025-09-17 18:22:11,186 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:22:14,397 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-17 18:22:14,400 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:22:14,405 - INFO - 📊 Round 3 Results for Olivia:
+2025-09-17 18:22:14,407 - INFO -   OpenAI-gpt-5-nano: knave ✅
+2025-09-17 18:22:14,407 - INFO -     📊 OpenAI-gpt-5-nano Round 3 Accuracy by Player:
+2025-09-17 18:22:14,407 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:22:14,407 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:22:14,407 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:14,407 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:22:14,407 - INFO -   OpenAI-gpt-4.1-mini: knave ✅
+2025-09-17 18:22:14,407 - INFO -     📊 OpenAI-gpt-4.1-mini Round 3 Accuracy by Player:
+2025-09-17 18:22:14,407 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:22:14,407 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:22:14,407 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:14,407 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:22:14,407 - INFO -   Qwen-qwen-turbo-latest: knave ✅
+2025-09-17 18:22:14,407 - INFO -     📊 Qwen-qwen-turbo-latest Round 3 Accuracy by Player:
+2025-09-17 18:22:14,407 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:22:14,407 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:22:14,407 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:14,407 - INFO -       Peter: unknown vs spy ❌
+2025-09-17 18:22:14,407 - INFO -   OpenAI-gpt-5-nano: knave ✅
+2025-09-17 18:22:14,407 - INFO -     📊 OpenAI-gpt-5-nano Round 3 Accuracy by Player:
+2025-09-17 18:22:14,408 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:22:14,408 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:22:14,408 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:14,408 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:14,408 - INFO -   OpenAI-gpt-4.1-mini: knave ✅
+2025-09-17 18:22:14,408 - INFO -     📊 OpenAI-gpt-4.1-mini Round 3 Accuracy by Player:
+2025-09-17 18:22:14,408 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:22:14,408 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:22:14,408 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:14,408 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:14,408 - INFO -   Qwen-qwen-turbo-latest: knave ✅
+2025-09-17 18:22:14,408 - INFO -     📊 Qwen-qwen-turbo-latest Round 3 Accuracy by Player:
+2025-09-17 18:22:14,408 - INFO -       Rachel: knave vs knight ❌
+2025-09-17 18:22:14,408 - INFO -       Violet: knave vs knight ❌
+2025-09-17 18:22:14,408 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:14,408 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:14,408 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-17 18:22:14,408 - INFO - 🔍 DEBUG - COMPREHENSIVE DEBATE ROUND 3 SUMMARY:
+2025-09-17 18:22:14,408 - INFO -       ================================================================================
+2025-09-17 18:22:14,408 - INFO -       🤖 OpenAI-gpt-5-nano (openai/gpt-5-nano):
+2025-09-17 18:22:14,408 - INFO -           Decision: {'Olivia': 'knave'}
+2025-09-17 18:22:14,408 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:22:14,408 - INFO -           Disagrees with: None
+2025-09-17 18:22:14,409 - INFO -           Agree reasoning: If Olivia is a knave, her statement about Violet and Rachel (that exactly one tells the truth) must be false. This aligns with the scenario where Violet and Rachel are both truthful (knights), making exactly two truth-tellers among them. Given the game manager's hint of exactly one spy, the only consistent assignment that satisfies all statements is Olivia as a knave and the spy role being assigned to Peter, with Rachel and Violet as knights.
+2025-09-17 18:22:14,409 - INFO -           Disagree reasoning: No disagreement: all three agents cited support Olivia being a knave, which is the consistent conclusion under the single-spy constraint and the other statements.
+2025-09-17 18:22:14,409 - INFO -           ------------------------------------------------------------
+2025-09-17 18:22:14,409 - INFO -       🤖 OpenAI-gpt-4.1-mini (openai/gpt-4.1-mini):
+2025-09-17 18:22:14,409 - INFO -           Decision: {'Olivia': 'knave'}
+2025-09-17 18:22:14,409 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:22:14,409 - INFO -           Disagrees with: None
+2025-09-17 18:22:14,409 - INFO -           Agree reasoning: The arguments by OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, and Qwen-qwen-turbo-latest are consistent and well supported by the game rules and hint. Rachel and Violet both affirm Rachel's statement is true, meaning they share the same role, which must be knights to both tell truth. Olivia's statement that exactly one of them is telling the truth thus becomes false, making Olivia a knave. Peter's statement about knaves being even and lying counts among Rachel, Violet, and Olivia fits perfectly with Olivia as the sole knave, Peter as the spy, and Rachel and Violet as knights. There are no contradictions, and this satisfies the hint of exactly one spy.
+2025-09-17 18:22:14,409 - INFO -           Disagree reasoning: No disagreement with any agent's reasoning on Olivia's role since all three agents have logically aligned conclusions that fit the constraints provided by the game manager's hint and the players' statements.
+2025-09-17 18:22:14,409 - INFO -           ------------------------------------------------------------
+2025-09-17 18:22:14,410 - INFO -       🤖 Qwen-qwen-turbo-latest (ali/qwen-turbo-latest):
+2025-09-17 18:22:14,410 - INFO -           Decision: {'Olivia': 'knave'}
+2025-09-17 18:22:14,410 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:22:14,410 - INFO -           Disagrees with: None
+2025-09-17 18:22:14,410 - INFO -           Agree reasoning: All three agents correctly deduce that Olivia is a knave based on the consistency of the statements and the game manager's hint. If Rachel and Violet have the same role, and Violet says Rachel is telling the truth, then both must be knights. This makes Olivia's statement ('among Violet and Rachel, exactly one person is telling the truth') false, which means Olivia is lying and therefore a knave.
+2025-09-17 18:22:14,410 - INFO -           Disagree reasoning: There are no agents to disagree with, as all relevant agents agree that Olivia is a knave, and their reasoning aligns with the logical deductions from the statements and the hint.
+2025-09-17 18:22:14,410 - INFO -           ------------------------------------------------------------
+2025-09-17 18:22:14,410 - INFO -       ================================================================================
+2025-09-17 18:22:14,410 - INFO - --- Debating Peter's role ---
+2025-09-17 18:22:14,410 - INFO - 🎯 Ground Truth: Peter is a spy
+2025-09-17 18:22:14,410 - INFO -   Step 1: Debate period for Peter
+2025-09-17 18:22:14,414 - INFO -       🤖 OpenAI-gpt-5-nano debating Peter...
+2025-09-17 18:22:14,427 - INFO -       🤖 OpenAI-gpt-4.1-mini debating Peter...
+2025-09-17 18:22:14,440 - INFO -       🤖 Qwen-qwen-turbo-latest debating Peter...
+2025-09-17 18:22:17,841 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano RAW DEBATE RESPONSE:
+2025-09-17 18:22:17,842 - INFO -       ============================================================
+2025-09-17 18:22:17,843 - INFO -       Raw text: {
+  "player_role": "Peter",
+  "role": "spy",
+  "agree_with": [
+    "OpenAI-gpt-5-nano",
+    "OpenAI-gpt-4.1-mini",
+    "Qwen-qwen-turbo-latest"
+  ],
+  "disagree_with": [],
+  "agree_reasoning": "All three agents cited converge on the deduction that there is exactly one spy and, given the statements, Peter must be the spy to maintain consistency with the truth/lie pattern and the manager's hint.",
+  "disagree_reasoning": ""
+}
+2025-09-17 18:22:17,843 - INFO -       ============================================================
+2025-09-17 18:22:17,843 - INFO -       ✅ OpenAI-gpt-5-nano debate completed
+2025-09-17 18:22:17,843 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:22:17,843 - INFO -       🔍 DEBUG - OpenAI-gpt-5-nano AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:22:17,843 - INFO -       🤝 OpenAI-gpt-5-nano agrees with: OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:22:17,843 - INFO -       💭 Agree reasoning: All three agents cited converge on the deduction that there is exactly one spy and, given the statements, Peter must be the spy to maintain consistency with the truth/lie pattern and the manager's hint.
+2025-09-17 18:22:17,843 - WARNING -       ⚠️ WARNING: OpenAI-gpt-5-nano has no disagree_with information
+2025-09-17 18:22:17,843 - INFO -       🎯 OpenAI-gpt-5-nano final decision: Peter is a spy
+2025-09-17 18:22:19,331 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini RAW DEBATE RESPONSE:
+2025-09-17 18:22:19,334 - INFO -       ============================================================
+2025-09-17 18:22:19,335 - INFO -       Raw text: {
+  "player_role": "Peter",
+  "role": "spy",
+  "agree_with": [
+    "OpenAI-gpt-5-nano",
+    "OpenAI-gpt-4.1-mini",
+    "Qwen-qwen-turbo-latest"
+  ],
+  "disagree_with": [
+    "OpenAI-gpt-5-nano (first instance)",
+    "OpenAI-gpt-4.1-mini (first instance)",
+    "Qwen-qwen-turbo-latest (first instance)"
+  ],
+  "agree_reasoning": "I agree with the consensus that Peter is a spy based on the following reasoning: The game manager guarantees exactly one spy. Rachel and Violet either both tell the truth or both lie about their roles, as they support each other's statements. Olivia's statement that exactly one of Rachel or Violet tells the truth is false, indicating Olivia is a knave. This leaves Peter as the only candidate for the spy role. Peter’s statement about exactly one of two statements being true aligns with the scenario where Olivia is the sole knave and Rachel and Violet are knights. The consistency of this configuration with the rules supports Peter being the spy.",
+  "disagree_reasoning": "I disagree with the agents who labeled Peter as an unknown because they fail to leverage the hint about exactly one spy and do not fully resolve the consistent scenario that aligns with all statements and the hint. The scenario where Rachel and Violet have the same role and Olivia is the knave leads directly to Peter taking the one spy role, as a consistent logical conclusion. Thus, remaining undecided is less precise given the available information."
+}
+2025-09-17 18:22:19,335 - INFO -       ============================================================
+2025-09-17 18:22:19,335 - INFO -       ✅ OpenAI-gpt-4.1-mini debate completed
+2025-09-17 18:22:19,336 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:22:19,336 - INFO -       🔍 DEBUG - OpenAI-gpt-4.1-mini AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:22:19,336 - INFO -       🤝 OpenAI-gpt-4.1-mini agrees with: OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:22:19,336 - INFO -       💭 Agree reasoning: I agree with the consensus that Peter is a spy based on the following reasoning: The game manager guarantees exactly one spy. Rachel and Violet either both tell the truth or both lie about their roles, as they support each other's statements. Olivia's statement that exactly one of Rachel or Violet tells the truth is false, indicating Olivia is a knave. This leaves Peter as the only candidate for the spy role. Peter’s statement about exactly one of two statements being true aligns with the scenario where Olivia is the sole knave and Rachel and Violet are knights. The consistency of this configuration with the rules supports Peter being the spy.
+2025-09-17 18:22:19,336 - INFO -       ❌ OpenAI-gpt-4.1-mini disagrees with: OpenAI-gpt-5-nano (first instance), OpenAI-gpt-4.1-mini (first instance), Qwen-qwen-turbo-latest (first instance)
+2025-09-17 18:22:19,337 - INFO -       💭 Disagree reasoning: I disagree with the agents who labeled Peter as an unknown because they fail to leverage the hint about exactly one spy and do not fully resolve the consistent scenario that aligns with all statements and the hint. The scenario where Rachel and Violet have the same role and Olivia is the knave leads directly to Peter taking the one spy role, as a consistent logical conclusion. Thus, remaining undecided is less precise given the available information.
+2025-09-17 18:22:19,337 - INFO -       🎯 OpenAI-gpt-4.1-mini final decision: Peter is a spy
+2025-09-17 18:22:23,591 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest RAW DEBATE RESPONSE:
+2025-09-17 18:22:23,592 - INFO -       ============================================================
+2025-09-17 18:22:23,592 - INFO -       Raw text: {
+    "player_role": "Peter",
+    "role": "spy",
+    "agree_with": ["OpenAI-gpt-5-nano", "OpenAI-gpt-4.1-mini", "Qwen-qwen-turbo-latest"],
+    "disagree_with": [],
+    "agree_reasoning": "All three agents correctly deduce that Peter must be the spy based on the game manager's hint that there is exactly one spy. Their reasoning consistently shows that if Rachel and Violet are both knights (as their statements support each other), then Olivia must be a knave, leaving Peter as the only remaining role for the spy. This aligns with the logical constraints of the game.",
+    "disagree_reasoning": "No agents are disagreed with, as all relevant agents agree that Peter is the spy, and their reasoning is consistent with the given constraints and the game manager's hint."
+}
+2025-09-17 18:22:23,592 - INFO -       ============================================================
+2025-09-17 18:22:23,592 - INFO -       ✅ Qwen-qwen-turbo-latest debate completed
+2025-09-17 18:22:23,592 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:22:23,592 - INFO -       🔍 DEBUG - Qwen-qwen-turbo-latest AGREEMENT/DISAGREEMENT ANALYSIS:
+2025-09-17 18:22:23,592 - INFO -       🤝 Qwen-qwen-turbo-latest agrees with: OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, Qwen-qwen-turbo-latest
+2025-09-17 18:22:23,593 - INFO -       💭 Agree reasoning: All three agents correctly deduce that Peter must be the spy based on the game manager's hint that there is exactly one spy. Their reasoning consistently shows that if Rachel and Violet are both knights (as their statements support each other), then Olivia must be a knave, leaving Peter as the only remaining role for the spy. This aligns with the logical constraints of the game.
+2025-09-17 18:22:23,593 - WARNING -       ⚠️ WARNING: Qwen-qwen-turbo-latest has no disagree_with information
+2025-09-17 18:22:23,593 - INFO -       🎯 Qwen-qwen-turbo-latest final decision: Peter is a spy
+2025-09-17 18:22:23,594 - INFO -   Step 2: Self-adjustment for Peter
+2025-09-17 18:22:23,597 - INFO -       🔄 OpenAI-gpt-5-nano self-adjusting for Peter...
+2025-09-17 18:22:23,602 - INFO -       🔄 OpenAI-gpt-4.1-mini self-adjusting for Peter...
+2025-09-17 18:22:23,606 - INFO -       🔄 Qwen-qwen-turbo-latest self-adjusting for Peter...
+2025-09-17 18:22:28,898 - INFO -       ✅ OpenAI-gpt-4.1-mini self-adjustment completed
+2025-09-17 18:22:28,899 - INFO -       📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:22:34,555 - INFO -       ✅ OpenAI-gpt-5-nano self-adjustment completed
+2025-09-17 18:22:34,559 - INFO -       📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:22:40,995 - INFO -       ✅ Qwen-qwen-turbo-latest self-adjustment completed
+2025-09-17 18:22:40,996 - INFO -       📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:22:41,000 - INFO - 📊 Round 4 Results for Peter:
+2025-09-17 18:22:41,000 - INFO -   OpenAI-gpt-5-nano: spy ✅
+2025-09-17 18:22:41,001 - INFO -     📊 OpenAI-gpt-5-nano Round 4 Accuracy by Player:
+2025-09-17 18:22:41,001 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:22:41,001 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:22:41,001 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:22:41,001 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:41,001 - INFO -   OpenAI-gpt-4.1-mini: spy ✅
+2025-09-17 18:22:41,001 - INFO -     📊 OpenAI-gpt-4.1-mini Round 4 Accuracy by Player:
+2025-09-17 18:22:41,001 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:22:41,001 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:22:41,001 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:22:41,001 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:41,001 - INFO -   Qwen-qwen-turbo-latest: spy ✅
+2025-09-17 18:22:41,001 - INFO -     📊 Qwen-qwen-turbo-latest Round 4 Accuracy by Player:
+2025-09-17 18:22:41,001 - INFO -       Rachel: unknown vs knight ❌
+2025-09-17 18:22:41,002 - INFO -       Violet: unknown vs knight ❌
+2025-09-17 18:22:41,002 - INFO -       Olivia: unknown vs knave ❌
+2025-09-17 18:22:41,002 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:41,002 - INFO -   OpenAI-gpt-5-nano: spy ✅
+2025-09-17 18:22:41,002 - INFO -     📊 OpenAI-gpt-5-nano Round 4 Accuracy by Player:
+2025-09-17 18:22:41,002 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:22:41,002 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:22:41,002 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:41,002 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:41,002 - INFO -   OpenAI-gpt-4.1-mini: spy ✅
+2025-09-17 18:22:41,002 - INFO -     📊 OpenAI-gpt-4.1-mini Round 4 Accuracy by Player:
+2025-09-17 18:22:41,002 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:22:41,002 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:22:41,002 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:41,002 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:41,002 - INFO -   Qwen-qwen-turbo-latest: spy ✅
+2025-09-17 18:22:41,002 - INFO -     📊 Qwen-qwen-turbo-latest Round 4 Accuracy by Player:
+2025-09-17 18:22:41,003 - INFO -       Rachel: knight vs knight ✅
+2025-09-17 18:22:41,003 - INFO -       Violet: knight vs knight ✅
+2025-09-17 18:22:41,003 - INFO -       Olivia: knave vs knave ✅
+2025-09-17 18:22:41,003 - INFO -       Peter: spy vs spy ✅
+2025-09-17 18:22:41,003 - INFO - 🎯 Round completed - no intermediate voting
+2025-09-17 18:22:41,003 - INFO - 🔍 DEBUG - COMPREHENSIVE DEBATE ROUND 4 SUMMARY:
+2025-09-17 18:22:41,003 - INFO -       ================================================================================
+2025-09-17 18:22:41,004 - INFO -       🤖 OpenAI-gpt-5-nano (openai/gpt-5-nano):
+2025-09-17 18:22:41,004 - INFO -           Decision: {'Peter': 'spy'}
+2025-09-17 18:22:41,004 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:22:41,004 - INFO -           Disagrees with: None
+2025-09-17 18:22:41,004 - INFO -           Agree reasoning: All three agents cited converge on the deduction that there is exactly one spy and, given the statements, Peter must be the spy to maintain consistency with the truth/lie pattern and the manager's hint.
+2025-09-17 18:22:41,004 - INFO -           ------------------------------------------------------------
+2025-09-17 18:22:41,004 - INFO -       🤖 OpenAI-gpt-4.1-mini (openai/gpt-4.1-mini):
+2025-09-17 18:22:41,004 - INFO -           Decision: {'Peter': 'spy'}
+2025-09-17 18:22:41,004 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:22:41,004 - INFO -           Disagrees with: ['OpenAI-gpt-5-nano (first instance)', 'OpenAI-gpt-4.1-mini (first instance)', 'Qwen-qwen-turbo-latest (first instance)']
+2025-09-17 18:22:41,004 - INFO -           Agree reasoning: I agree with the consensus that Peter is a spy based on the following reasoning: The game manager guarantees exactly one spy. Rachel and Violet either both tell the truth or both lie about their roles, as they support each other's statements. Olivia's statement that exactly one of Rachel or Violet tells the truth is false, indicating Olivia is a knave. This leaves Peter as the only candidate for the spy role. Peter’s statement about exactly one of two statements being true aligns with the scenario where Olivia is the sole knave and Rachel and Violet are knights. The consistency of this configuration with the rules supports Peter being the spy.
+2025-09-17 18:22:41,005 - INFO -           Disagree reasoning: I disagree with the agents who labeled Peter as an unknown because they fail to leverage the hint about exactly one spy and do not fully resolve the consistent scenario that aligns with all statements and the hint. The scenario where Rachel and Violet have the same role and Olivia is the knave leads directly to Peter taking the one spy role, as a consistent logical conclusion. Thus, remaining undecided is less precise given the available information.
+2025-09-17 18:22:41,005 - INFO -           ------------------------------------------------------------
+2025-09-17 18:22:41,005 - INFO -       🤖 Qwen-qwen-turbo-latest (ali/qwen-turbo-latest):
+2025-09-17 18:22:41,005 - INFO -           Decision: {'Peter': 'spy'}
+2025-09-17 18:22:41,005 - INFO -           Agrees with: ['OpenAI-gpt-5-nano', 'OpenAI-gpt-4.1-mini', 'Qwen-qwen-turbo-latest']
+2025-09-17 18:22:41,005 - INFO -           Disagrees with: None
+2025-09-17 18:22:41,005 - INFO -           Agree reasoning: All three agents correctly deduce that Peter must be the spy based on the game manager's hint that there is exactly one spy. Their reasoning consistently shows that if Rachel and Violet are both knights (as their statements support each other), then Olivia must be a knave, leaving Peter as the only remaining role for the spy. This aligns with the logical constraints of the game.
+2025-09-17 18:22:41,005 - INFO -           Disagree reasoning: No agents are disagreed with, as all relevant agents agree that Peter is the spy, and their reasoning is consistent with the given constraints and the game manager's hint.
+2025-09-17 18:22:41,005 - INFO -           ------------------------------------------------------------
+2025-09-17 18:22:41,005 - INFO -       ================================================================================
+2025-09-17 18:22:41,005 - INFO - 🗣️ Phase 3: Final Discussion and Fresh Voting
+2025-09-17 18:22:41,006 - INFO - ========================================
+2025-09-17 18:22:41,006 - INFO - Conducting final discussion and fresh voting...
+2025-09-17 18:22:41,008 - INFO -   🤖 OpenAI-gpt-5-nano making final decision...
+2025-09-17 18:22:53,207 - INFO -   ✅ OpenAI-gpt-5-nano final decision completed
+2025-09-17 18:22:53,207 - INFO -   📊 OpenAI-gpt-5-nano confidence: not requested (SRC disabled)
+2025-09-17 18:22:53,207 - INFO -   🤖 OpenAI-gpt-4.1-mini making final decision...
+2025-09-17 18:22:58,325 - INFO -   ✅ OpenAI-gpt-4.1-mini final decision completed
+2025-09-17 18:22:58,328 - INFO -   📊 OpenAI-gpt-4.1-mini confidence: not requested (SRC disabled)
+2025-09-17 18:22:58,328 - INFO -   🤖 Qwen-qwen-turbo-latest making final decision...
+2025-09-17 18:23:03,495 - INFO -   ✅ Qwen-qwen-turbo-latest final decision completed
+2025-09-17 18:23:03,496 - INFO -   📊 Qwen-qwen-turbo-latest confidence: not requested (SRC disabled)
+2025-09-17 18:23:03,504 - INFO -   Rachel: knight (fresh votes: {'knight': 3})
+2025-09-17 18:23:03,506 - INFO -   Violet: knight (fresh votes: {'knight': 3})
+2025-09-17 18:23:03,506 - INFO -   Olivia: knave (fresh votes: {'knave': 3})
+2025-09-17 18:23:03,507 - INFO -   Peter: spy (fresh votes: {'spy': 3})
+2025-09-17 18:23:03,507 - INFO - 📊 Final Vote Results:
+2025-09-17 18:23:03,507 - INFO -   Rachel: knight ✅
+2025-09-17 18:23:03,507 - INFO -   Violet: knight ✅
+2025-09-17 18:23:03,507 - INFO -   Olivia: knave ✅
+2025-09-17 18:23:03,507 - INFO -   Peter: spy ✅
+2025-09-17 18:23:03,507 - INFO - 📊 Final Vote Summary by Player:
+2025-09-17 18:23:03,508 - INFO -   Rachel: Final=knight, GroundTruth=knight ✅
+2025-09-17 18:23:03,509 - INFO -   Violet: Final=knight, GroundTruth=knight ✅
+2025-09-17 18:23:03,509 - INFO -   Olivia: Final=knave, GroundTruth=knave ✅
+2025-09-17 18:23:03,509 - INFO -   Peter: Final=spy, GroundTruth=spy ✅
+2025-09-17 18:23:03,557 - INFO - 💾 Debate saved to: ./debate_results/agent3_gpt-5-nano_gpt-4.1-mini_qwen-turbo-latest/game_size4_id1/debate_1_20250917_182303.json
+2025-09-17 18:23:03,557 - INFO - 📈 FINAL ACCURACY SUMMARY
+2025-09-17 18:23:03,557 - INFO - ========================================
+2025-09-17 18:23:03,573 - INFO - 🎯 Final Accuracy: 100.00% (4/4)
+2025-09-17 18:23:03,574 - INFO - 📋 Player-by-Player Results:
+2025-09-17 18:23:03,574 - INFO -   Rachel: knight (GT: knight) ✅ CORRECT
+2025-09-17 18:23:03,574 - INFO -   Violet: knight (GT: knight) ✅ CORRECT
+2025-09-17 18:23:03,575 - INFO -   Olivia: knave (GT: knave) ✅ CORRECT
+2025-09-17 18:23:03,575 - INFO -   Peter: spy (GT: spy) ✅ CORRECT
+2025-09-17 18:23:03,580 - INFO - ✅ Debate completed for Game 1
+2025-09-17 18:23:03,580 - WARNING - 📊 Visualizer not available - skipping visualization generation

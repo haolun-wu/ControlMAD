@@ -1,0 +1,1381 @@
+{
+  "game_id": 1,
+  "game_text": "---\nPlayer name: Rachel\nPlayer statement: Violet and I have the same role.\n---\nPlayer name: Violet\nPlayer statement: Rachel is telling the truth.\n---\nPlayer name: Olivia\nPlayer statement: Among Violet and Rachel, exactly one person is telling the truth.\n---\nPlayer name: Peter\nPlayer statement: Among the following two statements, exactly one is true: \n (1). Among all players, the number of knaves is even.\n (2). Among Rachel, Violet, and Olivia, the number of people who are lying is odd.\n---\nMessage from the game manager: I am the game manager and here is a hint for you: Among all players, there is exactly one spy.\n",
+  "ground_truth_solution": {
+    "Rachel": "knight",
+    "Violet": "knight",
+    "Olivia": "knave",
+    "Peter": "spy"
+  },
+  "initial_proposals": [
+    {
+      "agent_name": "OpenAI-gpt-5-nano",
+      "game_id": 1,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Rachel": "knave",
+        "Violet": "knight",
+        "Olivia": "spy",
+        "Peter": "knight"
+      },
+      "explanation": "From the constraints, Olivia's statement is always false given that Violet and Rachel must have the same truth-value for their statements, making Olivia not a knight. The only consistent assignment that satisfies exactly one spy and the truth/lie requirements across all statements is shown above; otherwise contradictions arise in the truth values of R, V, and O. Therefore Rachel is a knave, Violet a knight, Olivia a spy, and Peter a knight.",
+      "confidence": 3.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"spy\"},\n        {\"name\": \"Peter\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"From the constraints, Olivia's statement is always false given that Violet and Rachel must have the same truth-value for their statements, making Olivia not a knight. The only consistent assignment that satisfies exactly one spy and the truth/lie requirements across all statements is shown above; otherwise contradictions arise in the truth values of R, V, and O. Therefore Rachel is a knave, Violet a knight, Olivia a spy, and Peter a knight.\" \n}",
+        "usage": {
+          "input": 1011,
+          "output": 2791,
+          "reasoning": 2624,
+          "cached": 0,
+          "total": 3802
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-17T18:21:14.257963",
+      "error": "",
+      "agree_with": null,
+      "disagree_with": null,
+      "agree_reasoning": null,
+      "disagree_reasoning": null
+    },
+    {
+      "agent_name": "OpenAI-gpt-4.1-mini",
+      "game_id": 1,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Rachel": "knight",
+        "Violet": "knight",
+        "Olivia": "knave",
+        "Peter": "spy"
+      },
+      "explanation": "There is exactly one spy (hint). Rachel and Violet claim to have the same role and that Rachel tells the truth, so either both are knights or both are knaves. If both were knaves, their statements would be lies, which is contradictory. So Rachel and Violet are both knights. Olivia says exactly one of Rachel and Violet tells the truth, but both tell truth, so Olivia lies, making Olivia a knave. Peter says that exactly one of his two statements is true. Checking his statements, if the number of knaves is even: Olivia is a knave (1 knave), so false. Among Rachel, Violet, Olivia, number lying (Olivia only) is 1 (odd), so true. Exactly one of Peter's statements is true, so Peter's statement is true or possibly lies since he is the spy. Since only one spy exists and Rachel, Violet, Olivia are accounted for as knights and knave, Peter is the spy.",
+      "confidence": 3.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"There is exactly one spy (hint). Rachel and Violet claim to have the same role and that Rachel tells the truth, so either both are knights or both are knaves. If both were knaves, their statements would be lies, which is contradictory. So Rachel and Violet are both knights. Olivia says exactly one of Rachel and Violet tells the truth, but both tell truth, so Olivia lies, making Olivia a knave. Peter says that exactly one of his two statements is true. Checking his statements, if the number of knaves is even: Olivia is a knave (1 knave), so false. Among Rachel, Violet, Olivia, number lying (Olivia only) is 1 (odd), so true. Exactly one of Peter's statements is true, so Peter's statement is true or possibly lies since he is the spy. Since only one spy exists and Rachel, Violet, Olivia are accounted for as knights and knave, Peter is the spy.\"\n}",
+        "usage": {
+          "input": 1012,
+          "output": 269,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1281
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-17T18:21:03.470875",
+      "error": "",
+      "agree_with": null,
+      "disagree_with": null,
+      "agree_reasoning": null,
+      "disagree_reasoning": null
+    },
+    {
+      "agent_name": "Qwen-qwen-turbo-latest",
+      "game_id": 1,
+      "round_number": 0,
+      "phase": "initial",
+      "player_role_assignments": {
+        "Rachel": "knave",
+        "Violet": "knave",
+        "Olivia": "spy",
+        "Peter": "knight"
+      },
+      "explanation": "The hint tells us there is exactly one spy. Rachel and Violet claim they have the same role, and Violet says Rachel is telling the truth. If both were knights, their statements would be true, but that would make them both truthful, which is possible. However, Olivia says that among Violet and Rachel, exactly one is telling the truth. If both are knights, this would be false, so Olivia would be lying. Peter says that among two statements, exactly one is true. The first statement is about the number of knaves being even, and the second is about the number of liars among Rachel, Violet, and Olivia being odd. If Rachel and Violet are both knaves (lying), then Olivia's statement would be true, and if Olivia is the spy, she could be telling the truth. Then, the second part of Peter's statement would be false (since only one of the three is lying). That makes exactly one of the two statements true, so Peter is telling the truth and must be a knight. This fits with the hint that there is exactly one spy (Olivia).",
+      "confidence": 3.0,
+      "response_obj": {
+        "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Olivia\", \"role\": \"spy\"},\n        {\"name\": \"Peter\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The hint tells us there is exactly one spy. Rachel and Violet claim they have the same role, and Violet says Rachel is telling the truth. If both were knights, their statements would be true, but that would make them both truthful, which is possible. However, Olivia says that among Violet and Rachel, exactly one is telling the truth. If both are knights, this would be false, so Olivia would be lying. Peter says that among two statements, exactly one is true. The first statement is about the number of knaves being even, and the second is about the number of liars among Rachel, Violet, and Olivia being odd. If Rachel and Violet are both knaves (lying), then Olivia's statement would be true, and if Olivia is the spy, she could be telling the truth. Then, the second part of Peter's statement would be false (since only one of the three is lying). That makes exactly one of the two statements true, so Peter is telling the truth and must be a knight. This fits with the hint that there is exactly one spy (Olivia).\"\n}",
+        "usage": {
+          "input": 1019,
+          "output": 295,
+          "reasoning": 0,
+          "cached": 0,
+          "total": 1314
+        },
+        "summary": "",
+        "error": ""
+      },
+      "timestamp": "2025-09-17T18:21:03.461262",
+      "error": "",
+      "agree_with": null,
+      "disagree_with": null,
+      "agree_reasoning": null,
+      "disagree_reasoning": null
+    }
+  ],
+  "debate_rounds": [
+    {
+      "player_name": "Rachel",
+      "round_number": 1,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Rachel": "knight"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Rachel\",\n  \"role\": \"knight\",\n  \"agree_with\": [\"OpenAI-gpt-4.1-mini\"],\n  \"disagree_with\": [\"OpenAI-gpt-5-nano\", \"Qwen-qwen-turbo-latest\"],\n  \"agree_reasoning\": \"Agree with the scenario where Rachel is a knight because the configuration R=knight, V=knight, O=knave, P=spy yields a consistent solution with exactly one spy and all statements truth-conditions satisfied.\",\n  \"disagree_reasoning\": \"Disagree with those arguing Rachel is knave (or other roles) because they lead to contradictions under the exactly-one-spy hint and the truth/Lie constraints in at least one consistent assignment (e.g., R=knight, V=knight, O=knave, P=spy).\"\n}",
+            "usage": {
+              "input": 1802,
+              "output": 1853,
+              "reasoning": 1664,
+              "cached": 0,
+              "total": 3655
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:26.155461",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-4.1-mini"
+          ],
+          "disagree_with": [
+            "OpenAI-gpt-5-nano",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "agree_reasoning": "Agree with the scenario where Rachel is a knight because the configuration R=knight, V=knight, O=knave, P=spy yields a consistent solution with exactly one spy and all statements truth-conditions satisfied.",
+          "disagree_reasoning": "Disagree with those arguing Rachel is knave (or other roles) because they lead to contradictions under the exactly-one-spy hint and the truth/Lie constraints in at least one consistent assignment (e.g., R=knight, V=knight, O=knave, P=spy)."
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Rachel": "knave"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Rachel\",\n  \"role\": \"knave\",\n  \"agree_with\": [\"OpenAI-gpt-5-nano\", \"Qwen-qwen-turbo-latest\"],\n  \"disagree_with\": [\"OpenAI-gpt-4.1-mini\"],\n  \"agree_reasoning\": \"Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly identify that Rachel and Violet must share the same role and analyze Olivia's statement about them. Given Olivia's claim that exactly one of Rachel and Violet tells the truth, they cannot both be knights (both telling truth) because then Olivia's statement would be false, and only one spy exists, so Olivia cannot be the sole liar if Peter is also truthful or a knight. This makes the scenario of Rachel being a knave consistent and aligns with the hint of exactly one spy. The reasoning that Rachel is a knave avoids contradictions in the number of liars and knaves and satisfies Peter’s complex statement on truth distribution.\",\n  \"disagree_reasoning\": \"OpenAI-gpt-4.1-mini argues Rachel is a knight and claims Olivia is lying because both Rachel and Violet would then be truthful. However, this makes Olivia’s statement that exactly one of Rachel and Violet is telling the truth false, so Olivia is lying, which makes her knave. The problem is that the subsequent balancing of the number of knaves and the truthfulness of Peter’s statements becomes contradictory with only one spy and the distribution of knights and knaves, especially given Rachel and Violet’s identical roles and Peter’s complex conditional statement. Therefore, the knight assignment to Rachel does not hold consistently under the constraints.\"\n}",
+            "usage": {
+              "input": 1803,
+              "output": 345,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2148
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:19.150418",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [
+            "OpenAI-gpt-4.1-mini"
+          ],
+          "agree_reasoning": "Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly identify that Rachel and Violet must share the same role and analyze Olivia's statement about them. Given Olivia's claim that exactly one of Rachel and Violet tells the truth, they cannot both be knights (both telling truth) because then Olivia's statement would be false, and only one spy exists, so Olivia cannot be the sole liar if Peter is also truthful or a knight. This makes the scenario of Rachel being a knave consistent and aligns with the hint of exactly one spy. The reasoning that Rachel is a knave avoids contradictions in the number of liars and knaves and satisfies Peter’s complex statement on truth distribution.",
+          "disagree_reasoning": "OpenAI-gpt-4.1-mini argues Rachel is a knight and claims Olivia is lying because both Rachel and Violet would then be truthful. However, this makes Olivia’s statement that exactly one of Rachel and Violet is telling the truth false, so Olivia is lying, which makes her knave. The problem is that the subsequent balancing of the number of knaves and the truthfulness of Peter’s statements becomes contradictory with only one spy and the distribution of knights and knaves, especially given Rachel and Violet’s identical roles and Peter’s complex conditional statement. Therefore, the knight assignment to Rachel does not hold consistently under the constraints."
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Rachel": "knave"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"player_role\": \"Rachel\",\n    \"role\": \"knave\",\n    \"agree_with\": [\"OpenAI-gpt-5-nano\", \"Qwen-qwen-turbo-latest\"],\n    \"disagree_with\": [\"OpenAI-gpt-4.1-mini\"],\n    \"agree_reasoning\": \"Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly deduce that Rachel must be a knave. If Rachel were a knight, then her statement that she and Violet have the same role would be true, and Violet's statement that Rachel is telling the truth would also be true, making both knights. However, this contradicts Olivia's statement that exactly one of Rachel and Violet is telling the truth. If both are knights, Olivia is lying, which makes her a knave or spy. But if Rachel and Violet are both knights, then Olivia’s statement is false, and Peter’s statement could still hold. However, the key contradiction arises when assuming Rachel is a knight: it leads to inconsistencies in the truth values of other statements, especially with the hint that there is exactly one spy. The consistent scenario is that Rachel is a knave, Violet is a knight, Olivia is a spy, and Peter is a knight.\",\n    \"disagree_reasoning\": \"OpenAI-gpt-4.1-mini assumes Rachel and Violet are both knights, but this leads to contradictions with Olivia’s statement and the overall consistency of the roles. If both Rachel and Violet are knights, then Olivia’s claim that exactly one of them is truthful is false, making her a knave or spy. However, this setup doesn’t fully align with the truth values of Peter’s complex statement and the requirement for exactly one spy. Therefore, the assumption that Rachel is a knight is less consistent with the given constraints.\"\n}",
+            "usage": {
+              "input": 1812,
+              "output": 377,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2189
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:19.501745",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [
+            "OpenAI-gpt-4.1-mini"
+          ],
+          "agree_reasoning": "Both OpenAI-gpt-5-nano and Qwen-qwen-turbo-latest correctly deduce that Rachel must be a knave. If Rachel were a knight, then her statement that she and Violet have the same role would be true, and Violet's statement that Rachel is telling the truth would also be true, making both knights. However, this contradicts Olivia's statement that exactly one of Rachel and Violet is telling the truth. If both are knights, Olivia is lying, which makes her a knave or spy. But if Rachel and Violet are both knights, then Olivia’s statement is false, and Peter’s statement could still hold. However, the key contradiction arises when assuming Rachel is a knight: it leads to inconsistencies in the truth values of other statements, especially with the hint that there is exactly one spy. The consistent scenario is that Rachel is a knave, Violet is a knight, Olivia is a spy, and Peter is a knight.",
+          "disagree_reasoning": "OpenAI-gpt-4.1-mini assumes Rachel and Violet are both knights, but this leads to contradictions with Olivia’s statement and the overall consistency of the roles. If both Rachel and Violet are knights, then Olivia’s claim that exactly one of them is truthful is false, making her a knave or spy. However, this setup doesn’t fully align with the truth values of Peter’s complex statement and the requirement for exactly one spy. Therefore, the assumption that Rachel is a knight is less consistent with the given constraints."
+        },
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "Assuming Rachel is a knight makes Violet also a knight (same role). Then Olivia cannot be a knight (Olivia’s statement would be false), leaving Peter as the sole spy. This makes Rachel's and Violet's statements true, Olivia's false, and Peter (spy) free to tell truth. Checking Peter's meta-statement S_P shows exactly one of (A) knaves count is even (false, since there is 1 knave) and (B) among Rachel,Violet,Olivia, the liars count is odd (true, only Olivia lies). Exactly one true, so S_P is true, consistent with Peter being the spy. Therefore: Rachel=knight, Violet=knight, Olivia=knave, Peter=spy.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Rachel\", \"role\": \"knight\"},\n    {\"name\": \"Violet\", \"role\": \"knight\"},\n    {\"name\": \"Olivia\", \"role\": \"knave\"},\n    {\"name\": \"Peter\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"Assuming Rachel is a knight makes Violet also a knight (same role). Then Olivia cannot be a knight (Olivia’s statement would be false), leaving Peter as the sole spy. This makes Rachel's and Violet's statements true, Olivia's false, and Peter (spy) free to tell truth. Checking Peter's meta-statement S_P shows exactly one of (A) knaves count is even (false, since there is 1 knave) and (B) among Rachel,Violet,Olivia, the liars count is odd (true, only Olivia lies). Exactly one true, so S_P is true, consistent with Peter being the spy. Therefore: Rachel=knight, Violet=knight, Olivia=knave, Peter=spy.\"\n}",
+            "usage": {
+              "input": 1210,
+              "output": 1833,
+              "reasoning": 1600,
+              "cached": 0,
+              "total": 3043
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:36.974891",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knave",
+            "Violet": "knave",
+            "Olivia": "knight",
+            "Peter": "spy"
+          },
+          "explanation": "The hint says there is exactly one spy. Rachel says Violet and she have the same role. Violet says Rachel is telling the truth. Olivia says exactly one of Rachel and Violet tells the truth. If Rachel were a knight, then Violet would also have to be a knight (same role). Violet would then truthfully say Rachel tells the truth. Olivia's statement about exactly one of them telling truth would be false (since both tell truth), so Olivia would be a knave. Then Peter as the only remaining player would have to be spy. But Peter says exactly one of two statements is true—analyzing those statements under this assumption leads to contradictions. If Rachel is a knave, then Violet must also be a knave (as per Rachel's statement, which is a lie). Violet says Rachel is telling the truth, but Violet, being a knave, lies, so Rachel is lying. Olivia's statement that exactly one of Rachel and Violet tells truth holds true here since both are lying, so Olivia is a knight. Then Peter must be the spy as the hint states exactly one spy. This assignment is consistent with all statements and the hint.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Olivia\", \"role\": \"knight\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The hint says there is exactly one spy. Rachel says Violet and she have the same role. Violet says Rachel is telling the truth. Olivia says exactly one of Rachel and Violet tells the truth. If Rachel were a knight, then Violet would also have to be a knight (same role). Violet would then truthfully say Rachel tells the truth. Olivia's statement about exactly one of them telling truth would be false (since both tell truth), so Olivia would be a knave. Then Peter as the only remaining player would have to be spy. But Peter says exactly one of two statements is true—analyzing those statements under this assumption leads to contradictions. If Rachel is a knave, then Violet must also be a knave (as per Rachel's statement, which is a lie). Violet says Rachel is telling the truth, but Violet, being a knave, lies, so Rachel is lying. Olivia's statement that exactly one of Rachel and Violet tells truth holds true here since both are lying, so Olivia is a knight. Then Peter must be the spy as the hint states exactly one spy. This assignment is consistent with all statements and the hint.\"\n}",
+            "usage": {
+              "input": 1211,
+              "output": 306,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1517
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:30.825314",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 1,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knave",
+            "Violet": "knave",
+            "Olivia": "spy",
+            "Peter": "knight"
+          },
+          "explanation": "The game manager's hint tells us there is exactly one spy. Rachel says 'Violet and I have the same role.' Violet says 'Rachel is telling the truth.' If Rachel were a knight, then Violet would also be a knight, but that would mean both are telling the truth, which contradicts Olivia's statement that 'Among Violet and Rachel, exactly one person is telling the truth.' Therefore, Rachel must be lying, making her a knave. If Rachel is a knave, then Violet is also lying, making Violet a knave. That leaves Olivia and Peter. Olivia's statement is consistent with Rachel and Violet being knaves (so exactly one of them is telling the truth, which is false, so Olivia is telling the truth). Thus, Olivia is a spy. The only remaining role is knight for Peter, and his statement checks out: (1) the number of knaves is even (2), and (2) the number of liars among Rachel, Violet, and Olivia is odd (Rachel and Violet are liars, Olivia is truthful, so 2 liars, which is even, contradicting the second part). But since the first part is true and the second is false, exactly one of the two is true, which makes Peter's statement true. Hence, Peter is a knight.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Olivia\", \"role\": \"spy\"},\n        {\"name\": \"Peter\", \"role\": \"knight\"}\n    ],\n    \"explanation\": \"The game manager's hint tells us there is exactly one spy. Rachel says 'Violet and I have the same role.' Violet says 'Rachel is telling the truth.' If Rachel were a knight, then Violet would also be a knight, but that would mean both are telling the truth, which contradicts Olivia's statement that 'Among Violet and Rachel, exactly one person is telling the truth.' Therefore, Rachel must be lying, making her a knave. If Rachel is a knave, then Violet is also lying, making Violet a knave. That leaves Olivia and Peter. Olivia's statement is consistent with Rachel and Violet being knaves (so exactly one of them is telling the truth, which is false, so Olivia is telling the truth). Thus, Olivia is a spy. The only remaining role is knight for Peter, and his statement checks out: (1) the number of knaves is even (2), and (2) the number of liars among Rachel, Violet, and Olivia is odd (Rachel and Violet are liars, Olivia is truthful, so 2 liars, which is even, contradicting the second part). But since the first part is true and the second is false, exactly one of the two is true, which makes Peter's statement true. Hence, Peter is a knight.\"\n}",
+            "usage": {
+              "input": 1220,
+              "output": 339,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1559
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:30.634226",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        }
+      ],
+      "debate_summary": "Debate summary for Rachel:\n- OpenAI-gpt-5-nano: knight\n- OpenAI-gpt-4.1-mini: knave\n- Qwen-qwen-turbo-latest: knave\n",
+      "consensus_reached": false,
+      "majority_role": null
+    },
+    {
+      "player_name": "Violet",
+      "round_number": 2,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Violet": "knight"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Violet\",\n  \"role\": \"knight\",\n  \"agree_with\": [\"OpenAI-gpt-5-nano\"],\n  \"disagree_with\": [\"OpenAI-gpt-4.1-mini\", \"Qwen-qwen-turbo-latest\"],\n  \"agree_reasoning\": \"Both the OpenAI-gpt-5-nano argument and this phase’s consensus lean toward Violet being a truth-teller (knight) under the given constraints, given the exactly-one-spy hint and the structure of mutual statements.\",\n  \"disagree_reasoning\": \"OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest argued for Violet being knave (or produced scenarios leading away from Violet as knight). Their deductions either lead to contradictions with the exact-one-spy hint or rely on assumptions not forced by the statements and the rule set. Hence I disagree with their conclusion.\"\n}",
+            "usage": {
+              "input": 2116,
+              "output": 1862,
+              "reasoning": 1664,
+              "cached": 0,
+              "total": 3978
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:48.171555",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano"
+          ],
+          "disagree_with": [
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "agree_reasoning": "Both the OpenAI-gpt-5-nano argument and this phase’s consensus lean toward Violet being a truth-teller (knight) under the given constraints, given the exactly-one-spy hint and the structure of mutual statements.",
+          "disagree_reasoning": "OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest argued for Violet being knave (or produced scenarios leading away from Violet as knight). Their deductions either lead to contradictions with the exact-one-spy hint or rely on assumptions not forced by the statements and the rule set. Hence I disagree with their conclusion."
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Violet": "knave"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Violet\",\n  \"role\": \"knave\",\n  \"agree_with\": [\"OpenAI-gpt-4.1-mini\", \"Qwen-qwen-turbo-latest\"],\n  \"disagree_with\": [\"OpenAI-gpt-5-nano\"],\n  \"agree_reasoning\": \"I agree with OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest because their analysis aligns well with the logical constraints and the game manager's hint of exactly one spy. They correctly deduce that if Rachel were a knight, Violet would also be a knight, making both truthful, which contradicts Olivia's statement that exactly one of them tells the truth. With Rachel and Violet both lying (knaves), Olivia's statement becomes true, making Olivia either knight or spy, and Peter fitting the remaining role as spy or knight. Their assignments avoid contradictions in all statements and roles.\",\n  \"disagree_reasoning\": \"I disagree with OpenAI-gpt-5-nano's conclusion that Violet is a knight because assuming both Rachel and Violet are knights conflicts with Olivia's statement. Olivia states exactly one of Violet and Rachel tell the truth, but if both are knights, both tell truth, making Olivia's statement false and forcing contradicting role assignments for Olivia and Peter. Furthermore, Peter's compound statement is difficult to satisfy under that assumption without contradiction.\"\n}",
+            "usage": {
+              "input": 2117,
+              "output": 285,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2402
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:42.082686",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [
+            "OpenAI-gpt-5-nano"
+          ],
+          "agree_reasoning": "I agree with OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest because their analysis aligns well with the logical constraints and the game manager's hint of exactly one spy. They correctly deduce that if Rachel were a knight, Violet would also be a knight, making both truthful, which contradicts Olivia's statement that exactly one of them tells the truth. With Rachel and Violet both lying (knaves), Olivia's statement becomes true, making Olivia either knight or spy, and Peter fitting the remaining role as spy or knight. Their assignments avoid contradictions in all statements and roles.",
+          "disagree_reasoning": "I disagree with OpenAI-gpt-5-nano's conclusion that Violet is a knight because assuming both Rachel and Violet are knights conflicts with Olivia's statement. Olivia states exactly one of Violet and Rachel tell the truth, but if both are knights, both tell truth, making Olivia's statement false and forcing contradicting role assignments for Olivia and Peter. Furthermore, Peter's compound statement is difficult to satisfy under that assumption without contradiction."
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Violet": "knight"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"player_role\": \"Violet\",\n    \"role\": \"knight\",\n    \"agree_with\": [\"OpenAI-gpt-5-nano\"],\n    \"disagree_with\": [\"OpenAI-gpt-4.1-mini\", \"Qwen-qwen-turbo-latest\"],\n    \"agree_reasoning\": \"OpenAI-gpt-5-nano's reasoning is consistent with the game rules and the hint. Assuming Rachel is a knight leads to Violet also being a knight, which makes her statement true. Olivia's statement that exactly one of Rachel and Violet is telling the truth would then be false, making her a knave. Peter, as the spy, can make a true statement about the meta-condition, which aligns with the hint of exactly one spy. This scenario is logically consistent.\",\n    \"disagree_reasoning\": \"OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest assume Violet is a knave, but their reasoning leads to contradictions when analyzing Peter's statement. Specifically, Qwen-qwen-turbo-latest's conclusion that Olivia is a spy conflicts with the hint that there is exactly one spy. Additionally, OpenAI-gpt-4.1-mini's assumption that both Rachel and Violet are knaves leads to Olivia's statement being true, which would make her a knight, but this creates inconsistencies in the overall role distribution.\" \n}",
+            "usage": {
+              "input": 2126,
+              "output": 288,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2414
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:41.567607",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano"
+          ],
+          "disagree_with": [
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "agree_reasoning": "OpenAI-gpt-5-nano's reasoning is consistent with the game rules and the hint. Assuming Rachel is a knight leads to Violet also being a knight, which makes her statement true. Olivia's statement that exactly one of Rachel and Violet is telling the truth would then be false, making her a knave. Peter, as the spy, can make a true statement about the meta-condition, which aligns with the hint of exactly one spy. This scenario is logically consistent.",
+          "disagree_reasoning": "OpenAI-gpt-4.1-mini and Qwen-qwen-turbo-latest assume Violet is a knave, but their reasoning leads to contradictions when analyzing Peter's statement. Specifically, Qwen-qwen-turbo-latest's conclusion that Olivia is a spy conflicts with the hint that there is exactly one spy. Additionally, OpenAI-gpt-4.1-mini's assumption that both Rachel and Violet are knaves leads to Olivia's statement being true, which would make her a knight, but this creates inconsistencies in the overall role distribution."
+        },
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "Assuming Rachel and Violet share the same role makes S_R and S_V true, which makes S_O false. With exactly one spy, the consistent assignment is Rachel=knight, Violet=knight, Olivia=knave, Peter=spy. This yields: S_R true, S_V true, S_O false; for Peter: (1) knaves even is false (1 knave), (2) among R,V,O lying count is 1 (odd) true. Thus exactly one of (1) and (2) is true, so Peter’s statement is true as a spy may tell truth.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Assuming Rachel and Violet share the same role makes S_R and S_V true, which makes S_O false. With exactly one spy, the consistent assignment is Rachel=knight, Violet=knight, Olivia=knave, Peter=spy. This yields: S_R true, S_V true, S_O false; for Peter: (1) knaves even is false (1 knave), (2) among R,V,O lying count is 1 (odd) true. Thus exactly one of (1) and (2) is true, so Peter’s statement is true as a spy may tell truth.\"\n}",
+            "usage": {
+              "input": 1209,
+              "output": 1932,
+              "reasoning": 1728,
+              "cached": 0,
+              "total": 3141
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:58.603645",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "The hint states there is exactly one spy among the players. Rachel says Violet and she have the same role, and Violet says Rachel is telling the truth. If Rachel is telling the truth, Violet also tells the truth, making both knights. Olivia says among Violet and Rachel exactly one person tells the truth. Since both Rachel and Violet are knights (both telling the truth), Olivia's statement is false, making Olivia a knave. Peter states that among two statements exactly one is true: (1) the number of knaves is even, and (2) among Rachel, Violet, and Olivia, the number lying is odd. Currently, Olivia is the only knave, so the number of knaves is 1 (odd), making statement (1) false. Among Rachel, Violet, and Olivia, only Olivia lies, so the number of liars is 1 (odd), making statement (2) true. Since exactly one of Peter's statements is true, Peter's overall statement is true, thus Peter is telling the truth. But only one spy exists, so since Rachel and Violet are knights and Olivia is a knave, Peter must be the spy who tells the truth here. Therefore, the roles are Rachel knight, Violet knight, Olivia knave, and Peter spy.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The hint states there is exactly one spy among the players. Rachel says Violet and she have the same role, and Violet says Rachel is telling the truth. If Rachel is telling the truth, Violet also tells the truth, making both knights. Olivia says among Violet and Rachel exactly one person tells the truth. Since both Rachel and Violet are knights (both telling the truth), Olivia's statement is false, making Olivia a knave. Peter states that among two statements exactly one is true: (1) the number of knaves is even, and (2) among Rachel, Violet, and Olivia, the number lying is odd. Currently, Olivia is the only knave, so the number of knaves is 1 (odd), making statement (1) false. Among Rachel, Violet, and Olivia, only Olivia lies, so the number of liars is 1 (odd), making statement (2) true. Since exactly one of Peter's statements is true, Peter's overall statement is true, thus Peter is telling the truth. But only one spy exists, so since Rachel and Violet are knights and Olivia is a knave, Peter must be the spy who tells the truth here. Therefore, the roles are Rachel knight, Violet knight, Olivia knave, and Peter spy.\"\n}",
+            "usage": {
+              "input": 1210,
+              "output": 332,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1542
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:53.330821",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 2,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy. If Violet is a knight, her statement that 'Rachel is telling the truth' must be true, so Rachel is also a knight. This makes Rachel's statement ('Violet and I have the same role') true, which is consistent. Olivia claims that 'among Violet and Rachel, exactly one person is telling the truth.' But since both are knights, this statement is false, making Olivia a knave. Peter's statement involves two parts: (1) the number of knaves is even, and (2) the number of liars among Rachel, Violet, and Olivia is odd. Since Olivia is the only knave, (1) is false, and (2) is true (only Olivia is lying). Thus, exactly one of the two statements is true, making Peter's statement true. Since there is only one spy, and Peter is the only one left, he must be the spy.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The game manager's hint states there is exactly one spy. If Violet is a knight, her statement that 'Rachel is telling the truth' must be true, so Rachel is also a knight. This makes Rachel's statement ('Violet and I have the same role') true, which is consistent. Olivia claims that 'among Violet and Rachel, exactly one person is telling the truth.' But since both are knights, this statement is false, making Olivia a knave. Peter's statement involves two parts: (1) the number of knaves is even, and (2) the number of liars among Rachel, Violet, and Olivia is odd. Since Olivia is the only knave, (1) is false, and (2) is true (only Olivia is lying). Thus, exactly one of the two statements is true, making Peter's statement true. Since there is only one spy, and Peter is the only one left, he must be the spy.\"\n}",
+            "usage": {
+              "input": 1219,
+              "output": 267,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1486
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:21:52.250295",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        }
+      ],
+      "debate_summary": "Debate summary for Violet:\n- OpenAI-gpt-5-nano: knight\n- OpenAI-gpt-4.1-mini: knight\n- Qwen-qwen-turbo-latest: knight\n",
+      "consensus_reached": false,
+      "majority_role": null
+    },
+    {
+      "player_name": "Olivia",
+      "round_number": 3,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Olivia": "knave"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Olivia\",\n  \"role\": \"knave\",\n  \"agree_with\": [\"OpenAI-gpt-5-nano\", \"OpenAI-gpt-4.1-mini\", \"Qwen-qwen-turbo-latest\"],\n  \"disagree_with\": [],\n  \"agree_reasoning\": \"If Olivia is a knave, her statement about Violet and Rachel (that exactly one tells the truth) must be false. This aligns with the scenario where Violet and Rachel are both truthful (knights), making exactly two truth-tellers among them. Given the game manager's hint of exactly one spy, the only consistent assignment that satisfies all statements is Olivia as a knave and the spy role being assigned to Peter, with Rachel and Violet as knights.\",\n  \"disagree_reasoning\": \"No disagreement: all three agents cited support Olivia being a knave, which is the consistent conclusion under the single-spy constraint and the other statements.\"\n}",
+            "usage": {
+              "input": 2141,
+              "output": 908,
+              "reasoning": 704,
+              "cached": 0,
+              "total": 3049
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:03.844645",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [],
+          "agree_reasoning": "If Olivia is a knave, her statement about Violet and Rachel (that exactly one tells the truth) must be false. This aligns with the scenario where Violet and Rachel are both truthful (knights), making exactly two truth-tellers among them. Given the game manager's hint of exactly one spy, the only consistent assignment that satisfies all statements is Olivia as a knave and the spy role being assigned to Peter, with Rachel and Violet as knights.",
+          "disagree_reasoning": "No disagreement: all three agents cited support Olivia being a knave, which is the consistent conclusion under the single-spy constraint and the other statements."
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Olivia": "knave"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Olivia\",\n  \"role\": \"knave\",\n  \"agree_with\": [\"OpenAI-gpt-5-nano\", \"OpenAI-gpt-4.1-mini\", \"Qwen-qwen-turbo-latest\"],\n  \"disagree_with\": [],\n  \"agree_reasoning\": \"The arguments by OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, and Qwen-qwen-turbo-latest are consistent and well supported by the game rules and hint. Rachel and Violet both affirm Rachel's statement is true, meaning they share the same role, which must be knights to both tell truth. Olivia's statement that exactly one of them is telling the truth thus becomes false, making Olivia a knave. Peter's statement about knaves being even and lying counts among Rachel, Violet, and Olivia fits perfectly with Olivia as the sole knave, Peter as the spy, and Rachel and Violet as knights. There are no contradictions, and this satisfies the hint of exactly one spy.\",\n  \"disagree_reasoning\": \"No disagreement with any agent's reasoning on Olivia's role since all three agents have logically aligned conclusions that fit the constraints provided by the game manager's hint and the players' statements.\"\n}",
+            "usage": {
+              "input": 2142,
+              "output": 261,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2403
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:02.636878",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [],
+          "agree_reasoning": "The arguments by OpenAI-gpt-5-nano, OpenAI-gpt-4.1-mini, and Qwen-qwen-turbo-latest are consistent and well supported by the game rules and hint. Rachel and Violet both affirm Rachel's statement is true, meaning they share the same role, which must be knights to both tell truth. Olivia's statement that exactly one of them is telling the truth thus becomes false, making Olivia a knave. Peter's statement about knaves being even and lying counts among Rachel, Violet, and Olivia fits perfectly with Olivia as the sole knave, Peter as the spy, and Rachel and Violet as knights. There are no contradictions, and this satisfies the hint of exactly one spy.",
+          "disagree_reasoning": "No disagreement with any agent's reasoning on Olivia's role since all three agents have logically aligned conclusions that fit the constraints provided by the game manager's hint and the players' statements."
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Olivia": "knave"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"player_role\": \"Olivia\",\n    \"role\": \"knave\",\n    \"agree_with\": [\"OpenAI-gpt-5-nano\", \"OpenAI-gpt-4.1-mini\", \"Qwen-qwen-turbo-latest\"],\n    \"disagree_with\": [],\n    \"agree_reasoning\": \"All three agents correctly deduce that Olivia is a knave based on the consistency of the statements and the game manager's hint. If Rachel and Violet have the same role, and Violet says Rachel is telling the truth, then both must be knights. This makes Olivia's statement ('among Violet and Rachel, exactly one person is telling the truth') false, which means Olivia is lying and therefore a knave.\",\n    \"disagree_reasoning\": \"There are no agents to disagree with, as all relevant agents agree that Olivia is a knave, and their reasoning aligns with the logical deductions from the statements and the hint.\"\n}",
+            "usage": {
+              "input": 2154,
+              "output": 196,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2350
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:02.021314",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [],
+          "agree_reasoning": "All three agents correctly deduce that Olivia is a knave based on the consistency of the statements and the game manager's hint. If Rachel and Violet have the same role, and Violet says Rachel is telling the truth, then both must be knights. This makes Olivia's statement ('among Violet and Rachel, exactly one person is telling the truth') false, which means Olivia is lying and therefore a knave.",
+          "disagree_reasoning": "There are no agents to disagree with, as all relevant agents agree that Olivia is a knave, and their reasoning aligns with the logical deductions from the statements and the hint."
+        },
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "Assuming Violet is truthful leads to Rachel also truthful, making Olivia's statement false (since both Violet and Rachel would be truthful). This makes Olivia a knave. With exactly one spy, Peter is the spy. The knave count is 1 (Olivia), which makes Peter's statement true overall. All statements are then consistent with knights telling truth, knave lying, and one spy present.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Rachel\", \"role\": \"knight\"},\n    {\"name\": \"Violet\", \"role\": \"knight\"},\n    {\"name\": \"Olivia\", \"role\": \"knave\"},\n    {\"name\": \"Peter\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"Assuming Violet is truthful leads to Rachel also truthful, making Olivia's statement false (since both Violet and Rachel would be truthful). This makes Olivia a knave. With exactly one spy, Peter is the spy. The knave count is 1 (Olivia), which makes Peter's statement true overall. All statements are then consistent with knights telling truth, knave lying, and one spy present.\"\n}",
+            "usage": {
+              "input": 1211,
+              "output": 1695,
+              "reasoning": 1536,
+              "cached": 0,
+              "total": 2906
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:14.400547",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "The hint states there is exactly one spy. Rachel says Violet and she share the same role, and Violet confirms Rachel's truthfulness. If Rachel tells the truth, she is a knight, so Violet must also be a knight. Olivia claims exactly one of Rachel or Violet tells the truth. Since both are knights and telling the truth, Olivia's statement is false, so Olivia is a knave. Peter says exactly one of two statements is true: (1) the total number of knaves is even, (2) among Rachel, Violet, and Olivia, the number who lie is odd. There is one knave (Olivia), which is odd, so statement (1) is false. Among Rachel, Violet, Olivia, only Olivia lies, so one liar which is odd, so statement (2) is true. Exactly one statement is true, making Peter truthful or lying depending on his role. Since there is exactly one spy, and Rachel, Violet are knights, Olivia is knave, Peter must be the spy. The roles comply with all truthfulness and lying constraints and the game manager's hint.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"players\": [\n    {\"name\": \"Rachel\", \"role\": \"knight\"},\n    {\"name\": \"Violet\", \"role\": \"knight\"},\n    {\"name\": \"Olivia\", \"role\": \"knave\"},\n    {\"name\": \"Peter\", \"role\": \"spy\"}\n  ],\n  \"explanation\": \"The hint states there is exactly one spy. Rachel says Violet and she share the same role, and Violet confirms Rachel's truthfulness. If Rachel tells the truth, she is a knight, so Violet must also be a knight. Olivia claims exactly one of Rachel or Violet tells the truth. Since both are knights and telling the truth, Olivia's statement is false, so Olivia is a knave. Peter says exactly one of two statements is true: (1) the total number of knaves is even, (2) among Rachel, Violet, and Olivia, the number who lie is odd. There is one knave (Olivia), which is odd, so statement (1) is false. Among Rachel, Violet, Olivia, only Olivia lies, so one liar which is odd, so statement (2) is true. Exactly one statement is true, making Peter truthful or lying depending on his role. Since there is exactly one spy, and Rachel, Violet are knights, Olivia is knave, Peter must be the spy. The roles comply with all truthfulness and lying constraints and the game manager's hint.\"\n}",
+            "usage": {
+              "input": 1212,
+              "output": 298,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1510
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:11.186268",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 3,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knave",
+            "Violet": "knave",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "The hint says there is exactly one spy. Let's analyze the statements. If Olivia is a knave, then her statement that 'among Violet and Rachel, exactly one person is telling the truth' is false. That means either both are lying or both are telling the truth. If Rachel and Violet have the same role, and they both say things that support each other (Rachel says she and Violet have the same role; Violet says Rachel is telling the truth), then they must both be lying (knaves) or both telling the truth (knights). But if they were knights, their statements would be true, which would make Olivia's statement true, contradicting her being a knave. Therefore, Rachel and Violet must both be knaves. This makes Olivia's statement false, confirming she is a knave. That leaves Peter as the only possible spy, since there is exactly one spy.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knave\"},\n        {\"name\": \"Violet\", \"role\": \"knave\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The hint says there is exactly one spy. Let's analyze the statements. If Olivia is a knave, then her statement that 'among Violet and Rachel, exactly one person is telling the truth' is false. That means either both are lying or both are telling the truth. If Rachel and Violet have the same role, and they both say things that support each other (Rachel says she and Violet have the same role; Violet says Rachel is telling the truth), then they must both be lying (knaves) or both telling the truth (knights). But if they were knights, their statements would be true, which would make Olivia's statement true, contradicting her being a knave. Therefore, Rachel and Violet must both be knaves. This makes Olivia's statement false, confirming she is a knave. That leaves Peter as the only possible spy, since there is exactly one spy.\"\n}",
+            "usage": {
+              "input": 1221,
+              "output": 254,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1475
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:06.910889",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        }
+      ],
+      "debate_summary": "Debate summary for Olivia:\n- OpenAI-gpt-5-nano: knave\n- OpenAI-gpt-4.1-mini: knave\n- Qwen-qwen-turbo-latest: knave\n",
+      "consensus_reached": false,
+      "majority_role": null
+    },
+    {
+      "player_name": "Peter",
+      "round_number": 4,
+      "agent_responses": [
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Peter": "spy"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Peter\",\n  \"role\": \"spy\",\n  \"agree_with\": [\n    \"OpenAI-gpt-5-nano\",\n    \"OpenAI-gpt-4.1-mini\",\n    \"Qwen-qwen-turbo-latest\"\n  ],\n  \"disagree_with\": [],\n  \"agree_reasoning\": \"All three agents cited converge on the deduction that there is exactly one spy and, given the statements, Peter must be the spy to maintain consistency with the truth/lie pattern and the manager's hint.\",\n  \"disagree_reasoning\": \"\"\n}",
+            "usage": {
+              "input": 2147,
+              "output": 511,
+              "reasoning": 384,
+              "cached": 0,
+              "total": 2658
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:17.844114",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [],
+          "agree_reasoning": "All three agents cited converge on the deduction that there is exactly one spy and, given the statements, Peter must be the spy to maintain consistency with the truth/lie pattern and the manager's hint.",
+          "disagree_reasoning": ""
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Peter": "spy"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n  \"player_role\": \"Peter\",\n  \"role\": \"spy\",\n  \"agree_with\": [\n    \"OpenAI-gpt-5-nano\",\n    \"OpenAI-gpt-4.1-mini\",\n    \"Qwen-qwen-turbo-latest\"\n  ],\n  \"disagree_with\": [\n    \"OpenAI-gpt-5-nano (first instance)\",\n    \"OpenAI-gpt-4.1-mini (first instance)\",\n    \"Qwen-qwen-turbo-latest (first instance)\"\n  ],\n  \"agree_reasoning\": \"I agree with the consensus that Peter is a spy based on the following reasoning: The game manager guarantees exactly one spy. Rachel and Violet either both tell the truth or both lie about their roles, as they support each other's statements. Olivia's statement that exactly one of Rachel or Violet tells the truth is false, indicating Olivia is a knave. This leaves Peter as the only candidate for the spy role. Peter’s statement about exactly one of two statements being true aligns with the scenario where Olivia is the sole knave and Rachel and Violet are knights. The consistency of this configuration with the rules supports Peter being the spy.\",\n  \"disagree_reasoning\": \"I disagree with the agents who labeled Peter as an unknown because they fail to leverage the hint about exactly one spy and do not fully resolve the consistent scenario that aligns with all statements and the hint. The scenario where Rachel and Violet have the same role and Olivia is the knave leads directly to Peter taking the one spy role, as a consistent logical conclusion. Thus, remaining undecided is less precise given the available information.\"\n}",
+            "usage": {
+              "input": 2148,
+              "output": 335,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2483
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:19.338073",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [
+            "OpenAI-gpt-5-nano (first instance)",
+            "OpenAI-gpt-4.1-mini (first instance)",
+            "Qwen-qwen-turbo-latest (first instance)"
+          ],
+          "agree_reasoning": "I agree with the consensus that Peter is a spy based on the following reasoning: The game manager guarantees exactly one spy. Rachel and Violet either both tell the truth or both lie about their roles, as they support each other's statements. Olivia's statement that exactly one of Rachel or Violet tells the truth is false, indicating Olivia is a knave. This leaves Peter as the only candidate for the spy role. Peter’s statement about exactly one of two statements being true aligns with the scenario where Olivia is the sole knave and Rachel and Violet are knights. The consistency of this configuration with the rules supports Peter being the spy.",
+          "disagree_reasoning": "I disagree with the agents who labeled Peter as an unknown because they fail to leverage the hint about exactly one spy and do not fully resolve the consistent scenario that aligns with all statements and the hint. The scenario where Rachel and Violet have the same role and Olivia is the knave leads directly to Peter taking the one spy role, as a consistent logical conclusion. Thus, remaining undecided is less precise given the available information."
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "debate",
+          "player_role_assignments": {
+            "Peter": "spy"
+          },
+          "explanation": "",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"player_role\": \"Peter\",\n    \"role\": \"spy\",\n    \"agree_with\": [\"OpenAI-gpt-5-nano\", \"OpenAI-gpt-4.1-mini\", \"Qwen-qwen-turbo-latest\"],\n    \"disagree_with\": [],\n    \"agree_reasoning\": \"All three agents correctly deduce that Peter must be the spy based on the game manager's hint that there is exactly one spy. Their reasoning consistently shows that if Rachel and Violet are both knights (as their statements support each other), then Olivia must be a knave, leaving Peter as the only remaining role for the spy. This aligns with the logical constraints of the game.\",\n    \"disagree_reasoning\": \"No agents are disagreed with, as all relevant agents agree that Peter is the spy, and their reasoning is consistent with the given constraints and the game manager's hint.\"\n}",
+            "usage": {
+              "input": 2166,
+              "output": 185,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 2351
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:23.593467",
+          "error": "",
+          "agree_with": [
+            "OpenAI-gpt-5-nano",
+            "OpenAI-gpt-4.1-mini",
+            "Qwen-qwen-turbo-latest"
+          ],
+          "disagree_with": [],
+          "agree_reasoning": "All three agents correctly deduce that Peter must be the spy based on the game manager's hint that there is exactly one spy. Their reasoning consistently shows that if Rachel and Violet are both knights (as their statements support each other), then Olivia must be a knave, leaving Peter as the only remaining role for the spy. This aligns with the logical constraints of the game.",
+          "disagree_reasoning": "No agents are disagreed with, as all relevant agents agree that Peter is the spy, and their reasoning is consistent with the given constraints and the game manager's hint."
+        },
+        {
+          "agent_name": "OpenAI-gpt-5-nano",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "Assume Rachel and Violet are knights: Rachel's claim (Violet and I have the same role) is true, so Violet's statement (Rachel is telling the truth) is true. Olivia's statement then claims exactly one of Violet and Rachel is truthful, which is false since both are truthful, so Olivia must be a knave. With exactly one spy, Peter is the spy. Peter's statement then has (1) false (knaves count even is false since there is 1 knave), and (2) true (R,V,Olivia have exactly one liar among them), so exactly one of the two is true, making Peter's statement true, which is allowed for a spy. All conditions satisfied.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"Assume Rachel and Violet are knights: Rachel's claim (Violet and I have the same role) is true, so Violet's statement (Rachel is telling the truth) is true. Olivia's statement then claims exactly one of Violet and Rachel is truthful, which is false since both are truthful, so Olivia must be a knave. With exactly one spy, Peter is the spy. Peter's statement then has (1) false (knaves count even is false since there is 1 knave), and (2) true (R,V,Olivia have exactly one liar among them), so exactly one of the two is true, making Peter's statement true, which is allowed for a spy. All conditions satisfied.\" \n}",
+            "usage": {
+              "input": 1208,
+              "output": 1761,
+              "reasoning": 1536,
+              "cached": 0,
+              "total": 2969
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:34.560505",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "OpenAI-gpt-4.1-mini",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "The game manager's hint states exactly one spy among all players. Peter claims that exactly one of two statements is true: (1) the number of knaves is even among all players, and (2) the number of people lying among Rachel, Violet, and Olivia is odd. Assume Peter is the spy since he can lie or tell truth freely. Rachel says she and Violet share the same role and Violet confirms Rachel's statement, so both Rachel and Violet either both tell the truth or both lie. Olivia says exactly one of Rachel and Violet tells the truth, which contradicts their agreement if they are truthful. Hence, Rachel and Violet are both telling the truth (knights), Olivia is lying (knave). Among all players, only one knave (Olivia) so the number of knaves is odd; thus statement (1) is false. Among Rachel, Violet, Olivia, the number of liars is one (Olivia), which is odd, so statement (2) is true. Therefore, exactly one of Peter's two statements is true, making his statement true. Since Peter can tell truth or lie as a spy, he fits as the spy. This arrangement satisfies the truthfulness rules and the game manager's hint.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The game manager's hint states exactly one spy among all players. Peter claims that exactly one of two statements is true: (1) the number of knaves is even among all players, and (2) the number of people lying among Rachel, Violet, and Olivia is odd. Assume Peter is the spy since he can lie or tell truth freely. Rachel says she and Violet share the same role and Violet confirms Rachel's statement, so both Rachel and Violet either both tell the truth or both lie. Olivia says exactly one of Rachel and Violet tells the truth, which contradicts their agreement if they are truthful. Hence, Rachel and Violet are both telling the truth (knights), Olivia is lying (knave). Among all players, only one knave (Olivia) so the number of knaves is odd; thus statement (1) is false. Among Rachel, Violet, Olivia, the number of liars is one (Olivia), which is odd, so statement (2) is true. Therefore, exactly one of Peter's two statements is true, making his statement true. Since Peter can tell truth or lie as a spy, he fits as the spy. This arrangement satisfies the truthfulness rules and the game manager's hint.\"\n}",
+            "usage": {
+              "input": 1209,
+              "output": 324,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1533
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:28.899735",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        },
+        {
+          "agent_name": "Qwen-qwen-turbo-latest",
+          "game_id": 1,
+          "round_number": 4,
+          "phase": "self_adjustment",
+          "player_role_assignments": {
+            "Rachel": "knight",
+            "Violet": "knight",
+            "Olivia": "knave",
+            "Peter": "spy"
+          },
+          "explanation": "The game manager's hint states there is exactly one spy. Rachel claims she and Violet have the same role. Violet says Rachel is telling the truth, which implies they are both knights or both knaves. If they were both knaves, their statements would be lies, but that would mean Rachel is not telling the truth, contradicting Violet's statement. So Rachel and Violet must both be knights. Olivia claims that exactly one of Rachel and Violet is telling the truth. Since both are telling the truth, Olivia must be lying, making her a knave. That leaves Peter as the only remaining player, who must be the spy. Peter’s statement involves two parts: (1) the number of knaves is even, and (2) the number of liars among Rachel, Violet, and Olivia is odd. We know Olivia is a knave (a liar), and Rachel and Violet are truthful. So there is 1 liar among them, making part (2) true. However, the total number of knaves is 1 (Olivia), which is odd, making part (1) false. Thus, exactly one of the two parts is true, which makes Peter’s statement true. Since he is the only spy, this is consistent with the rules.",
+          "confidence": 3.0,
+          "response_obj": {
+            "text": "{\n    \"players\": [\n        {\"name\": \"Rachel\", \"role\": \"knight\"},\n        {\"name\": \"Violet\", \"role\": \"knight\"},\n        {\"name\": \"Olivia\", \"role\": \"knave\"},\n        {\"name\": \"Peter\", \"role\": \"spy\"}\n    ],\n    \"explanation\": \"The game manager's hint states there is exactly one spy. Rachel claims she and Violet have the same role. Violet says Rachel is telling the truth, which implies they are both knights or both knaves. If they were both knaves, their statements would be lies, but that would mean Rachel is not telling the truth, contradicting Violet's statement. So Rachel and Violet must both be knights. Olivia claims that exactly one of Rachel and Violet is telling the truth. Since both are telling the truth, Olivia must be lying, making her a knave. That leaves Peter as the only remaining player, who must be the spy. Peter’s statement involves two parts: (1) the number of knaves is even, and (2) the number of liars among Rachel, Violet, and Olivia is odd. We know Olivia is a knave (a liar), and Rachel and Violet are truthful. So there is 1 liar among them, making part (2) true. However, the total number of knaves is 1 (Olivia), which is odd, making part (1) false. Thus, exactly one of the two parts is true, which makes Peter’s statement true. Since he is the only spy, this is consistent with the rules.\"\n}",
+            "usage": {
+              "input": 1218,
+              "output": 328,
+              "reasoning": 0,
+              "cached": 0,
+              "total": 1546
+            },
+            "summary": "",
+            "error": ""
+          },
+          "timestamp": "2025-09-17T18:22:40.996661",
+          "error": "",
+          "agree_with": null,
+          "disagree_with": null,
+          "agree_reasoning": null,
+          "disagree_reasoning": null
+        }
+      ],
+      "debate_summary": "Debate summary for Peter:\n- OpenAI-gpt-5-nano: spy\n- OpenAI-gpt-4.1-mini: spy\n- Qwen-qwen-turbo-latest: spy\n",
+      "consensus_reached": false,
+      "majority_role": null
+    }
+  ],
+  "final_vote": {
+    "Rachel": "knight",
+    "Violet": "knight",
+    "Olivia": "knave",
+    "Peter": "spy"
+  },
+  "supervisor_decision": null,
+  "performance_tracking": {
+    "game_id": 1,
+    "ground_truth": {
+      "Rachel": "knight",
+      "Violet": "knight",
+      "Olivia": "knave",
+      "Peter": "spy"
+    },
+    "initial_accuracy": {
+      "OpenAI-gpt-5-nano": 0.25,
+      "OpenAI-gpt-4.1-mini": 1.0,
+      "Qwen-qwen-turbo-latest": 0.0
+    },
+    "final_accuracy": {
+      "majority_vote": 1.0
+    },
+    "consensus_accuracy": {},
+    "agent_performance": {},
+    "round_by_round": [
+      {
+        "player": "Rachel",
+        "round": 1,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 1.0,
+          "OpenAI-gpt-4.1-mini": 0.25,
+          "Qwen-qwen-turbo-latest": 0.0
+        }
+      },
+      {
+        "player": "Violet",
+        "round": 2,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 1.0,
+          "OpenAI-gpt-4.1-mini": 1.0,
+          "Qwen-qwen-turbo-latest": 1.0
+        }
+      },
+      {
+        "player": "Olivia",
+        "round": 3,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 1.0,
+          "OpenAI-gpt-4.1-mini": 1.0,
+          "Qwen-qwen-turbo-latest": 0.5
+        }
+      },
+      {
+        "player": "Peter",
+        "round": 4,
+        "agent_accuracy": {
+          "OpenAI-gpt-5-nano": 1.0,
+          "OpenAI-gpt-4.1-mini": 1.0,
+          "Qwen-qwen-turbo-latest": 1.0
+        }
+      }
+    ],
+    "detailed_per_player_tracking": {
+      "initial": {
+        "OpenAI-gpt-5-nano": {
+          "Rachel": {
+            "predicted": "knave",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Violet": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Olivia": {
+            "predicted": "spy",
+            "ground_truth": "knave",
+            "correct": false
+          },
+          "Peter": {
+            "predicted": "knight",
+            "ground_truth": "spy",
+            "correct": false
+          }
+        },
+        "OpenAI-gpt-4.1-mini": {
+          "Rachel": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Violet": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Olivia": {
+            "predicted": "knave",
+            "ground_truth": "knave",
+            "correct": true
+          },
+          "Peter": {
+            "predicted": "spy",
+            "ground_truth": "spy",
+            "correct": true
+          }
+        },
+        "Qwen-qwen-turbo-latest": {
+          "Rachel": {
+            "predicted": "knave",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Violet": {
+            "predicted": "knave",
+            "ground_truth": "knight",
+            "correct": false
+          },
+          "Olivia": {
+            "predicted": "spy",
+            "ground_truth": "knave",
+            "correct": false
+          },
+          "Peter": {
+            "predicted": "knight",
+            "ground_truth": "spy",
+            "correct": false
+          }
+        }
+      },
+      "rounds": {
+        "round_1": {
+          "player_focus": "Rachel",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "OpenAI-gpt-4.1-mini": {
+              "Rachel": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Violet": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Olivia": {
+                "predicted": "knight",
+                "ground_truth": "knave",
+                "correct": false
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Rachel": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Violet": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Olivia": {
+                "predicted": "spy",
+                "ground_truth": "knave",
+                "correct": false
+              },
+              "Peter": {
+                "predicted": "knight",
+                "ground_truth": "spy",
+                "correct": false
+              }
+            }
+          }
+        },
+        "round_2": {
+          "player_focus": "Violet",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "OpenAI-gpt-4.1-mini": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            }
+          }
+        },
+        "round_3": {
+          "player_focus": "Olivia",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "OpenAI-gpt-4.1-mini": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Rachel": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Violet": {
+                "predicted": "knave",
+                "ground_truth": "knight",
+                "correct": false
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            }
+          }
+        },
+        "round_4": {
+          "player_focus": "Peter",
+          "agents": {
+            "OpenAI-gpt-5-nano": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "OpenAI-gpt-4.1-mini": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            },
+            "Qwen-qwen-turbo-latest": {
+              "Rachel": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Violet": {
+                "predicted": "knight",
+                "ground_truth": "knight",
+                "correct": true
+              },
+              "Olivia": {
+                "predicted": "knave",
+                "ground_truth": "knave",
+                "correct": true
+              },
+              "Peter": {
+                "predicted": "spy",
+                "ground_truth": "spy",
+                "correct": true
+              }
+            }
+          }
+        }
+      },
+      "final": {
+        "majority_vote": {
+          "Rachel": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Violet": {
+            "predicted": "knight",
+            "ground_truth": "knight",
+            "correct": true
+          },
+          "Olivia": {
+            "predicted": "knave",
+            "ground_truth": "knave",
+            "correct": true
+          },
+          "Peter": {
+            "predicted": "spy",
+            "ground_truth": "spy",
+            "correct": true
+          }
+        }
+      },
+      "supervisor": {}
+    }
+  }
+}

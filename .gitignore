@@ -1,4 +1,3 @@
 secret.json
-debate_results/
-*.pyc
+debate_results/*
 __pycache__/
