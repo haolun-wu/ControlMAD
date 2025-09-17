@@ -137,6 +137,23 @@ def get_kks_response_schema_with_confidence(include_confidence: bool = False) ->
     
     return schema_with_confidence
 
+def get_kks_debate_response_schema_with_confidence(include_confidence: bool = False) -> dict:
+    """Get the KKS debate response schema, optionally including confidence field."""
+    if not include_confidence:
+        return kks_debate_response_schema
+    
+    # Create a copy of the schema and add confidence field
+    schema_with_confidence = kks_debate_response_schema.copy()
+    schema_with_confidence['properties']['confidence'] = {
+        'type': 'integer',
+        'minimum': 1,
+        'maximum': 10,
+        'description': 'Confidence level in the solution (1-5)'
+    }
+    schema_with_confidence['required'].append('confidence')
+    
+    return schema_with_confidence
+
 kks_response_schema = {
     'type': 'object',
     'description': "A complete solution to a Knights and Knaves puzzle.",
@@ -166,4 +183,43 @@ kks_response_schema = {
         }
     },
     'required': ['players', 'explanation']
+}
+
+kks_debate_response_schema = {
+    'type': 'object',
+    'description': "A debate response for a specific player's role in a Knights and Knaves puzzle.",
+    'properties': {
+        'player_role': {
+            'type': 'string',
+            'description': 'The name of the player being debated'
+        },
+        'role': {
+            'type': 'string',
+            'enum': ['knight', 'knave', 'spy'],
+            'description': 'The role assigned to this player'
+        },
+        'agree_with': {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+            'description': 'List of agent names that this agent agrees with regarding this player\'s role'
+        },
+        'disagree_with': {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+            'description': 'List of agent names that this agent disagrees with regarding this player\'s role'
+        },
+        'agree_reasoning': {
+            'type': 'string',
+            'description': 'Detailed reasoning for why this agent agrees with the specified agents'
+        },
+        'disagree_reasoning': {
+            'type': 'string',
+            'description': 'Detailed reasoning for why this agent disagrees with the specified agents'
+        }
+    },
+    'required': ['player_role', 'role', 'agree_with', 'disagree_with', 'agree_reasoning', 'disagree_reasoning']
 }

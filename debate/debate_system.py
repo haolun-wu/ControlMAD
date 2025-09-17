@@ -13,7 +13,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.project_types import ground_truth, response_format, token_usage
 from debate.debate_config import DebateConfig, AgentConfig
 from utils.utility import openai_client, gemini_client, ali_client, cstcloud, ParallelProcessor
-from prompts import kks_system_prompt, kks_response_schema, get_kks_system_prompt_with_confidence, get_kks_response_schema_with_confidence
+from prompts import (
+    kks_system_prompt,
+    kks_response_schema,
+    get_kks_system_prompt_with_confidence,
+    get_kks_response_schema_with_confidence,
+    get_kks_debate_response_schema_with_confidence
+)
 
 # Import visualizer (with try-except to handle potential import issues)
 try:
@@ -527,7 +533,6 @@ class MultiAgentDebateSystem:
                 
                 # Make API call
                 system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
-                response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
                 
                 if config.provider == "openai":
                     # Check if model supports reasoning parameters
@@ -547,11 +552,13 @@ class MultiAgentDebateSystem:
                             model=config.model
                         )
                 elif config.provider == "gemini":
+                    # Use debate-specific schema for Gemini
+                    debate_response_schema = get_kks_debate_response_schema_with_confidence(self.config.self_reported_confidence)
                     response_obj = client.chat_completion(
                         user_prompt=debate_prompt,
                         system_prompt=system_prompt,
                         model=config.model,
-                        response_schema=response_schema
+                        response_schema=debate_response_schema
                     )
                 else:
                     response_obj = client.chat_completion(
