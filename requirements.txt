@@ -1,6 +1,6 @@
 # Core LLM API packages
 openai>=1.0.0
-google-generativeai>=0.3.0
+google-generativeai==0.8.5
 dashscope>=1.14.0
 
 # Visualization packages
@@ -17,4 +17,3 @@ tqdm>=4.64.0
 pytest>=7.0.0
 jupyter>=1.0.0
 
-# Note: Python 3.10+ required

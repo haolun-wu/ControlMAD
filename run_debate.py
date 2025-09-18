@@ -92,7 +92,8 @@ def create_visualizations_for_agent_folder(debate_config: DebateConfig):
     # Get agent folder path
     agent_count = len(debate_config.agents)
     model_names = [agent.model for agent in debate_config.agents]
-    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}"
+    conf_suffix = "true" if debate_config.self_reported_confidence else "false"
+    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}_conf_{conf_suffix}"
     agent_path = os.path.join(debate_config.output_path, agent_folder)
     
     if not os.path.exists(agent_path):
@@ -292,7 +293,8 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     # Show the base agent folder path
     agent_count = len(debate_config.agents)
     model_names = [agent.model for agent in debate_config.agents]
-    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}"
+    conf_suffix = "true" if debate_config.self_reported_confidence else "false"
+    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}_conf_{conf_suffix}"
     base_path = os.path.join(debate_config.output_path, agent_folder)
     print(f"📁 Results saved to: {base_path}")
 
@@ -356,7 +358,8 @@ def run_flexible_debate(llm_configs: List[Dict[str, Any]],
     # Show the base agent folder path
     agent_count = len(debate_config.agents)
     model_names = [agent.model for agent in debate_config.agents]
-    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}"
+    conf_suffix = "true" if debate_config.self_reported_confidence else "false"
+    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}_conf_{conf_suffix}"
     base_path = os.path.join(debate_config.output_path, agent_folder)
     print(f"📁 Results saved to: {base_path}")
 

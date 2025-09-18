@@ -59,13 +59,15 @@ class DebateVisualizer:
                                 correct += 1
                         accuracy = correct / total if total > 0 else 0
                         
-                        phase_label = 'Debate' if response.phase == 'debate' else 'Self-Adjustment'
-                        data.append({
-                            'Game': session.game_id,
-                            'Agent': response.agent_name,
-                            'Phase': f'Round {round_data.round_number} - {phase_label}',
-                            'Accuracy': accuracy
-                        })
+                        # Only include self-adjustment phases for the visualization
+                        # This represents the state after each round's self-adjustment
+                        if response.phase == 'self_adjustment':
+                            data.append({
+                                'Game': session.game_id,
+                                'Agent': response.agent_name,
+                                'Phase': f'After Round {round_data.round_number}',
+                                'Accuracy': accuracy
+                            })
             
             # Final consensus (if available)
             if session.final_vote:
@@ -760,8 +762,9 @@ class DebateVisualizer:
             # Debate phases for each round
             for round_data in session.debate_rounds:
                 for response in round_data.agent_responses:
-                    if response.phase in ['debate', 'self_adjustment']:
-                        phase_label = 'Debate' if response.phase == 'debate' else 'Self-Adjustment'
+                    # Only include self-adjustment phases for the visualization
+                    # This represents the state after each round's self-adjustment
+                    if response.phase == 'self_adjustment':
                         for player, gt_role in gt_solution.items():
                             predicted_role = response.player_role_assignments.get(player, "unknown")
                             is_correct = predicted_role == gt_role
@@ -770,7 +773,7 @@ class DebateVisualizer:
                                 'Game': session.game_id,
                                 'Agent': response.agent_name,
                                 'Player': player,
-                                'Phase': f'Round {round_data.round_number} - {phase_label}',
+                                'Phase': f'After Round {round_data.round_number}',
                                 'Predicted': predicted_role,
                                 'Ground_Truth': gt_role,
                                 'Correct': is_correct
@@ -1033,17 +1036,8 @@ class DebateVisualizer:
     
     def _json_to_debate_session(self, session_data: Dict[str, Any]) -> DebateSession:
         """Convert JSON data back to DebateSession object."""
-        # This is a simplified conversion - you might need to handle nested objects
-        return DebateSession(
-            game_id=session_data['game_id'],
-            game_text=session_data['game_text'],
-            ground_truth_solution=session_data['ground_truth_solution'],
-            initial_proposals=[],  # Simplified for now
-            debate_rounds=[],     # Simplified for now
-            final_vote=session_data.get('final_vote'),
-            supervisor_decision=session_data.get('supervisor_decision'),
-            performance_tracking=session_data.get('performance_tracking')
-        )
+        # Use the more complete conversion function
+        return _dict_to_debate_session(session_data)
 
 def load_debate_sessions(results_dir: str) -> List[DebateSession]:
     """Load debates from JSON files in the results directory and all subdirectories."""

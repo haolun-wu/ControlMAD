@@ -33,7 +33,7 @@ class DebateConfig:
     game_size: int = 4
     game_id_range: List[int] = field(default_factory=lambda: [1, 1])  # [start_id, end_id] inclusive
     game_parallel_workers: int = 20  # Number of workers for game-level parallel processing
-    self_reported_confidence: bool = True  # SRC: Whether models output confidence scores (1-5)
+    self_reported_confidence: bool = False  # SRC: Whether models output confidence scores (1-10)
     
     def __post_init__(self):
         """Set default game_id_range if not provided."""
@@ -42,10 +42,11 @@ class DebateConfig:
     
     def get_organized_output_path(self, game_id: int = None) -> str:
         """Generate organized folder structure based on agent configuration and game parameters."""
-        # Create agent folder name: agent3_{model1}_{model2}_{model3}
+        # Create agent folder name: agent3_{model1}_{model2}_{model3}_conf_{true/false}
         agent_count = len(self.agents)
         model_names = [agent.model for agent in self.agents]
-        agent_folder = f"agent{agent_count}_{'_'.join(model_names)}"
+        conf_suffix = "true" if self.self_reported_confidence else "false"
+        agent_folder = f"agent{agent_count}_{'_'.join(model_names)}_conf_{conf_suffix}"
         
         # Create game folder name: game_size{size}_id{num}
         if game_id is None:

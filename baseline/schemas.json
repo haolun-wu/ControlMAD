@@ -1,0 +1,204 @@
+{
+    "kks_response_schema_gemini":{
+        "type": "object",
+        "description": "A complete solution to a Knights and Knaves puzzle.",
+        "properties": {
+            "players": {
+                "type": "array",
+                "description": "Array of player name-role pairs",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string",
+                            "description": "The player name"
+                        },
+                        "role": {
+                            "type": "string",
+                            "enum": ["knight", "knave", "spy"],
+                            "description": "The role assigned to this player"
+                        }
+                    },
+                    "required": ["name", "role"]
+                }
+            },
+            "confidence": {
+                "type": "integer",
+                "description": "Confidence score from 1 to 10 representing how confident the model is in the solution."
+            },
+            "reasoning": {
+                "type": "string",
+                "description": "A step-by-step logical reasoning for the solution."
+            }
+        },
+        "required": ["players", "confidence", "reasoning"]
+    },
+    "kks_response_schema_openai": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "knights_and_knaves_solution",
+            "strict": true,
+            "schema": {
+                "type": "object",
+                "description": "A complete solution to a Knights and Knaves puzzle.",
+                "properties": {
+                    "players": {
+                        "type": "array",
+                        "description": "Array of player name-role pairs",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "The player name"
+                                },
+                                "role": {
+                                    "type": "string",
+                                    "enum": ["knight", "knave", "spy"],
+                                    "description": "The role assigned to this player"
+                                }
+                            },
+                            "required": ["name", "role"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": "A step-by-step logical reasoning for the solution."
+                    },
+                    "confidence": {
+                        "type": "integer",
+                        "description": "Confidence score from 1 to 10 representing how confident the model is in the solution."
+                    }
+                },
+                "required": ["players", "reasoning", "confidence"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "initial_parser_response_schema_openai": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "parser_logical_order",
+            "strict": true,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "logical_order": {
+                        "type": "array",
+                        "description": "Logical order of role determinations in the reasoning",
+                        "items": {
+                            "type": "string",
+                            "description": "A role determination statement in the format 'Name is a Role'"
+                        }
+                    }
+                },
+                "required": ["logical_order"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "evaluation_schema_openai": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "evaluation_schema",
+            "strict": true,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "evaluation": {
+                        "type": "integer",
+                        "enum": [1, 2, 3, 4],
+                        "description": "The evaluation of the solution: 1 for dangerous, 2 for suspicious, 3 for promising, 4 for solid."
+                    }
+                },
+                "required": ["evaluation"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "kks_response_schema_volcano": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "knights_and_knaves_solution",
+            "strict": true,
+            "schema": {
+                "type": "object",
+                "description": "A complete solution to a Knights and Knaves puzzle.",
+                "properties": {
+                    "players": {
+                        "type": "array",
+                        "description": "Array of player name-role pairs",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "The player name"
+                                },
+                                "role": {
+                                    "type": "string",
+                                    "enum": ["knight", "knave", "spy"],
+                                    "description": "The role assigned to this player"
+                                }
+                            },
+                            "required": ["name", "role"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": "A step-by-step logical reasoning for the solution."
+                    },
+                    "confidence": {
+                        "type": "integer",
+                        "description": "Confidence score from 1 to 10 representing how confident the model is in the solution."
+                    }
+                },
+                "required": ["players", "reasoning", "confidence"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "initial_parser_response_schema_volcano": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "parser_logical_order",
+            "strict": true,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "logical_order": {
+                        "type": "array",
+                        "description": "Logical order of role determinations in the reasoning",
+                        "items": {
+                            "type": "string",
+                            "description": "A role determination statement in the format 'Name is a Role'"
+                        }
+                    }
+                },
+                "required": ["logical_order"],
+                "additionalProperties": false
+            }
+        }
+    },
+    "evaluation_schema_volcano": {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "evaluation_schema",
+            "strict": true,
+            "schema": {
+                "type": "object",
+                "properties": {
+                    "evaluation": {
+                        "type": "integer",
+                        "enum": [1, 2, 3, 4],
+                        "description": "The evaluation of the solution: 1 for dangerous, 2 for suspicious, 3 for promising, 4 for solid."
+                    }
+                },
+                "required": ["evaluation"],
+                "additionalProperties": false
+            }
+        }
+    }
+}

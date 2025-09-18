@@ -112,30 +112,25 @@ The updated response format is:
         {"name": "player_name", "role": "role"},
         ...
     ],
-    "explanation": "string",
-    "confidence": number
+    "confidence": number,
+    "explanation": "string"
 }
 
-Where confidence is an integer from 1 to 10 representing your confidence level in the solution."""
+Where confidence is an integer from 1 to 10 representing your confidence level in the solution. Report your confidence immediately after providing your solution but before explaining your reasoning."""
     
     return base_prompt + confidence_addition
 
 def get_kks_response_schema_with_confidence(include_confidence: bool = False) -> dict:
     """Get the KKS response schema, optionally including confidence field."""
     if not include_confidence:
-        return kks_response_schema
+        # Return schema without confidence field
+        schema_without_confidence = kks_response_schema.copy()
+        schema_without_confidence['properties'].pop('confidence', None)
+        schema_without_confidence['required'] = ['players', 'explanation']
+        return schema_without_confidence
     
-    # Create a copy of the schema and add confidence field
-    schema_with_confidence = kks_response_schema.copy()
-    schema_with_confidence['properties']['confidence'] = {
-        'type': 'integer',
-        'minimum': 1,
-        'maximum': 10,
-        'description': 'Confidence level in the solution (1-10)'
-    }
-    schema_with_confidence['required'].append('confidence')
-    
-    return schema_with_confidence
+    # Return schema with confidence field (already included in base schema)
+    return kks_response_schema
 
 def get_kks_debate_response_schema_with_confidence(include_confidence: bool = False) -> dict:
     """Get the KKS debate response schema, optionally including confidence field."""
@@ -177,12 +172,18 @@ kks_response_schema = {
                 'required': ['name', 'role']
             }
         },
+        'confidence': {
+            'type': 'integer',
+            'minimum': 1,
+            'maximum': 10,
+            'description': 'Confidence level in the solution (1-10)'
+        },
         'explanation': {
             'type': 'string',
             'description': 'A step-by-step logical reasoning for the solution.'
         }
     },
-    'required': ['players', 'explanation']
+    'required': ['players', 'confidence', 'explanation']
 }
 
 kks_debate_response_schema = {
