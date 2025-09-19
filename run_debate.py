@@ -16,7 +16,6 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from utils.project_types import ground_truth
 from debate.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config, create_flexible_debate_config
 from debate.debate_system import MultiAgentDebateSystem
-from debate.debate_visualizer import DebateVisualizer
 from utils.config import test_config
 
 def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None) -> List[ground_truth]:
@@ -87,60 +86,10 @@ def run_debates_with_system(debate_system, games, use_parallel=True):
         return debate_system.run_batch_debate(games)
 
 
-def create_visualizations_for_agent_folder(debate_config: DebateConfig):
-    """Create visualizations for all JSON files in the agent folder."""
-    # Get agent folder path
-    agent_count = len(debate_config.agents)
-    model_names = [agent.model for agent in debate_config.agents]
-    conf_suffix = "true" if debate_config.self_reported_confidence else "false"
-    agent_folder = f"agent{agent_count}_{'_'.join(model_names)}_conf_{conf_suffix}"
-    agent_path = os.path.join(debate_config.output_path, agent_folder)
-    
-    if not os.path.exists(agent_path):
-        print(f"❌ Agent folder not found: {agent_path}")
-        return
-    
-    print(f"📁 Processing agent folder: {agent_path}")
-    
-    # Find all game folders
-    game_folders = [d for d in os.listdir(agent_path) if d.startswith('game_size') and os.path.isdir(os.path.join(agent_path, d))]
-    
-    if not game_folders:
-        print(f"❌ No game folders found in {agent_path}")
-        return
-    
-    print(f"🎮 Found {len(game_folders)} game folders")
-    
-    # Process each game folder
-    for game_folder in sorted(game_folders):
-        game_path = os.path.join(agent_path, game_folder)
-        
-        # Find JSON files in this game folder
-        json_files = [f for f in os.listdir(game_path) if f.endswith('.json')]
-        
-        if not json_files:
-            print(f"⚠️  No JSON files found in {game_folder}")
-            continue
-        
-        print(f"📊 Processing {len(json_files)} JSON files in {game_folder}")
-        
-        # Create visualizations for this game folder
-        try:
-            visualizer = DebateVisualizer(game_path)
-            visualization_paths = visualizer.create_all_visualizations_from_folder()
-            
-            print(f"✅ Visualizations created for {game_folder}:")
-            for name, path in visualization_paths.items():
-                print(f"  - {name}: {path}")
-                
-        except Exception as e:
-            print(f"❌ Error creating visualizations for {game_folder}: {e}")
-            continue
 
 
 def run_single_debate_session(game_size: int = 5, 
                             game_id_range: List[int] = None,
-                            enable_visualization: bool = True,
                             use_parallel: bool = True,
                             game_parallel_workers: int = 20,
                             self_reported_confidence: bool = False):
@@ -182,25 +131,6 @@ def run_single_debate_session(game_size: int = 5,
     print(f"\n🎯 Running debates...")
     sessions = run_debates_with_system(debate_system, games, use_parallel)
     
-    # Create visualizations
-    if enable_visualization:
-        print(f"\n🎨 Creating visualizations...")
-        # Create visualizations for each game in its own folder
-        for session in sessions:
-            game_organized_path = debate_config.get_organized_output_path(session.game_id)
-            visualizer = DebateVisualizer(game_organized_path)
-            visualization_paths = visualizer.create_all_visualizations([session])
-            
-            print(f"\n📊 Visualization files created for Game {session.game_id}:")
-            for name, path in visualization_paths.items():
-                print(f"  - {name}: {path}")
-    else:
-        print(f"\n💡 To generate visualizations later, run:")
-        # Show example for first game
-        if sessions:
-            example_path = debate_config.get_organized_output_path(sessions[0].game_id)
-            print(f"   python debate/debate_visualizer.py --results-dir {example_path}")
-    
     # Print summary
     print(f"\n📈 DEBATE SUMMARY")
     print("=" * 30)
@@ -236,7 +166,6 @@ def run_single_debate_session(game_size: int = 5,
 def run_custom_debate(agent_configs: List[Dict[str, Any]], 
                      game_size: int = 5, 
                      game_id_range: List[int] = None,
-                     enable_visualization: bool = True,
                      use_parallel: bool = True):
     """Run debate with custom agent configuration."""
     
@@ -270,25 +199,6 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     print(f"\n🎯 Running debates...")
     sessions = run_debates_with_system(debate_system, games, use_parallel)
     
-    # Create visualizations
-    if enable_visualization:
-        print(f"\n🎨 Creating visualizations...")
-        # Create visualizations for each game in its own folder
-        for session in sessions:
-            game_organized_path = debate_config.get_organized_output_path(session.game_id)
-            visualizer = DebateVisualizer(game_organized_path)
-            visualization_paths = visualizer.create_all_visualizations([session])
-            
-            print(f"\n📊 Visualization files created for Game {session.game_id}:")
-            for name, path in visualization_paths.items():
-                print(f"  - {name}: {path}")
-    else:
-        print(f"\n💡 To generate visualizations later, run:")
-        # Show example for first game
-        if sessions:
-            example_path = debate_config.get_organized_output_path(sessions[0].game_id)
-            print(f"   python debate/debate_visualizer.py --results-dir {example_path}")
-    
     print(f"\n✅ Custom debate system completed successfully!")
     # Show the base agent folder path
     agent_count = len(debate_config.agents)
@@ -301,7 +211,6 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
 def run_flexible_debate(llm_configs: List[Dict[str, Any]], 
                        game_size: int = 5, 
                        game_id_range: List[int] = None,
-                       enable_visualization: bool = True,
                        use_parallel: bool = True):
     """Run debate with flexible agent configuration (auto-generated names)."""
     
@@ -334,25 +243,6 @@ def run_flexible_debate(llm_configs: List[Dict[str, Any]],
     # Run debates
     print(f"\n🎯 Running debates...")
     sessions = run_debates_with_system(debate_system, games, use_parallel)
-    
-    # Create visualizations
-    if enable_visualization:
-        print(f"\n🎨 Creating visualizations...")
-        # Create visualizations for each game in its own folder
-        for session in sessions:
-            game_organized_path = debate_config.get_organized_output_path(session.game_id)
-            visualizer = DebateVisualizer(game_organized_path)
-            visualization_paths = visualizer.create_all_visualizations([session])
-            
-            print(f"\n📊 Visualization files created for Game {session.game_id}:")
-            for name, path in visualization_paths.items():
-                print(f"  - {name}: {path}")
-    else:
-        print(f"\n💡 To generate visualizations later, run:")
-        # Show example for first game
-        if sessions:
-            example_path = debate_config.get_organized_output_path(sessions[0].game_id)
-            print(f"   python debate/debate_visualizer.py --results-dir {example_path}")
     
     print(f"\n✅ Flexible debate system completed successfully!")
     # Show the base agent folder path
@@ -468,9 +358,6 @@ def main():
             print(f"\n🎯 Running debates...")
             sessions = run_debates_with_system(debate_system, games, use_parallel)
             
-            # Create visualizations
-            print(f"\n📊 Creating visualizations...")
-            create_visualizations_for_agent_folder(debate_config)
             
             print(f"\n🎉 Debate completed successfully!")
             print(f"📁 Results saved to: {debate_config.get_organized_output_path()}")

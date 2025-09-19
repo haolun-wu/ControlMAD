@@ -143,7 +143,7 @@ def get_kks_debate_response_schema_with_confidence(include_confidence: bool = Fa
         'type': 'integer',
         'minimum': 1,
         'maximum': 10,
-        'description': 'Confidence level in the solution (1-5)'
+        'description': 'Confidence level in the solution (1-10)'
     }
     schema_with_confidence['required'].append('confidence')
     

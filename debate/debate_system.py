@@ -38,7 +38,7 @@ class AgentResponse:
     phase: str  # "initial", "debate", "self_adjustment", "final"
     player_role_assignments: Dict[str, str]  # {player_name: role}
     explanation: str
-    confidence: float = 3.0
+    confidence: float = 5.0
     response_obj: Optional[response_format] = None
     timestamp: str = ""
     error: str = ""
@@ -985,7 +985,7 @@ Return your response in the same JSON format:
             # Extract player assignments
             player_assignments = {}
             explanation = ""
-            confidence = 3.0  # Default to medium confidence (1-5 scale)
+            confidence = 5.0  # Default to medium confidence (1-10 scale)
             agree_with = None
             disagree_with = None
             agree_reasoning = None
@@ -1004,24 +1004,24 @@ Return your response in the same JSON format:
                 
                 # For debate phase, we don't use explanation field anymore
                 explanation = ""
-                confidence = self._parse_confidence(response_data.get("confidence", 3))
+                confidence = self._parse_confidence(response_data.get("confidence", 5))
             elif "players" in response_data and isinstance(response_data["players"], list):
                 # New format with players array
                 for player_data in response_data["players"]:
                     if isinstance(player_data, dict) and "name" in player_data and "role" in player_data:
                         player_assignments[player_data["name"]] = player_data["role"]
                 explanation = self._clean_explanation(response_data.get("explanation", ""))
-                confidence = self._parse_confidence(response_data.get("confidence", 3))
+                confidence = self._parse_confidence(response_data.get("confidence", 5))
             else:
                 # Old format - direct name: role mapping
                 for key, value in response_data.items():
                     if key not in ["explanation", "confidence", "agree_with", "disagree_with", "agree_reasoning", "disagree_reasoning"] and isinstance(value, str):
                         player_assignments[key] = value
                 explanation = self._clean_explanation(response_data.get("explanation", ""))
-                confidence = self._parse_confidence(response_data.get("confidence", 3))
+                confidence = self._parse_confidence(response_data.get("confidence", 5))
             
             # If confidence not found in JSON, try to extract from extra text
-            if confidence == 3.0 and "confidence" not in response_data:
+            if confidence == 5.0 and "confidence" not in response_data:
                 confidence = self._extract_confidence_from_text(response_text)
             
             return player_assignments, explanation, confidence, agree_with, disagree_with, agree_reasoning, disagree_reasoning
@@ -1092,7 +1092,7 @@ Return your response in the same JSON format:
                     continue
         
         # If no confidence found, return default
-        return 3.0
+        return 5.0
     
     def _clean_explanation(self, explanation: str) -> str:
         """Clean explanation text to remove extra formatting and keep only the core content."""
@@ -1121,18 +1121,18 @@ Return your response in the same JSON format:
         return explanation
     
     def _parse_confidence(self, confidence_value) -> float:
-        """Parse confidence value and ensure it's in the 1-5 range."""
+        """Parse confidence value and ensure it's in the 1-10 range."""
         try:
             confidence = float(confidence_value)
-            # Ensure confidence is in valid range (1-5)
+            # Ensure confidence is in valid range (1-10)
             if confidence < 1.0:
                 confidence = 1.0
-            elif confidence > 5.0:
-                confidence = 5.0
+            elif confidence > 10.0:
+                confidence = 10.0
             return confidence
         except (ValueError, TypeError):
             # If parsing fails, return default medium confidence
-            return 3.0
+            return 5.0
     
     def _parse_ground_truth_solution(self, game: ground_truth) -> Dict[str, str]:
         """Parse ground truth solution to extract player-role pairs."""
