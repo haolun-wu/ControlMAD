@@ -9,14 +9,17 @@ import argparse
 from datetime import datetime
 
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add the project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-from debate.debate_system import DebateSession, DebateRound, AgentResponse
+from debate.chat.debate_system_chat import DebateSession, DebateRound, AgentResponse
 
-class DebateVisualizer:
-    """Visualization system for multi-agent debate performance."""
+class ChatHistoryDebateVisualizer:
+    """Visualization system for chat history multi-agent debate performance."""
     
-    def __init__(self, output_path: str = "./debate_visualizations"):
+    def __init__(self, output_path: str = "./chat_debate_visualizations"):
         self.output_path = output_path
         os.makedirs(output_path, exist_ok=True)
         
@@ -497,8 +500,7 @@ class DebateVisualizer:
         """Create a detailed report showing how each agent's solution changes over rounds."""
         
         if save_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            save_path = os.path.join(self.output_path, f"detailed_tracking_{timestamp}.txt")
+            save_path = os.path.join(self.output_path, "detailed_tracking.txt")
         
         with open(save_path, 'w', encoding='utf-8') as f:
             f.write("DETAILED AGENT SOLUTION TRACKING REPORT\n")
@@ -578,6 +580,119 @@ class DebateVisualizer:
                 f.write("\n" + "=" * 50 + "\n\n")
         
         print(f"📋 Detailed tracking report saved to: {save_path}")
+        return save_path
+    
+    def create_simple_detailed_per_player_accuracy(self, sessions: List[DebateSession], 
+                                                 save_path: Optional[str] = None) -> str:
+        """Create detailed visualization showing per-player accuracy by round for each agent (simplified for chat history)."""
+        
+        if not sessions:
+            return ""
+        
+        # Collect detailed data from available session data
+        detailed_data = []
+        
+        for session in sessions:
+            players = list(session.ground_truth_solution.keys())
+            
+            # Initial proposals
+            for proposal in session.initial_proposals:
+                for player in players:
+                    predicted_role = proposal.player_role_assignments.get(player, "unknown")
+                    ground_truth_role = session.ground_truth_solution[player]
+                    is_correct = predicted_role == ground_truth_role
+                    
+                    detailed_data.append({
+                        'Game': session.game_id,
+                        'Agent': proposal.agent_name,
+                        'Player': player,
+                        'Phase': 'Initial',
+                        'Round': 0,
+                        'Correct': is_correct,
+                        'Predicted': predicted_role,
+                        'GroundTruth': ground_truth_role
+                    })
+            
+            # Debate rounds
+            for round_data in session.debate_rounds:
+                for response in round_data.agent_responses:
+                    if response.phase == 'self_adjustment':
+                        for player in players:
+                            predicted_role = response.player_role_assignments.get(player, "unknown")
+                            ground_truth_role = session.ground_truth_solution[player]
+                            is_correct = predicted_role == ground_truth_role
+                            
+                            detailed_data.append({
+                                'Game': session.game_id,
+                                'Agent': response.agent_name,
+                                'Player': player,
+                                'Phase': f'After Round {round_data.round_number}',
+                                'Round': round_data.round_number,
+                                'Correct': is_correct,
+                                'Predicted': predicted_role,
+                                'GroundTruth': ground_truth_role
+                            })
+        
+        if not detailed_data:
+            return ""
+        
+        df = pd.DataFrame(detailed_data)
+        
+        # Create figure with subplots
+        agents = df['Agent'].unique()
+        players = df['Player'].unique()
+        
+        fig, axes = plt.subplots(len(agents), len(players), figsize=(4*len(players), 3*len(agents)))
+        if len(agents) == 1:
+            axes = axes.reshape(1, -1)
+        if len(players) == 1:
+            axes = axes.reshape(-1, 1)
+        
+        for i, agent in enumerate(agents):
+            for j, player in enumerate(players):
+                ax = axes[i, j]
+                
+                # Filter data for this agent and player
+                agent_player_data = df[(df['Agent'] == agent) & (df['Player'] == player)]
+                
+                if len(agent_player_data) == 0:
+                    ax.text(0.5, 0.5, 'No Data', ha='center', va='center', transform=ax.transAxes)
+                    ax.set_title(f'{agent}\n{player}')
+                    continue
+                
+                # Create timeline plot
+                phases = agent_player_data['Phase'].tolist()
+                correctness = agent_player_data['Correct'].tolist()
+                
+                # Plot correctness over phases
+                colors = ['red' if not correct else 'green' for correct in correctness]
+                bars = ax.bar(range(len(phases)), [1] * len(phases), color=colors, alpha=0.7)
+                
+                # Add phase labels
+                ax.set_xticks(range(len(phases)))
+                ax.set_xticklabels(phases, rotation=45, ha='right')
+                ax.set_ylim(0, 1.2)
+                
+                # Add correctness labels
+                for k, (bar, correct) in enumerate(zip(bars, correctness)):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + 0.05,
+                           '✓' if correct else '✗', ha='center', va='bottom', fontsize=12)
+                
+                ax.set_title(f'{agent}\n{player}')
+                ax.set_ylabel('Correct')
+                ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        
+        # Save plot
+        if save_path is None:
+            save_path = os.path.join(self.output_path, "detailed_per_player_accuracy.png")
+        
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        print(f"🔍 Simple detailed per-player accuracy saved to: {save_path}")
         return save_path
     
     def create_detailed_per_player_accuracy(self, sessions: List[DebateSession], 
@@ -724,9 +839,7 @@ class DebateVisualizer:
         
         # Save plot
         if save_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"detailed_per_player_accuracy_{timestamp}.png"
-            save_path = os.path.join(self.output_path, filename)
+            save_path = os.path.join(self.output_path, "detailed_per_player_accuracy.png")
         
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
@@ -859,8 +972,7 @@ class DebateVisualizer:
         
         # Save
         if save_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            save_path = os.path.join(self.output_path, f"per_player_prediction_matrix_{timestamp}.png")
+            save_path = os.path.join(self.output_path, "per_player_prediction_matrix.png")
         
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
@@ -958,8 +1070,7 @@ class DebateVisualizer:
         
         # Save
         if save_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            save_path = os.path.join(self.output_path, f"player_centric_analysis_{timestamp}.png")
+            save_path = os.path.join(self.output_path, "player_centric_analysis.png")
         
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         plt.close()
@@ -1078,6 +1189,7 @@ def _dict_to_debate_session(data: Dict[str, Any]) -> DebateSession:
             player_role_assignments=proposal_data['player_role_assignments'],
             explanation=proposal_data['explanation'],
             confidence=proposal_data.get('confidence', 0.0),
+            response_obj=proposal_data.get('response_obj'),
             timestamp=proposal_data.get('timestamp', ''),
             error=proposal_data.get('error', ''),
             agree_with=proposal_data.get('agree_with'),
@@ -1100,6 +1212,7 @@ def _dict_to_debate_session(data: Dict[str, Any]) -> DebateSession:
                 player_role_assignments=response_data['player_role_assignments'],
                 explanation=response_data['explanation'],
                 confidence=response_data.get('confidence', 0.0),
+                response_obj=response_data.get('response_obj'),
                 timestamp=response_data.get('timestamp', ''),
                 error=response_data.get('error', ''),
                 agree_with=response_data.get('agree_with'),
@@ -1236,7 +1349,7 @@ Examples:
         session_output_dir = os.path.dirname(session.source_file) if hasattr(session, 'source_file') else args.output_dir
         
         # Create visualizer for this session
-        visualizer = DebateVisualizer(session_output_dir)
+        visualizer = ChatHistoryDebateVisualizer(session_output_dir)
         
         # Generate visualizations for this single session
         if not args.no_performance_matrix:
@@ -1258,6 +1371,10 @@ Examples:
         if not args.no_agent_comparison:
             print(f"    🤖 Creating agent comparison...")
             results[f'agent_comparison_{session.game_id}'] = visualizer.create_agent_comparison([session])
+        
+        # Detailed per-player accuracy (simplified version for chat history)
+        print(f"    🔍 Creating detailed per-player accuracy...")
+        results[f'detailed_per_player_accuracy_{session.game_id}'] = visualizer.create_simple_detailed_per_player_accuracy([session])
     
     print(f"\n✅ All visualizations completed!")
     print(f"📁 Results saved in individual session directories")

@@ -11,7 +11,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.project_types import ground_truth, response_format, token_usage
-from debate.debate_config import DebateConfig, AgentConfig
+from debate.traditional.debate_config import DebateConfig, AgentConfig
 from utils.utility import openai_client, gemini_client, ali_client, cstcloud, ParallelProcessor
 from prompts import (
     kks_system_prompt,
@@ -23,7 +23,7 @@ from prompts import (
 
 # Import visualizer (with try-except to handle potential import issues)
 try:
-    from debate.debate_visualizer import DebateVisualizer
+    from debate.traditional.debate_visualizer import DebateVisualizer
     VISUALIZER_AVAILABLE = True
 except ImportError as e:
     VISUALIZER_AVAILABLE = False
@@ -1283,7 +1283,7 @@ Return your response in the following JSON format:
     "disagree_reasoning": "Your reasoning for why you disagree with the specified OTHER agents"
 }}
 
-IMPORTANT: Keep your reasoning having details but less than 50 words for either agree_reasoning or disagree_reasoning fields."""
+IMPORTANT: Keep your reasoning having details but less than 100 words for either agree_reasoning or disagree_reasoning fields."""
         
         return prompt
     
@@ -1352,7 +1352,7 @@ Return your response in the following JSON format:
     "explanation": "Your final reasoning after considering the debate"
 }}
 
-IMPORTANT: Keep your explanation having details but less than 50 words."""
+IMPORTANT: Keep your explanation having details but less than 100 words."""
         
         return prompt
     
@@ -1420,7 +1420,7 @@ Return your response in the same JSON format:
     "explanation": "Your final decision with comprehensive reasoning based on the complete debate history"
 }
 
-IMPORTANT: Keep your explanation having details but less than 50 words."""
+IMPORTANT: Keep your explanation having details but less than 100 words."""
         
         return prompt
     

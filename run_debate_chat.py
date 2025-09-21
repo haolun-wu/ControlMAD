@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Multi-Agent Debate System for Knight-Knaves-Spy Games
+Chat History Multi-Agent Debate System
 
-This script runs the complete debate pipeline with configurable agents.
+This script runs the enhanced debate pipeline with chat history support for better
+agent self-awareness through natural multi-turn dialogue format.
 """
 
 import os
@@ -14,8 +15,8 @@ from typing import List, Dict, Any
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.project_types import ground_truth
-from debate.traditional.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config, create_flexible_debate_config
-from debate.traditional.debate_system import MultiAgentDebateSystem
+from debate.chat.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config, create_flexible_debate_config
+from debate.chat.debate_system_chat import ChatHistoryDebateSystem
 from utils.config import test_config
 
 def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None) -> List[ground_truth]:
@@ -77,7 +78,7 @@ def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None)
 
 def run_debates_with_system(debate_system, games, use_parallel=True):
     """Helper function to run debates with either parallel or sequential processing."""
-    print(f"\n🎯 Running debates...")
+    print(f"\n🎯 Running chat history debates...")
     if use_parallel:
         print("🔄 Using parallel processing for multiple games")
         return debate_system.run_parallel_batch_debate(games)
@@ -86,17 +87,15 @@ def run_debates_with_system(debate_system, games, use_parallel=True):
         return debate_system.run_batch_debate(games)
 
 
-
-
-def run_single_debate_session(game_size: int = 5, 
-                            game_id_range: List[int] = None,
-                            use_parallel: bool = True,
-                            game_parallel_workers: int = 20,
-                            self_reported_confidence: bool = False):
-    """Run a single debate with default configuration."""
+def run_single_chat_debate_session(game_size: int = 5, 
+                                 game_id_range: List[int] = None,
+                                 use_parallel: bool = True,
+                                 game_parallel_workers: int = 20,
+                                 self_reported_confidence: bool = False):
+    """Run a single debate with default chat history configuration."""
     
-    print("🚀 Starting Multi-Agent Debate System")
-    print("=" * 50)
+    print("🚀 Starting Chat History Multi-Agent Debate System")
+    print("=" * 60)
     
     # Set default game_id_range if not provided
     if game_id_range is None:
@@ -107,10 +106,11 @@ def run_single_debate_session(game_size: int = 5,
     # Override parameters if specified
     debate_config.game_parallel_workers = game_parallel_workers
     debate_config.self_reported_confidence = self_reported_confidence
-    print(f"📋 Using default configuration")
+    print(f"📋 Using default chat history configuration")
     print(f"🤖 Agents: {[agent.name for agent in debate_config.agents]}")
     print(f"🔧 Game parallel workers: {debate_config.game_parallel_workers}")
     print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
+    print(f"💬 Chat History: ENABLED (individual agent conversations)")
     
     # Load ground truth games
     num_games = debate_config.get_num_games()
@@ -123,17 +123,17 @@ def run_single_debate_session(game_size: int = 5,
     
     print(f"✅ Loaded {len(games)} games")
     
-    # Initialize debate system
-    print(f"\n🔧 Initializing debate system...")
-    debate_system = MultiAgentDebateSystem(debate_config)
+    # Initialize chat history debate system
+    print(f"\n🔧 Initializing chat history debate system...")
+    debate_system = ChatHistoryDebateSystem(debate_config)
     
     # Run debates
-    print(f"\n🎯 Running debates...")
+    print(f"\n🎯 Running chat history debates...")
     sessions = run_debates_with_system(debate_system, games, use_parallel)
     
     # Print summary
-    print(f"\n📈 DEBATE SUMMARY")
-    print("=" * 30)
+    print(f"\n📈 CHAT HISTORY DEBATE SUMMARY")
+    print("=" * 40)
     
     total_debates = len(sessions)
     consensus_reached = sum(1 for s in sessions if s.final_vote)
@@ -160,17 +160,24 @@ def run_single_debate_session(game_size: int = 5,
         print(f"Average Final Accuracy: {np.mean(all_accuracies):.3f}")
         print(f"Accuracy Range: {np.min(all_accuracies):.3f} - {np.max(all_accuracies):.3f}")
     
-    print(f"\n✅ Debate system completed successfully!")
+    # Chat history specific benefits
+    print(f"\n💬 Chat History Benefits:")
+    print(f"  • Natural agent self-awareness through conversation history")
+    print(f"  • Better context management across debate phases")
+    print(f"  • Enhanced agent memory and reasoning continuity")
+    print(f"  • Multi-turn dialogue format instead of monolithic prompts")
+    
+    print(f"\n✅ Chat history debate system completed successfully!")
     print(f"📁 Results saved to: {debate_config.output_path}")
 
-def run_custom_debate(agent_configs: List[Dict[str, Any]], 
-                     game_size: int = 5, 
-                     game_id_range: List[int] = None,
-                     use_parallel: bool = True):
-    """Run debate with custom agent configuration."""
+def run_custom_chat_debate(agent_configs: List[Dict[str, Any]], 
+                          game_size: int = 5, 
+                          game_id_range: List[int] = None,
+                          use_parallel: bool = True):
+    """Run chat history debate with custom agent configuration."""
     
-    print("🚀 Starting Custom Multi-Agent Debate System")
-    print("=" * 50)
+    print("🚀 Starting Custom Chat History Multi-Agent Debate System")
+    print("=" * 60)
     
     # Set default game_id_range if not provided
     if game_id_range is None:
@@ -179,6 +186,7 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     # Create custom configuration
     debate_config = create_custom_debate_config(agent_configs, game_size, game_id_range)
     print(f"🤖 Custom agents: {[agent.name for agent in debate_config.agents]}")
+    print(f"💬 Chat History: ENABLED")
     
     # Load ground truth games
     num_games = debate_config.get_num_games()
@@ -191,15 +199,15 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     
     print(f"✅ Loaded {len(games)} games")
     
-    # Initialize debate system
-    print(f"\n🔧 Initializing debate system...")
-    debate_system = MultiAgentDebateSystem(debate_config)
+    # Initialize chat history debate system
+    print(f"\n🔧 Initializing custom chat history debate system...")
+    debate_system = ChatHistoryDebateSystem(debate_config)
     
     # Run debates
-    print(f"\n🎯 Running debates...")
+    print(f"\n🎯 Running custom chat history debates...")
     sessions = run_debates_with_system(debate_system, games, use_parallel)
     
-    print(f"\n✅ Custom debate system completed successfully!")
+    print(f"\n✅ Custom chat history debate system completed successfully!")
     # Show the base agent folder path
     agent_count = len(debate_config.agents)
     model_names = [agent.model for agent in debate_config.agents]
@@ -208,14 +216,14 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
     base_path = os.path.join(debate_config.output_path, agent_folder)
     print(f"📁 Results saved to: {base_path}")
 
-def run_flexible_debate(llm_configs: List[Dict[str, Any]], 
-                       game_size: int = 5, 
-                       game_id_range: List[int] = None,
-                       use_parallel: bool = True):
-    """Run debate with flexible agent configuration (auto-generated names)."""
+def run_flexible_chat_debate(llm_configs: List[Dict[str, Any]], 
+                           game_size: int = 5, 
+                           game_id_range: List[int] = None,
+                           use_parallel: bool = True):
+    """Run chat history debate with flexible agent configuration (auto-generated names)."""
     
-    print("🚀 Starting Flexible Multi-Agent Debate System")
-    print("=" * 50)
+    print("🚀 Starting Flexible Chat History Multi-Agent Debate System")
+    print("=" * 60)
     
     # Set default game_id_range if not provided
     if game_id_range is None:
@@ -224,6 +232,7 @@ def run_flexible_debate(llm_configs: List[Dict[str, Any]],
     # Create flexible configuration
     debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
     print(f"🤖 Auto-generated agents: {[agent.name for agent in debate_config.agents]}")
+    print(f"💬 Chat History: ENABLED")
     
     # Load ground truth games
     num_games = debate_config.get_num_games()
@@ -236,15 +245,15 @@ def run_flexible_debate(llm_configs: List[Dict[str, Any]],
     
     print(f"✅ Loaded {len(games)} games")
     
-    # Initialize debate system
-    print(f"\n🔧 Initializing debate system...")
-    debate_system = MultiAgentDebateSystem(debate_config)
+    # Initialize chat history debate system
+    print(f"\n🔧 Initializing flexible chat history debate system...")
+    debate_system = ChatHistoryDebateSystem(debate_config)
     
     # Run debates
-    print(f"\n🎯 Running debates...")
+    print(f"\n🎯 Running flexible chat history debates...")
     sessions = run_debates_with_system(debate_system, games, use_parallel)
     
-    print(f"\n✅ Flexible debate system completed successfully!")
+    print(f"\n✅ Flexible chat history debate system completed successfully!")
     # Show the base agent folder path
     agent_count = len(debate_config.agents)
     model_names = [agent.model for agent in debate_config.agents]
@@ -263,35 +272,36 @@ def parse_key_value_args(args):
     return parsed
 
 def main():
-    """Main function with command line interface."""
+    """Main function with command line interface for chat history debates."""
     
     if len(sys.argv) < 2:
-        print("Usage: python run_debate.py <command> [options]")
+        print("Usage: python run_debate_chat.py <command> [options]")
         print("\nCommands:")
-        print("  run [game_size] [num_games]")
-        print("  custom <agent_configs_json> [game_size] [num_games]")
-        print("  flexible <llm_configs_json> [game_size] [num_games]")
+        print("  run [game_size] [game_id_range]")
+        print("  custom <agent_configs_json> [game_size] [game_id_range]")
+        print("  flexible <llm_configs_json> [game_size] [game_id_range]")
         print("\nNew format (recommended):")
-        print("  python run_debate.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>]")
-        print("  python run_debate.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>]")
+        print("  python run_debate_chat.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>]")
+        print("  python run_debate_chat.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>]")
         print("\nExamples:")
-        print("  python run_debate.py run game_size=5 game_id_range=1,20")
-        print("  python run_debate.py run game_size=5 game_id_range=1,20 use_parallel=false")
-        print("  python run_debate.py run game_size=5 game_id_range=1,20 game_parallel_workers=10")
-        print("  python run_debate.py run game_size=5 game_id_range=1,20 self_reported_confidence=true")
-        print("  python run_debate.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_id_range=1,20")
-        print("  python run_debate.py run 5 1,20")
-        print("  python run_debate.py custom '[{\"name\":\"GPT-5\",\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_num=1")
-        print("  python run_debate.py flexible '[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"},{\"provider\":\"gemini\",\"model\":\"gemini-2.5-flash\",\"temperature\":0.2}]' game_size=5 game_num=1")
+        print("  python run_debate_chat.py run game_size=5 game_id_range=1,20")
+        print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 use_parallel=false")
+        print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 game_parallel_workers=10")
+        print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 self_reported_confidence=true")
+        print("  python run_debate_chat.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-4o-mini\"}]' game_size=5 game_id_range=1,20")
+        print("  python run_debate_chat.py run 5 1,20")
+        print("  python run_debate_chat.py custom '[{\"name\":\"GPT-5\",\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_num=1")
+        print("  python run_debate_chat.py flexible '[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"},{\"provider\":\"gemini\",\"model\":\"gemini-2.5-flash\",\"temperature\":0.2}]' game_size=5 game_num=1")
         print("  # Note: temperature is optional for all models")
         print("  # Note: self_reported_confidence enables confidence scoring (0-100) for all model outputs")
+        print("  # Note: Chat history approach provides better agent self-awareness through conversation format")
         return
     
     # Check if using new key=value format
     kv_args = parse_key_value_args(sys.argv[1:])
     
     if 'game_size' in kv_args or 'game_id_range' in kv_args:
-        # New format: python run_debate.py run game_size=X game_id_range=Y,Z
+        # New format: python run_debate_chat.py run game_size=X game_id_range=Y,Z
         command = sys.argv[1] if sys.argv[1] not in kv_args else "run"
         game_size = int(kv_args.get('game_size', 5))
         
@@ -312,11 +322,12 @@ def main():
             game_parallel_workers = int(kv_args.get('game_parallel_workers', 20))
             self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
             num_games = game_id_range[1] - game_id_range[0] + 1
-            print(f"🎯 Running default configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
+            print(f"🎯 Running chat history default configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
             print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
             print(f"🔧 Game parallel workers: {game_parallel_workers}")
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
-            run_single_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence)
+            print(f"💬 Chat History: ENABLED")
+            run_single_chat_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence)
         elif command == "flexible":
             # Support flexible command with key=value format
             if 'llm_configs' not in kv_args:
@@ -333,10 +344,11 @@ def main():
             self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
             num_games = game_id_range[1] - game_id_range[0] + 1
             
-            print(f"🎯 Running flexible configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
+            print(f"🎯 Running flexible chat history configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
             print(f"🤖 Agents: {[config.get('provider', 'unknown') + '-' + config.get('model', 'unknown') for config in llm_configs]}")
             print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
+            print(f"💬 Chat History: ENABLED")
             
             # Create debate config with custom LLM configs
             debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
@@ -350,16 +362,15 @@ def main():
             
             print(f"✅ Loaded {len(games)} games")
             
-            # Initialize debate system
-            print(f"\n🔧 Initializing debate system...")
-            debate_system = MultiAgentDebateSystem(debate_config)
+            # Initialize chat history debate system
+            print(f"\n🔧 Initializing flexible chat history debate system...")
+            debate_system = ChatHistoryDebateSystem(debate_config)
             
             # Run debates
-            print(f"\n🎯 Running debates...")
+            print(f"\n🎯 Running flexible chat history debates...")
             sessions = run_debates_with_system(debate_system, games, use_parallel)
             
-            
-            print(f"\n🎉 Debate completed successfully!")
+            print(f"\n🎉 Chat history debate completed successfully!")
             print(f"📁 Results saved to: {debate_config.get_organized_output_path()}")
         else:
             print(f"Error: Command '{command}' not supported with key=value format")
@@ -387,7 +398,7 @@ def main():
         else:
             game_id_range = [1, 3]  # Default
         
-        run_single_debate_session(game_size, game_id_range)
+        run_single_chat_debate_session(game_size, game_id_range)
         
     elif command == "custom":
         if len(sys.argv) < 3:
@@ -403,7 +414,7 @@ def main():
         game_size = int(sys.argv[3]) if len(sys.argv) > 3 else 5
         num_games = int(sys.argv[4]) if len(sys.argv) > 4 else 3
         
-        run_custom_debate(agent_configs, game_size, num_games)
+        run_custom_chat_debate(agent_configs, game_size, num_games)
         
     elif command == "flexible":
         if len(sys.argv) < 3:
@@ -419,11 +430,11 @@ def main():
         game_size = int(sys.argv[3]) if len(sys.argv) > 3 else 5
         num_games = int(sys.argv[4]) if len(sys.argv) > 4 else 3
         
-        run_flexible_debate(llm_configs, game_size, num_games)
+        run_flexible_chat_debate(llm_configs, game_size, num_games)
     
     else:
         print(f"Error: Unknown command '{command}'")
-        print("Use 'python run_debate.py' without arguments to see usage information.")
+        print("Use 'python run_debate_chat.py' without arguments to see usage information.")
 
 if __name__ == "__main__":
     main()
