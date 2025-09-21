@@ -69,7 +69,7 @@ Sample reasoning for the sample game info:
     "explanation": "copy the above arguments here."
 }
 
-Keep your explanation concise and focused (aim for under 50 words)
+Keep your explanation having details but less than 50 words
 
 Please follows strictly the format of the return, or the response will be rejected.
 """
@@ -102,7 +102,7 @@ Confidence Scale Guidelines:
 - 9-10 (Highly Confident): The puzzle provides direct and explicit evidence that decisively supports your solution. Use these scores VERY sparingly.
 
 REASONING GUIDELINES:
-- Keep your explanation concise and focused (aim for under 50 words)
+- Keep your explanation having details but less than 50 words
 - Provide clear, logical reasoning for your conclusions
 - Be specific about which statements or evidence led to your decisions
 
@@ -180,7 +180,7 @@ kks_response_schema = {
         },
         'explanation': {
             'type': 'string',
-            'description': 'A step-by-step logical reasoning for the solution (keep concise, under 50 words).'
+            'description': 'A step-by-step logical reasoning for the solution.'
         }
     },
     'required': ['players', 'confidence', 'explanation']
@@ -215,11 +215,11 @@ kks_debate_response_schema = {
         },
         'agree_reasoning': {
             'type': 'string',
-            'description': 'Detailed reasoning for why this agent agrees with the specified agents (keep concise, under 50 words)'
+            'description': 'Detailed reasoning for why this agent agrees with the specified agents'
         },
         'disagree_reasoning': {
             'type': 'string',
-            'description': 'Detailed reasoning for why this agent disagrees with the specified agents (keep concise, under 50 words)'
+            'description': 'Detailed reasoning for why this agent disagrees with the specified agents'
         }
     },
     'required': ['player_role', 'role', 'agree_with', 'disagree_with', 'agree_reasoning', 'disagree_reasoning']

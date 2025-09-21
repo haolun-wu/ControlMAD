@@ -399,13 +399,14 @@ class MultiAgentDebateSystem:
             self.logger.info(f"    🤖 {agent_name} ({config.provider}/{config.model}) getting initial proposal...")
             
             try:
-                # Prepare system prompt with confidence if enabled
-                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                # Prepare system prompt with confidence if enabled and add self-awareness
+                base_system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                system_prompt = f"You are {agent_name} ({config.provider}/{config.model}). {base_system_prompt}"
                 
                 # Log initial proposal prompt
                 self.logger.info(f"    📝 {agent_name} INITIAL PROPOSAL PROMPT:")
-                self.logger.info(f"    System: {system_prompt[:100]}...")
-                self.logger.info(f"    User: {game.text_game[:200]}...")
+                self.logger.info(f"    System: {system_prompt}")
+                self.logger.info(f"    User: {game.text_game}")
                 
                 # Make API call based on provider
                 if config.provider == "openai":
@@ -498,7 +499,7 @@ class MultiAgentDebateSystem:
         self.logger.info(f"  Step 2: Self-adjustment for {player_name}")
         if self.config.enable_self_adjustment:
             adjusted_responses = self._conduct_self_adjustment(
-                game, player_name, round_num, debate_responses, previous_rounds
+                game, player_name, round_num, debate_responses, previous_rounds, current_agent_states
             )
         else:
             adjusted_responses = debate_responses
@@ -509,13 +510,22 @@ class MultiAgentDebateSystem:
         # Create debate summary
         debate_summary = self._create_debate_summary(adjusted_responses, player_name)
         
+        # Check for consensus in self-adjustment responses
+        consensus_role = self._check_consensus(adjusted_responses, player_name)
+        consensus_reached = consensus_role is not None
+        
+        if consensus_reached:
+            self.logger.info(f"🎯 CONSENSUS REACHED for {player_name}: {consensus_role}")
+        else:
+            self.logger.info(f"❌ NO CONSENSUS for {player_name} - agents disagree")
+        
         return DebateRound(
             player_name=player_name,
             round_number=round_num,
             agent_responses=all_responses,  # Now includes both debate and self_adjustment phases
             debate_summary=debate_summary,
-            consensus_reached=False,  # No intermediate consensus checking
-            majority_role=None  # No intermediate majority voting
+            consensus_reached=consensus_reached,
+            majority_role=consensus_role
         )
     
     def _conduct_debate_for_player(self, game: ground_truth, player_name: str,
@@ -533,7 +543,7 @@ class MultiAgentDebateSystem:
             try:
                 # Create debate prompt
                 debate_prompt = self._create_debate_prompt(
-                    game, player_name, current_agent_states, previous_rounds
+                    game, player_name, current_agent_states, previous_rounds, agent_name
                 )
                 
                 # Log debate prompt
@@ -541,10 +551,11 @@ class MultiAgentDebateSystem:
                 self.logger.info(f"      Focus: {player_name}")
                 self.logger.info(f"      Other agents' positions: {len(current_agent_states)} agents")
                 self.logger.info(f"      Prompt length: {len(debate_prompt)} chars")
-                self.logger.info(f"      Key content: {debate_prompt[debate_prompt.find('CURRENT FOCUS'):debate_prompt.find('OTHER AGENTS')+100]}...")
+                self.logger.info(f"      Full prompt: {debate_prompt}")
                 
                 # Make API call
-                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                base_system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                system_prompt = f"You are {agent_name} ({config.provider}/{config.model}). {base_system_prompt}"
                 
                 if config.provider == "openai":
                     # Check if model supports reasoning parameters
@@ -667,7 +678,8 @@ class MultiAgentDebateSystem:
     
     def _conduct_self_adjustment(self, game: ground_truth, player_name: str,
                                round_num: int, debate_responses: List[AgentResponse],
-                               previous_rounds: List[DebateRound]) -> List[AgentResponse]:
+                               previous_rounds: List[DebateRound], 
+                               current_agent_states: List[AgentResponse]) -> List[AgentResponse]:
         """Conduct self-adjustment phase for agents."""
         
         def get_adjustment_response(agent_name: str) -> AgentResponse:
@@ -680,7 +692,7 @@ class MultiAgentDebateSystem:
             try:
                 # Create self-adjustment prompt
                 adjustment_prompt = self._create_self_adjustment_prompt(
-                    game, player_name, debate_responses, previous_rounds
+                    game, player_name, debate_responses, previous_rounds, agent_name, config, current_agent_states
                 )
                 
                 # Log self-adjustment prompt
@@ -693,9 +705,11 @@ class MultiAgentDebateSystem:
                 agree_count = sum(1 for r in debate_responses if r.agree_with and len(r.agree_with) > 0)
                 disagree_count = sum(1 for r in debate_responses if r.disagree_with and len(r.disagree_with) > 0)
                 self.logger.info(f"      Debate info: {agree_count} agents with agreements, {disagree_count} agents with disagreements")
+                self.logger.info(f"      Full prompt: {adjustment_prompt}")
                 
                 # Make API call
-                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                base_system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                system_prompt = f"You are {agent_name} ({config.provider}/{config.model}). {base_system_prompt}"
                 response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
                 
                 if config.provider == "openai":
@@ -793,6 +807,7 @@ class MultiAgentDebateSystem:
         total_debate_responses = sum(len(round_data.agent_responses) for round_data in debate_rounds)
         debate_phase_responses = sum(1 for round_data in debate_rounds for response in round_data.agent_responses if response.phase == "debate")
         self.logger.info(f"Total responses: {total_debate_responses}, Debate phase: {debate_phase_responses}")
+        self.logger.info(f"Full prompt: {final_discussion_prompt}")
         
         # Get fresh votes from all agents
         fresh_votes = []
@@ -807,7 +822,8 @@ class MultiAgentDebateSystem:
             
             try:
                 # Make API call for final decision
-                system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                base_system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
+                system_prompt = f"You are {agent_name} ({config.provider}/{config.model}). {base_system_prompt}"
                 response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
                 
                 if config.provider == "openai":
@@ -1206,24 +1222,32 @@ Return your response in the same JSON format:
     
     def _create_debate_prompt(self, game: ground_truth, player_name: str,
                             current_agent_states: List[AgentResponse],
-                            previous_rounds: List[DebateRound]) -> str:
+                            previous_rounds: List[DebateRound], agent_name: str) -> str:
         """Create debate prompt for a specific player's role."""
         
-        prompt = f"""You are participating in a multi-agent debate about a Knight-Knaves-Spy game.
+        prompt = f"""You are {agent_name} participating in a multi-agent debate about a Knight-Knaves-Spy game.
+
+IMPORTANT: You are {agent_name}. One of the responses below is YOUR OWN previous response. When analyzing agreements and disagreements, do NOT include yourself in the lists.
 
 GAME INFORMATION:
 {game.text_game}
 
 CURRENT FOCUS: We are debating the role of {player_name}.
 
-OTHER AGENTS' CURRENT POSITIONS (from last step):
+OTHER AGENTS' CURRENT POSITIONS (including YOUR OWN previous response):
 """
         
         for agent_state in current_agent_states:
             confidence_info = ""
             if self.config.self_reported_confidence and agent_state.confidence > 0:
                 confidence_info = f" (confidence: {agent_state.confidence})"
-            prompt += f"\n{agent_state.agent_name} thinks {player_name} is a {agent_state.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
+            
+            # Highlight the agent's own previous response
+            if agent_state.agent_name == agent_name:
+                prompt += f"\n*** {agent_state.agent_name} (THIS IS YOUR PREVIOUS RESPONSE) thinks {player_name} is a {agent_state.player_role_assignments.get(player_name, 'unknown')}.{confidence_info} ***"
+            else:
+                prompt += f"\n{agent_state.agent_name} thinks {player_name} is a {agent_state.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
+            
             prompt += f" Their reasoning: {agent_state.explanation}\n"
         
         if previous_rounds:
@@ -1242,62 +1266,76 @@ OTHER AGENTS' CURRENT POSITIONS (from last step):
 Please provide your debate analysis focusing specifically on {player_name}'s role. Consider the other agents' arguments and provide your reasoning.
 
 IMPORTANT: For this debate phase, you should:
-1. Analyze which agents you agree with and which you disagree with regarding {player_name}'s role
+1. Analyze which OTHER agents you agree with and which OTHER agents you disagree with regarding {player_name}'s role
 2. Provide reasoning for your agreements and disagreements
 3. Make your final decision on {player_name}'s role
 4. You will have a chance to provide your complete solution in the self-adjustment phase
+
+NOTE: Do NOT include yourself in the agree_with or disagree_with lists. You are {agent_name}, so only list other agents.
 
 Return your response in the following JSON format:
 {{
     "player_role": "{player_name}",
     "role": "knight/knave/spy",
-    "agree_with": ["agent_name1", "agent_name2"],
-    "disagree_with": ["agent_name3"],
-    "agree_reasoning": "Your reasoning for why you agree with the specified agents",
-    "disagree_reasoning": "Your reasoning for why you disagree with the specified agents"
+    "agree_with": ["other_agent_name1", "other_agent_name2"],
+    "disagree_with": ["other_agent_name3"],
+    "agree_reasoning": "Your reasoning for why you agree with the specified OTHER agents",
+    "disagree_reasoning": "Your reasoning for why you disagree with the specified OTHER agents"
 }}
 
-IMPORTANT: Keep your reasoning concise and focused (aim for under 50 words) for both agree_reasoning and disagree_reasoning fields."""
+IMPORTANT: Keep your reasoning having details but less than 50 words for either agree_reasoning or disagree_reasoning fields."""
         
         return prompt
     
     def _create_self_adjustment_prompt(self, game: ground_truth, player_name: str,
                                      debate_responses: List[AgentResponse],
-                                     previous_rounds: List[DebateRound]) -> str:
+                                     previous_rounds: List[DebateRound], 
+                                     agent_name: str, agent_config: AgentConfig,
+                                     current_agent_states: List[AgentResponse]) -> str:
         """Create self-adjustment prompt for agents."""
         
-        prompt = f"""You are in the self-adjustment phase of a multi-agent debate about a Knight-Knaves-Spy game.
+        prompt = f"""You are {agent_name} ({agent_config.provider}/{agent_config.model}) participating in the self-adjustment phase of a multi-agent debate about a Knight-Knaves-Spy game.
+
+IMPORTANT: You are {agent_name}. One of the complete solutions below is YOUR OWN previous solution. You may adjust your position based on the debate.
 
 GAME INFORMATION:
 {game.text_game}
 
 CURRENT FOCUS: We just finished debating {player_name}'s role.
 
-DEBATE SUMMARY:
+PREVIOUS AGENTS' COMPLETE SOLUTIONS (including YOUR OWN):
 """
         
-        for response in debate_responses:
+        # Add previous agents' complete solutions from current agent states
+        for agent_state in current_agent_states:
             confidence_info = ""
-            if self.config.self_reported_confidence and response.confidence > 0:
-                confidence_info = f" (confidence: {response.confidence})"
-            prompt += f"\n{response.agent_name} thinks {player_name} is a {response.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
+            if self.config.self_reported_confidence and agent_state.confidence > 0:
+                confidence_info = f" (confidence: {agent_state.confidence})"
             
-            # Include agreement/disagreement information if available
+            # Highlight the agent's own previous solution
+            if agent_state.agent_name == agent_name:
+                prompt += f"\n*** {agent_state.agent_name} (THIS IS YOUR PREVIOUS SOLUTION): {agent_state.player_role_assignments}{confidence_info} ***"
+            else:
+                prompt += f"\n{agent_state.agent_name}: {agent_state.player_role_assignments}{confidence_info}"
+        
+        prompt += f"""
+
+DEBATE AGREEMENTS/DISAGREEMENTS FOR {player_name}:
+"""
+        
+        # Include agreement/disagreement information from debate responses
+        for response in debate_responses:
             if response.agree_with and len(response.agree_with) > 0:
-                prompt += f" {response.agent_name} agrees with: {', '.join(response.agree_with)}"
+                prompt += f"\n{response.agent_name} agrees with: {', '.join(response.agree_with)}"
                 if response.agree_reasoning and response.agree_reasoning.strip():
                     prompt += f" - Reasoning: {response.agree_reasoning}"
                 prompt += "\n"
             
             if response.disagree_with and len(response.disagree_with) > 0:
-                prompt += f" {response.agent_name} disagrees with: {', '.join(response.disagree_with)}"
+                prompt += f"\n{response.agent_name} disagrees with: {', '.join(response.disagree_with)}"
                 if response.disagree_reasoning and response.disagree_reasoning.strip():
                     prompt += f" - Reasoning: {response.disagree_reasoning}"
                 prompt += "\n"
-            
-            # Include explanation if available and no agreement/disagreement info was provided
-            if response.explanation and not (response.agree_with or response.disagree_with):
-                prompt += f" Their reasoning: {response.explanation}\n"
         
         prompt += f"""
 
@@ -1314,7 +1352,7 @@ Return your response in the following JSON format:
     "explanation": "Your final reasoning after considering the debate"
 }}
 
-IMPORTANT: Keep your explanation concise and focused (aim for under 50 words)."""
+IMPORTANT: Keep your explanation having details but less than 50 words."""
         
         return prompt
     
@@ -1382,7 +1420,7 @@ Return your response in the same JSON format:
     "explanation": "Your final decision with comprehensive reasoning based on the complete debate history"
 }
 
-IMPORTANT: Keep your explanation concise and focused (aim for under 50 words)."""
+IMPORTANT: Keep your explanation having details but less than 50 words."""
         
         return prompt
     
@@ -1421,7 +1459,13 @@ IMPORTANT: Keep your explanation concise and focused (aim for under 50 words).""
     
     def _is_consensus_reached(self, final_vote: Dict[str, str]) -> bool:
         """Check if consensus was reached in final vote."""
-        return len(final_vote) > 0
+        if not final_vote:
+            return False
+        
+        # For now, consider any final vote as consensus reached
+        # In the future, we could add logic to check if the final vote makes sense
+        # or if there are any obvious contradictions
+        return True
     
     def _create_performance_tracking(self, game: ground_truth, initial_proposals: List[AgentResponse],
                                    debate_rounds: List[DebateRound], final_vote: Dict[str, str],

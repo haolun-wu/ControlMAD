@@ -18,4 +18,4 @@ LLM_CONFIGS='[
 ]'
 
 # Run the debate with flexible configuration using key=value format
-python run_debate.py flexible llm_configs="$LLM_CONFIGS" game_size=4 game_id_range=1,3 self_reported_confidence=false
+python run_debate.py flexible llm_configs="$LLM_CONFIGS" game_size=4 game_id_range=1,1 self_reported_confidence=false
