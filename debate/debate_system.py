@@ -884,7 +884,24 @@ INITIAL PROPOSALS:
                 if self.config.self_reported_confidence and response.confidence > 0:
                     confidence_info = f" (confidence: {response.confidence})"
                 prompt += f"{response.agent_name} thought {round_data.player_name} is a {role}{confidence_info}\n"
-                prompt += f"Reasoning: {response.explanation[:150]}...\n"
+                
+                # Include agreement/disagreement information if available (for debate phase responses)
+                if response.phase == "debate":
+                    if response.agree_with and len(response.agree_with) > 0:
+                        prompt += f"  Agreed with: {', '.join(response.agree_with)}"
+                        if response.agree_reasoning and response.agree_reasoning.strip():
+                            prompt += f" - Reasoning: {response.agree_reasoning[:100]}..."
+                        prompt += "\n"
+                    
+                    if response.disagree_with and len(response.disagree_with) > 0:
+                        prompt += f"  Disagreed with: {', '.join(response.disagree_with)}"
+                        if response.disagree_reasoning and response.disagree_reasoning.strip():
+                            prompt += f" - Reasoning: {response.disagree_reasoning[:100]}..."
+                        prompt += "\n"
+                else:
+                    # Include explanation for non-debate phases (initial, self_adjustment)
+                    if response.explanation:
+                        prompt += f"Reasoning: {response.explanation[:150]}...\n"
         
         prompt += f"""
 
@@ -1204,7 +1221,9 @@ Return your response in the following JSON format:
     "disagree_with": ["agent_name3"],
     "agree_reasoning": "Your reasoning for why you agree with the specified agents",
     "disagree_reasoning": "Your reasoning for why you disagree with the specified agents"
-}}"""
+}}
+
+IMPORTANT: Keep your reasoning concise and focused (aim for under 50 words) for both agree_reasoning and disagree_reasoning fields."""
         
         return prompt
     
@@ -1228,7 +1247,23 @@ DEBATE SUMMARY:
             if self.config.self_reported_confidence and response.confidence > 0:
                 confidence_info = f" (confidence: {response.confidence})"
             prompt += f"\n{response.agent_name} thinks {player_name} is a {response.player_role_assignments.get(player_name, 'unknown')}.{confidence_info}"
-            prompt += f" Their reasoning: {response.explanation}\n"
+            
+            # Include agreement/disagreement information if available
+            if response.agree_with and len(response.agree_with) > 0:
+                prompt += f" {response.agent_name} agrees with: {', '.join(response.agree_with)}"
+                if response.agree_reasoning and response.agree_reasoning.strip():
+                    prompt += f" - Reasoning: {response.agree_reasoning}"
+                prompt += "\n"
+            
+            if response.disagree_with and len(response.disagree_with) > 0:
+                prompt += f" {response.agent_name} disagrees with: {', '.join(response.disagree_with)}"
+                if response.disagree_reasoning and response.disagree_reasoning.strip():
+                    prompt += f" - Reasoning: {response.disagree_reasoning}"
+                prompt += "\n"
+            
+            # Include explanation if available and no agreement/disagreement info was provided
+            if response.explanation and not (response.agree_with or response.disagree_with):
+                prompt += f" Their reasoning: {response.explanation}\n"
         
         prompt += f"""
 
@@ -1243,7 +1278,9 @@ Return your response in the following JSON format:
         ...
     ],
     "explanation": "Your final reasoning after considering the debate"
-}}"""
+}}
+
+IMPORTANT: Keep your explanation concise and focused (aim for under 50 words)."""
         
         return prompt
     
@@ -1270,7 +1307,24 @@ INITIAL PROPOSALS:
             for response in round_data.agent_responses:
                 role = response.player_role_assignments.get(round_data.player_name, "unknown")
                 prompt += f"{response.agent_name} thought {round_data.player_name} is a {role}\n"
-                prompt += f"Reasoning: {response.explanation[:200]}...\n"
+                
+                # Include agreement/disagreement information if available (for debate phase responses)
+                if response.phase == "debate":
+                    if response.agree_with and len(response.agree_with) > 0:
+                        prompt += f"  Agreed with: {', '.join(response.agree_with)}"
+                        if response.agree_reasoning and response.agree_reasoning.strip():
+                            prompt += f" - Reasoning: {response.agree_reasoning[:150]}..."
+                        prompt += "\n"
+                    
+                    if response.disagree_with and len(response.disagree_with) > 0:
+                        prompt += f"  Disagreed with: {', '.join(response.disagree_with)}"
+                        if response.disagree_reasoning and response.disagree_reasoning.strip():
+                            prompt += f" - Reasoning: {response.disagree_reasoning[:150]}..."
+                        prompt += "\n"
+                else:
+                    # Include explanation for non-debate phases (initial, self_adjustment)
+                    if response.explanation:
+                        prompt += f"Reasoning: {response.explanation[:200]}...\n"
         
         prompt += """
 
@@ -1292,7 +1346,9 @@ Return your response in the same JSON format:
         ...
     ],
     "explanation": "Your final decision with comprehensive reasoning based on the complete debate history"
-}"""
+}
+
+IMPORTANT: Keep your explanation concise and focused (aim for under 50 words)."""
         
         return prompt
     
