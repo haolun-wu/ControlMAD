@@ -402,6 +402,11 @@ class MultiAgentDebateSystem:
                 # Prepare system prompt with confidence if enabled
                 system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
                 
+                # Log initial proposal prompt
+                self.logger.info(f"    📝 {agent_name} INITIAL PROPOSAL PROMPT:")
+                self.logger.info(f"    System: {system_prompt[:100]}...")
+                self.logger.info(f"    User: {game.text_game[:200]}...")
+                
                 # Make API call based on provider
                 if config.provider == "openai":
                     # Check if model supports reasoning parameters
@@ -530,6 +535,13 @@ class MultiAgentDebateSystem:
                 debate_prompt = self._create_debate_prompt(
                     game, player_name, current_agent_states, previous_rounds
                 )
+                
+                # Log debate prompt
+                self.logger.info(f"      📝 {agent_name} DEBATE PROMPT for {player_name}:")
+                self.logger.info(f"      Focus: {player_name}")
+                self.logger.info(f"      Other agents' positions: {len(current_agent_states)} agents")
+                self.logger.info(f"      Prompt length: {len(debate_prompt)} chars")
+                self.logger.info(f"      Key content: {debate_prompt[debate_prompt.find('CURRENT FOCUS'):debate_prompt.find('OTHER AGENTS')+100]}...")
                 
                 # Make API call
                 system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
@@ -671,6 +683,17 @@ class MultiAgentDebateSystem:
                     game, player_name, debate_responses, previous_rounds
                 )
                 
+                # Log self-adjustment prompt
+                self.logger.info(f"      📝 {agent_name} SELF-ADJUSTMENT PROMPT for {player_name}:")
+                self.logger.info(f"      Focus: {player_name}")
+                self.logger.info(f"      Debate responses: {len(debate_responses)} agents")
+                self.logger.info(f"      Prompt length: {len(adjustment_prompt)} chars")
+                
+                # Count agree/disagree information in debate responses
+                agree_count = sum(1 for r in debate_responses if r.agree_with and len(r.agree_with) > 0)
+                disagree_count = sum(1 for r in debate_responses if r.disagree_with and len(r.disagree_with) > 0)
+                self.logger.info(f"      Debate info: {agree_count} agents with agreements, {disagree_count} agents with disagreements")
+                
                 # Make API call
                 system_prompt = get_kks_system_prompt_with_confidence(game.num_player, self.config.self_reported_confidence)
                 response_schema = get_kks_response_schema_with_confidence(self.config.self_reported_confidence)
@@ -759,6 +782,17 @@ class MultiAgentDebateSystem:
         
         # Create final discussion prompt
         final_discussion_prompt = self._create_final_discussion_prompt(game, initial_proposals, debate_rounds)
+        
+        # Log final discussion prompt
+        self.logger.info(f"📝 FINAL DISCUSSION PROMPT:")
+        self.logger.info(f"Initial proposals: {len(initial_proposals)} agents")
+        self.logger.info(f"Debate rounds: {len(debate_rounds)} rounds")
+        self.logger.info(f"Prompt length: {len(final_discussion_prompt)} chars")
+        
+        # Count total debate responses with agree/disagree info
+        total_debate_responses = sum(len(round_data.agent_responses) for round_data in debate_rounds)
+        debate_phase_responses = sum(1 for round_data in debate_rounds for response in round_data.agent_responses if response.phase == "debate")
+        self.logger.info(f"Total responses: {total_debate_responses}, Debate phase: {debate_phase_responses}")
         
         # Get fresh votes from all agents
         fresh_votes = []
