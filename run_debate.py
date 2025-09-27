@@ -211,7 +211,9 @@ def run_custom_debate(agent_configs: List[Dict[str, Any]],
 def run_flexible_debate(llm_configs: List[Dict[str, Any]], 
                        game_size: int = 5, 
                        game_id_range: List[int] = None,
-                       use_parallel: bool = True):
+                       use_parallel: bool = True,
+                       script_name: str = None,
+                       debate_order_control: int = 0):
     """Run debate with flexible agent configuration (auto-generated names)."""
     
     print("🚀 Starting Flexible Multi-Agent Debate System")
@@ -222,7 +224,7 @@ def run_flexible_debate(llm_configs: List[Dict[str, Any]],
         game_id_range = [1, 3]  # Default to games 1-3
     
     # Create flexible configuration
-    debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
+    debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control)
     print(f"🤖 Auto-generated agents: {[agent.name for agent in debate_config.agents]}")
     
     # Load ground truth games
@@ -273,7 +275,7 @@ def main():
         print("  flexible <llm_configs_json> [game_size] [num_games]")
         print("\nNew format (recommended):")
         print("  python run_debate.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>]")
-        print("  python run_debate.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>]")
+        print("  python run_debate.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>] [script_name=<name>] [debate_order_control=<0/1>]")
         print("\nExamples:")
         print("  python run_debate.py run game_size=5 game_id_range=1,20")
         print("  python run_debate.py run game_size=5 game_id_range=1,20 use_parallel=false")
@@ -331,6 +333,8 @@ def main():
             
             use_parallel = kv_args.get('use_parallel', 'true').lower() == 'true'
             self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
+            script_name = kv_args.get('script_name', None)
+            debate_order_control = int(kv_args.get('debate_order_control', '0'))
             num_games = game_id_range[1] - game_id_range[0] + 1
             
             print(f"🎯 Running flexible configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
@@ -339,7 +343,7 @@ def main():
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
             
             # Create debate config with custom LLM configs
-            debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
+            debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control)
             debate_config.self_reported_confidence = self_reported_confidence
             
             # Load ground truth games

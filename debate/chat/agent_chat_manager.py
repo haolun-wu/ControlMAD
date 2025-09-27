@@ -282,26 +282,3 @@ class AgentChatManager:
         
         return history.get_conversation_context(max_messages)
     
-    def get_agent_self_awareness_context(self, agent_name: str) -> str:
-        """Get a summary of the agent's own previous responses for self-awareness."""
-        history = self.get_agent_history(agent_name)
-        if not history:
-            return ""
-        
-        own_messages = [msg for msg in history.messages if msg.role == MessageRole.ASSISTANT]
-        
-        if not own_messages:
-            return "This is your first response in this debate."
-        
-        context_parts = []
-        for msg in own_messages:
-            if msg.phase == "initial":
-                context_parts.append(f"Your initial proposal: {msg.content}")
-            elif msg.phase == "debate":
-                context_parts.append(f"Your debate response for {msg.player_focus}: {msg.content}")
-            elif msg.phase == "self_adjustment":
-                context_parts.append(f"Your self-adjustment: {msg.content}")
-            elif msg.phase == "final":
-                context_parts.append(f"Your final decision: {msg.content}")
-        
-        return "\n".join(context_parts)

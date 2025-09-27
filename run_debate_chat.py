@@ -91,7 +91,8 @@ def run_single_chat_debate_session(game_size: int = 5,
                                  game_id_range: List[int] = None,
                                  use_parallel: bool = True,
                                  game_parallel_workers: int = 20,
-                                 self_reported_confidence: bool = False):
+                                 self_reported_confidence: bool = False,
+                                 depth: int = 1):
     """Run a single debate with default chat history configuration."""
     
     print("🚀 Starting Chat History Multi-Agent Debate System")
@@ -106,10 +107,12 @@ def run_single_chat_debate_session(game_size: int = 5,
     # Override parameters if specified
     debate_config.game_parallel_workers = game_parallel_workers
     debate_config.self_reported_confidence = self_reported_confidence
+    debate_config.depth = depth
     print(f"📋 Using default chat history configuration")
     print(f"🤖 Agents: {[agent.name for agent in debate_config.agents]}")
     print(f"🔧 Game parallel workers: {debate_config.game_parallel_workers}")
     print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
+    print(f"🔄 Debate depth: {depth} rounds per player")
     print(f"💬 Chat History: ENABLED (individual agent conversations)")
     
     # Load ground truth games
@@ -219,7 +222,10 @@ def run_custom_chat_debate(agent_configs: List[Dict[str, Any]],
 def run_flexible_chat_debate(llm_configs: List[Dict[str, Any]], 
                            game_size: int = 5, 
                            game_id_range: List[int] = None,
-                           use_parallel: bool = True):
+                           use_parallel: bool = True,
+                           script_name: str = None,
+                           debate_order_control: int = 0,
+                           depth: int = 1):
     """Run chat history debate with flexible agent configuration (auto-generated names)."""
     
     print("🚀 Starting Flexible Chat History Multi-Agent Debate System")
@@ -230,8 +236,9 @@ def run_flexible_chat_debate(llm_configs: List[Dict[str, Any]],
         game_id_range = [1, 3]  # Default to games 1-3
     
     # Create flexible configuration
-    debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
+    debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control, depth)
     print(f"🤖 Auto-generated agents: {[agent.name for agent in debate_config.agents]}")
+    print(f"🔄 Debate depth: {depth} rounds per player")
     print(f"💬 Chat History: ENABLED")
     
     # Load ground truth games
@@ -281,19 +288,22 @@ def main():
         print("  custom <agent_configs_json> [game_size] [game_id_range]")
         print("  flexible <llm_configs_json> [game_size] [game_id_range]")
         print("\nNew format (recommended):")
-        print("  python run_debate_chat.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>]")
-        print("  python run_debate_chat.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>]")
+        print("  python run_debate_chat.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>] [depth=<1/2/3>]")
+        print("  python run_debate_chat.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>] [script_name=<name>] [debate_order_control=<0/1>] [depth=<1/2/3>]")
         print("\nExamples:")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 use_parallel=false")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 game_parallel_workers=10")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 self_reported_confidence=true")
+        print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 depth=2")
         print("  python run_debate_chat.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-4o-mini\"}]' game_size=5 game_id_range=1,20")
+        print("  python run_debate_chat.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-4o-mini\"}]' game_size=5 game_id_range=1,20 depth=3")
         print("  python run_debate_chat.py run 5 1,20")
         print("  python run_debate_chat.py custom '[{\"name\":\"GPT-5\",\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_num=1")
         print("  python run_debate_chat.py flexible '[{\"provider\":\"openai\",\"model\":\"gpt-5-nano\"},{\"provider\":\"gemini\",\"model\":\"gemini-2.5-flash\",\"temperature\":0.2}]' game_size=5 game_num=1")
         print("  # Note: temperature is optional for all models")
         print("  # Note: self_reported_confidence enables confidence scoring (0-100) for all model outputs")
+        print("  # Note: depth controls number of debate rounds per player (1=1 round, 2=2 rounds, 3=3 rounds)")
         print("  # Note: Chat history approach provides better agent self-awareness through conversation format")
         return
     
@@ -321,13 +331,15 @@ def main():
             use_parallel = kv_args.get('use_parallel', 'true').lower() == 'true'
             game_parallel_workers = int(kv_args.get('game_parallel_workers', 20))
             self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
+            depth = int(kv_args.get('depth', '1'))
             num_games = game_id_range[1] - game_id_range[0] + 1
             print(f"🎯 Running chat history default configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
             print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
             print(f"🔧 Game parallel workers: {game_parallel_workers}")
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
+            print(f"🔄 Debate depth: {depth} rounds per player")
             print(f"💬 Chat History: ENABLED")
-            run_single_chat_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence)
+            run_single_chat_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence, depth=depth)
         elif command == "flexible":
             # Support flexible command with key=value format
             if 'llm_configs' not in kv_args:
@@ -342,16 +354,20 @@ def main():
             
             use_parallel = kv_args.get('use_parallel', 'true').lower() == 'true'
             self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
+            script_name = kv_args.get('script_name', None)
+            debate_order_control = int(kv_args.get('debate_order_control', '0'))
+            depth = int(kv_args.get('depth', '1'))
             num_games = game_id_range[1] - game_id_range[0] + 1
             
             print(f"🎯 Running flexible chat history configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
             print(f"🤖 Agents: {[config.get('provider', 'unknown') + '-' + config.get('model', 'unknown') for config in llm_configs]}")
             print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
+            print(f"🔄 Debate depth: {depth} rounds per player")
             print(f"💬 Chat History: ENABLED")
             
             # Create debate config with custom LLM configs
-            debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range)
+            debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control, depth)
             debate_config.self_reported_confidence = self_reported_confidence
             
             # Load ground truth games

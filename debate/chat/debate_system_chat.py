@@ -22,6 +22,118 @@ from debate.chat.debate_config import DebateConfig, AgentConfig
 from debate.chat.agent_chat_manager import AgentChatManager, MessageRole
 from utils.utility import openai_client, gemini_client, ali_client, cstcloud, ParallelProcessor
 
+
+class HTMLFileHandler(logging.FileHandler):
+    """Custom logging handler that converts ANSI color codes to HTML."""
+    
+    def __init__(self, filename, mode='a', encoding='utf-8', delay=False):
+        super().__init__(filename, mode, encoding, delay)
+        self.html_started = False
+    
+    def emit(self, record):
+        if not self.html_started:
+            # Write HTML header
+            html_header = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Debate Log</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background-color: #ffffff; color: #000000; margin: 20px; }
+        .log-entry { margin: 5px 0; white-space: pre-wrap; }
+        .red { color: #d32f2f; }
+        .orange { color: #f57c00; }
+        .blue { color: #1976d2; }
+        .green { color: #388e3c; }
+        .yellow { color: #f9a825; }
+        .purple { color: #7b1fa2; }
+        .cyan { color: #0097a7; }
+        .white { color: #000000; }
+        .bold { font-weight: bold; }
+        .timestamp { color: #666; }
+        .level { font-weight: bold; }
+        .info { color: #1976d2; }
+        .warning { color: #f57c00; }
+        .error { color: #d32f2f; }
+        .debug { color: #666; }
+    </style>
+</head>
+<body>
+"""
+            self.stream.write(html_header)
+            self.html_started = True
+        
+        try:
+            msg = self.format(record)
+            
+            # Convert ANSI color codes to HTML
+            html_msg = self._ansi_to_html(msg)
+            
+            # Add HTML wrapper
+            html_entry = f'<div class="log-entry">{html_msg}</div>\n'
+            self.stream.write(html_entry)
+            self.stream.flush()
+        except Exception:
+            self.handleError(record)
+    
+    def _ansi_to_html(self, text):
+        """Convert ANSI color codes to HTML spans."""
+        import re
+        
+        # ANSI color mappings
+        color_map = {
+            '\033[31m': '<span class="red">',  # Red
+            '\033[33m': '<span class="orange">',  # Orange/Yellow
+            '\033[34m': '<span class="blue">',  # Blue
+            '\033[32m': '<span class="green">',  # Green
+            '\033[35m': '<span class="purple">',  # Magenta
+            '\033[36m': '<span class="cyan">',  # Cyan
+            '\033[37m': '<span class="white">',  # White
+            '\033[1m': '<span class="bold">',  # Bold
+            '\033[0m': '</span>',  # Reset
+        }
+        
+        # Replace ANSI codes with HTML spans
+        for ansi_code, html_span in color_map.items():
+            text = text.replace(ansi_code, html_span)
+        
+        # Handle multiple resets (close all spans)
+        text = re.sub(r'</span>(?=</span>)', '', text)
+        
+        # Escape HTML special characters
+        text = text.replace('&', '&amp;')
+        text = text.replace('<', '&lt;')
+        text = text.replace('>', '&gt;')
+        
+        # Restore our HTML spans
+        text = text.replace('&lt;span class="red"&gt;', '<span class="red">')
+        text = text.replace('&lt;span class="orange"&gt;', '<span class="orange">')
+        text = text.replace('&lt;span class="blue"&gt;', '<span class="blue">')
+        text = text.replace('&lt;span class="green"&gt;', '<span class="green">')
+        text = text.replace('&lt;span class="purple"&gt;', '<span class="purple">')
+        text = text.replace('&lt;span class="cyan"&gt;', '<span class="cyan">')
+        text = text.replace('&lt;span class="white"&gt;', '<span class="white">')
+        text = text.replace('&lt;span class="bold"&gt;', '<span class="bold">')
+        text = text.replace('&lt;/span&gt;', '</span>')
+        
+        return text
+    
+    def close(self):
+        if self.html_started:
+            self.stream.write('</body>\n</html>\n')
+        super().close()
+
+
+from prompts_chat import (
+    kks_chat_system_prompt,
+    kks_chat_response_schema,
+    get_kks_chat_system_prompt_with_confidence,
+    get_kks_chat_response_schema_with_confidence,
+    get_kks_chat_debate_response_schema_with_confidence,
+    get_debate_order_selection_prompt,
+    get_debate_order_response_schema
+)
+
 # Data classes for the chat system
 @dataclass
 class AgentResponse:
@@ -62,16 +174,7 @@ class DebateSession:
     final_vote: Dict[str, str]
     supervisor_decision: Optional[Dict[str, str]]
     performance_tracking: Dict[str, Any]
-from prompts_chat import (
-    kks_chat_system_prompt,
-    kks_chat_response_schema,
-    get_kks_chat_system_prompt_with_confidence,
-    get_kks_chat_response_schema_with_confidence,
-    get_kks_chat_debate_response_schema_with_confidence,
-    get_chat_debate_prompt,
-    get_chat_self_adjustment_prompt,
-    get_chat_final_discussion_prompt
-)
+
 
 
 class ChatHistoryDebateSystem:
@@ -152,8 +255,8 @@ class ChatHistoryDebateSystem:
         self.logger.info("🗣️ Phase 2: Debate Rounds (Chat History)")
         debate_rounds = []
         
-        # Get player names from ground truth
-        player_names = list(gt_solution.keys())
+        # Select debate order based on configuration
+        player_names = self._select_debate_order(game, initial_proposals)
         
         # Track the current state of all agents (starts with initial proposals)
         current_agent_states = initial_proposals
@@ -161,30 +264,114 @@ class ChatHistoryDebateSystem:
         for player_name in player_names:
             self.logger.info(f"--- Debating {player_name}'s role ---")
             self.logger.info(f"🎯 Ground Truth: {player_name} is a {gt_solution.get(player_name, 'unknown')}")
-            debate_round = self._run_debate_round_with_chat(
-                game, player_name, len(debate_rounds) + 1, 
-                current_agent_states, debate_rounds
-            )
-            debate_rounds.append(debate_round)
             
-            # Update current agent states to the self-adjustment results from this round
-            current_agent_states = debate_round.agent_responses
+            # Run multiple debate rounds for this player based on depth
+            player_debate_rounds = []  # Track all debate rounds for this specific player
+            all_debate_responses = []  # Collect all debate responses across depth rounds
             
-            # Show round results
-            self.logger.info(f"📊 Round {debate_round.round_number} Results for {player_name}:")
-            for response in debate_round.agent_responses:
-                role = response.player_role_assignments.get(player_name, "unknown")
-                correct = "✅" if role == gt_solution.get(player_name) else "❌"
-                confidence_info = f" (confidence: {response.confidence})" if self.config.self_reported_confidence and response.confidence >= 1 else ""
-                self.logger.info(f"  {response.agent_name}: {role} {correct}{confidence_info}")
+            # Phase 1: Run all debate rounds (no self-adjustment between rounds)
+            for depth_round in range(1, self.config.depth + 1):
+                self.logger.info(f"🔄 Depth Round {depth_round}/{self.config.depth} for {player_name} (Debate Only)")
                 
-                # Log detailed per-player accuracy for this round
-                self.logger.info(f"    📊 {response.agent_name} Round {debate_round.round_number} Accuracy by Player:")
-                for player, gt_role in gt_solution.items():
-                    predicted_role = response.player_role_assignments.get(player, "unknown")
-                    correct = "✅" if predicted_role == gt_role else "❌"
-                    self.logger.info(f"      {player}: {predicted_role} vs {gt_role} {correct}")
-            self.logger.info(f"🎯 Round completed - no intermediate voting")
+                # Run only the debate phase, no self-adjustment
+                debate_responses = self._conduct_debate_for_player_with_chat(
+                    game, player_name, len(debate_rounds) + 1, 
+                    current_agent_states, debate_rounds
+                )
+                
+                # Store debate responses for later self-adjustment
+                all_debate_responses.extend(debate_responses)
+                
+                # Create a debate round object (without self-adjustment responses)
+                debate_round = DebateRound(
+                    player_name=player_name,
+                    round_number=len(debate_rounds) + 1,
+                    agent_responses=debate_responses,  # Only debate responses
+                    debate_summary=self._create_debate_summary(debate_responses, player_name),
+                    consensus_reached=False,  # Will be determined after self-adjustment
+                    majority_role=None
+                )
+                
+                debate_rounds.append(debate_round)
+                player_debate_rounds.append(debate_round)
+                
+                # Update current agent states to the debate results from this round
+                current_agent_states = debate_responses
+                
+                # Show round results
+                self.logger.info(f"📊 Round {debate_round.round_number} Results for {player_name} (Depth {depth_round} - Debate):")
+                for response in debate_round.agent_responses:
+                    # Handle different response formats based on phase
+                    if response.phase == "debate":
+                        role = response.player_role_assignments.get("role", "unknown")
+                    else:
+                        role = response.player_role_assignments.get(player_name, "unknown")
+                    correct = "✅" if role == gt_solution.get(player_name) else "❌"
+                    confidence_info = f" (confidence: {response.confidence})" if self.config.self_reported_confidence and response.confidence >= 1 else ""
+                    self.logger.info(f"  {response.agent_name}: {role} {correct}{confidence_info}")
+                    
+                    # Log detailed per-player accuracy for this round
+                    # For debate phase, only log the player being debated since that's the only role the agent provided
+                    if response.phase == "debate":
+                        self.logger.info(f"    📊 {response.agent_name} Round {debate_round.round_number} Accuracy for {player_name}:")
+                        predicted_role = response.player_role_assignments.get("role", "unknown")
+                        gt_role = gt_solution.get(player_name, "unknown")
+                        correct = "✅" if predicted_role == gt_role else "❌"
+                        self.logger.info(f"      {player_name}: {predicted_role} vs {gt_role} {correct}")
+                    else:
+                        # For other phases, log all players
+                        self.logger.info(f"    📊 {response.agent_name} Round {debate_round.round_number} Accuracy by Player:")
+                        for player, gt_role in gt_solution.items():
+                            predicted_role = response.player_role_assignments.get(player, "unknown")
+                            correct = "✅" if predicted_role == gt_role else "❌"
+                            self.logger.info(f"      {player}: {predicted_role} vs {gt_role} {correct}")
+                self.logger.info(f"🎯 Depth Round {depth_round} debate completed for {player_name}")
+            
+            # Phase 2: Single self-adjustment using ALL debate responses from all depth rounds
+            self.logger.info(f"🔄 Self-adjustment for {player_name} using {len(all_debate_responses)} debate responses from {self.config.depth} depth rounds")
+            
+            if self.config.enable_self_adjustment:
+                adjusted_responses = self._conduct_self_adjustment_with_chat(
+                    game, player_name, len(debate_rounds), all_debate_responses, debate_rounds, current_agent_states
+                )
+                
+                # Update the final debate round with self-adjustment responses
+                final_round = debate_rounds[-1]  # Get the last round
+                final_round.agent_responses.extend(adjusted_responses)  # Add self-adjustment responses
+                
+                # Update current agent states to the self-adjustment results
+                current_agent_states = adjusted_responses
+                
+                # Show self-adjustment results
+                self.logger.info(f"📊 Self-adjustment Results for {player_name}:")
+                for response in adjusted_responses:
+                    # Self-adjustment responses should have full player assignments, not just the debated player
+                    role = response.player_role_assignments.get(player_name, "unknown")
+                    correct = "✅" if role == gt_solution.get(player_name) else "❌"
+                    confidence_info = f" (confidence: {response.confidence})" if self.config.self_reported_confidence and response.confidence >= 1 else ""
+                    self.logger.info(f"  {response.agent_name}: {role} {correct}{confidence_info}")
+                    
+                    # Log detailed per-player accuracy for self-adjustment
+                    self.logger.info(f"    📊 {response.agent_name} Self-adjustment Accuracy by Player:")
+                    for player, gt_role in gt_solution.items():
+                        predicted_role = response.player_role_assignments.get(player, "unknown")
+                        correct = "✅" if predicted_role == gt_role else "❌"
+                        self.logger.info(f"      {player}: {predicted_role} vs {gt_role} {correct}")
+                
+                # Check for consensus in self-adjustment responses
+                consensus_role = self._check_consensus(adjusted_responses, player_name)
+                final_round.consensus_reached = consensus_role is not None
+                final_round.majority_role = consensus_role
+                
+                if consensus_role:
+                    self.logger.info(f"🎯 CONSENSUS REACHED for {player_name}: {consensus_role}")
+                else:
+                    self.logger.info(f"❌ NO CONSENSUS for {player_name} - agents disagree")
+            else:
+                # No self-adjustment, just use the last debate responses
+                current_agent_states = all_debate_responses[-len(self.agents):]  # Last responses from each agent
+            
+            self.logger.info(f"✅ All {self.config.depth} depth rounds + self-adjustment completed for {player_name}")
         
         # Phase 3: Final Discussion and Fresh Voting with chat history
         self.logger.info("🗣️ Phase 3: Final Discussion and Fresh Voting (Chat History)")
@@ -281,15 +468,20 @@ class ChatHistoryDebateSystem:
                 # Get chat context for API call
                 chat_context = self.chat_manager.get_chat_context_for_agent(agent_name)
                 
-                # Log initial proposal context
-                self.logger.info(f"    📝 {agent_name} CHAT CONTEXT:")
-                for i, msg in enumerate(chat_context):
-                    self.logger.info(f"      Message {i+1} ({msg['role']}): {msg['content'][:100]}...")
+                # Combine chat context into a single prompt for logging and API call
+                combined_prompt = self._combine_chat_context_to_prompt(chat_context)
+                
+                # Log the complete initial proposal prompt with all context (RED TEXT)
+                self.logger.info(f"    🎯 COMPLETE INITIAL PROPOSAL PROMPT for {agent_name}:")
+                self.logger.info(f"[INITIAL PROPOSAL PROMPT - RED] \033[31m{combined_prompt}\033[0m")
+                self.logger.info("")
+                
+                # Log prompt length for debugging
+                self.logger.info(f"    📊 INITIAL PROPOSAL PROMPT LENGTH: {len(combined_prompt)} characters")
+                self.logger.info("")
                 
                 # Make API call based on provider
                 if config.provider == "openai":
-                    # All OpenAI models need combined prompt since response_completion doesn't support messages
-                    combined_prompt = self._combine_chat_context_to_prompt(chat_context)
                     # Check if model supports reasoning parameters
                     if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
                         response_obj = client.response_completion(
@@ -308,7 +500,6 @@ class ChatHistoryDebateSystem:
                         )
                 elif config.provider == "gemini":
                     # Gemini doesn't support messages parameter, so combine to single prompt
-                    combined_prompt = self._combine_chat_context_to_prompt(chat_context)
                     response_obj = client.chat_completion(
                         user_prompt=combined_prompt,
                         system_prompt="",
@@ -316,7 +507,6 @@ class ChatHistoryDebateSystem:
                         response_schema=get_kks_chat_response_schema_with_confidence(self.config.self_reported_confidence)
                     )
                 else:  # ali, cst - these may need single prompt format
-                    combined_prompt = self._combine_chat_context_to_prompt(chat_context)
                     response_obj = client.chat_completion(
                         user_prompt=combined_prompt,
                         system_prompt="",
@@ -379,49 +569,105 @@ class ChatHistoryDebateSystem:
         
         return [p for p in proposals if p is not None]
     
-    def _run_debate_round_with_chat(self, game: ground_truth, player_name: str, 
-                                   round_num: int, current_agent_states: List[AgentResponse],
-                                   previous_rounds: List[DebateRound]) -> DebateRound:
-        """Run a debate round for a specific player's role using chat history."""
+    def _validate_debate_order(self, order: List[str], game: ground_truth) -> bool:
+        """Validate that the debate order is valid (each player occurs exactly once)."""
+        gt_solution = self._parse_ground_truth_solution(game)
+        expected_players = set(gt_solution.keys())
         
-        # Step 1: Debate period with chat history
-        self.logger.info(f"  Step 1: Debate period for {player_name} (Chat History)")
-        debate_responses = self._conduct_debate_for_player_with_chat(
-            game, player_name, round_num, current_agent_states, previous_rounds
-        )
+        # Check 1: Same length
+        if len(order) != len(expected_players):
+            self.logger.debug(f"    ❌ Invalid length: expected {len(expected_players)}, got {len(order)}")
+            return False
         
-        # Step 2: Self-adjustment with chat history
-        self.logger.info(f"  Step 2: Self-adjustment for {player_name} (Chat History)")
-        if self.config.enable_self_adjustment:
-            adjusted_responses = self._conduct_self_adjustment_with_chat(
-                game, player_name, round_num, debate_responses, previous_rounds, current_agent_states
-            )
+        # Check 2: All expected players are present (no missing players)
+        actual_players = set(order)
+        if expected_players != actual_players:
+            missing_players = expected_players - actual_players
+            extra_players = actual_players - expected_players
+            self.logger.debug(f"    ❌ Invalid player set:")
+            if missing_players:
+                self.logger.debug(f"        Missing: {missing_players}")
+            if extra_players:
+                self.logger.debug(f"        Extra: {extra_players}")
+            return False
+        
+        # Check 3: No duplicate players (each player occurs exactly once)
+        if len(order) != len(set(order)):
+            duplicates = [player for player in order if order.count(player) > 1]
+            unique_duplicates = list(set(duplicates))
+            self.logger.debug(f"    ❌ Duplicate players: {unique_duplicates}")
+            return False
+        
+        # All validations passed
+        self.logger.debug(f"    ✅ Valid order")
+        return True
+    
+    def _select_debate_order(self, game: ground_truth, initial_proposals: List[AgentResponse]) -> List[str]:
+        """Select the debate order based on agent consensus or use ground truth order."""
+        
+        if self.config.debate_order_control == 0:
+            # Use ground truth order (default behavior)
+            gt_solution = self._parse_ground_truth_solution(game)
+            player_names = list(gt_solution.keys())
+            self.logger.info(f"🎯 Using ground truth order: {player_names}")
+            return player_names
+        
+        elif self.config.debate_order_control == 1:
+            # Use a dedicated GPT-5 agent to decide the order
+            self.logger.info("🤖 Using GPT-5 agent to decide the debate order...")
+            
+            try:
+                # Create a dedicated GPT-5 client for order selection
+                from utils.utility import openai_client
+                gpt5_client = openai_client(self.secret_path)
+                
+                # Create order selection prompt
+                order_prompt = get_debate_order_selection_prompt(game, initial_proposals)
+                
+                self.logger.info("  Asking GPT-5 for optimal debate order...")
+                
+                # Get response from GPT-5 using the correct method
+                response_obj = gpt5_client.response_completion(
+                    user_prompt=order_prompt,
+                    model="gpt-5-nano",  # Use GPT-5 for reliable order selection
+                    schema_format=get_debate_order_response_schema()
+                )
+                
+                if response_obj.error:
+                    raise Exception(f"GPT-5 API error: {response_obj.error}")
+                
+                content = response_obj.text
+                
+                # Parse the response
+                import json
+                order_data = json.loads(content)
+                debate_order = order_data.get("debate_order", [])
+                reasoning = order_data.get("reasoning", "")
+                
+                self.logger.info(f"    GPT-5 suggests: {debate_order}")
+                self.logger.info(f"    Reasoning: {reasoning}")
+                
+                # Validate the GPT-5 order
+                if self._validate_debate_order(debate_order, game):
+                    self.logger.info(f"✅ GPT-5 provided valid order: {debate_order}")
+                    return debate_order
+                else:
+                    self.logger.warning("⚠️ GPT-5 provided invalid order, falling back to ground truth order")
+                    gt_solution = self._parse_ground_truth_solution(game)
+                    return list(gt_solution.keys())
+                
+            except Exception as e:
+                self.logger.error(f"❌ GPT-5 order selection failed: {e}")
+                self.logger.warning("⚠️ Falling back to ground truth order")
+                gt_solution = self._parse_ground_truth_solution(game)
+                return list(gt_solution.keys())
+        
         else:
-            adjusted_responses = debate_responses
-        
-        # Combine both phases into a single list
-        all_responses = debate_responses + adjusted_responses
-        
-        # Create debate summary
-        debate_summary = self._create_debate_summary(adjusted_responses, player_name)
-        
-        # Check for consensus in self-adjustment responses
-        consensus_role = self._check_consensus(adjusted_responses, player_name)
-        consensus_reached = consensus_role is not None
-        
-        if consensus_reached:
-            self.logger.info(f"🎯 CONSENSUS REACHED for {player_name}: {consensus_role}")
-        else:
-            self.logger.info(f"❌ NO CONSENSUS for {player_name} - agents disagree")
-        
-        return DebateRound(
-            player_name=player_name,
-            round_number=round_num,
-            agent_responses=all_responses,  # Now includes both debate and self_adjustment phases
-            debate_summary=debate_summary,
-            consensus_reached=consensus_reached,
-            majority_role=consensus_role
-        )
+            # Invalid setting, use ground truth order
+            self.logger.warning(f"⚠️ Invalid debate_order_control setting: {self.config.debate_order_control}, using ground truth order")
+            gt_solution = self._parse_ground_truth_solution(game)
+            return list(gt_solution.keys())
+    
     
     def _conduct_debate_for_player_with_chat(self, game: ground_truth, player_name: str,
                                            round_num: int, current_agent_states: List[AgentResponse],
@@ -463,11 +709,14 @@ class ChatHistoryDebateSystem:
                 # Get chat context for API call
                 chat_context = self.chat_manager.get_chat_context_for_agent(agent_name)
                 
-                # Log debate context
-                self.logger.info(f"      📝 {agent_name} DEBATE CHAT CONTEXT for {player_name}:")
-                self.logger.info(f"      Total messages: {len(chat_context)}")
-                for i, msg in enumerate(chat_context[-3:]):  # Show last 3 messages
-                    self.logger.info(f"        Message {len(chat_context)-2+i} ({msg['role']}): {msg['content'][:100]}...")
+                # Log the complete debate prompt with all context (ORANGE TEXT)
+                self.logger.info(f"      🗣️ COMPLETE DEBATE PROMPT for {agent_name}:")
+                self.logger.info(f"[DEBATE PROMPT - ORANGE] \033[33m{debate_prompt}\033[0m")
+                self.logger.info("")
+                
+                # Log prompt length for debugging
+                self.logger.info(f"      📊 DEBATE PROMPT LENGTH: {len(debate_prompt)} characters")
+                self.logger.info("")
                 
                 # Make API call
                 if config.provider == "openai":
@@ -617,19 +866,6 @@ class ChatHistoryDebateSystem:
                     for response in debate_responses
                 ]
                 
-                # Log the debate responses data being added
-                self.logger.info(f"      🗣️ ADDING DEBATE RESPONSES TO {agent_name}'s CHAT HISTORY:")
-                for i, response_data in enumerate(debate_responses_data):
-                    self.logger.info(f"        Debate Response {i+1}:")
-                    self.logger.info(f"          Agent: {response_data['agent_name']}")
-                    self.logger.info(f"          Assignments: {response_data['player_role_assignments']}")
-                    self.logger.info(f"          Agrees with: {response_data['agree_with']}")
-                    self.logger.info(f"          Disagrees with: {response_data['disagree_with']}")
-                    self.logger.info(f"          Agree reasoning: {response_data['agree_reasoning']}")
-                    self.logger.info(f"          Disagree reasoning: {response_data['disagree_reasoning']}")
-                    self.logger.info(f"          Confidence: {response_data['confidence']}")
-                    self.logger.info("")
-                
                 self.chat_manager.add_other_agents_context(
                     agent_name, debate_responses_data, "self_adjustment", round_num
                 )
@@ -637,24 +873,13 @@ class ChatHistoryDebateSystem:
                 # Get chat context for API call
                 chat_context = self.chat_manager.get_chat_context_for_agent(agent_name)
                 
-                # Log self-adjustment context with detailed chat history
-                self.logger.info(f"      📝 {agent_name} SELF-ADJUSTMENT CHAT CONTEXT for {player_name}:")
-                self.logger.info(f"      Total messages: {len(chat_context)}")
+                # Log the complete self-adjustment prompt with all context (BLUE TEXT)
+                self.logger.info(f"      🔄 COMPLETE SELF-ADJUSTMENT PROMPT for {agent_name}:")
+                self.logger.info(f"[SELF-ADJUSTMENT PROMPT - BLUE] \033[34m{adjustment_prompt}\033[0m")
+                self.logger.info("")
                 
-                # Log each message in the chat context to show debate reasoning
-                for i, message in enumerate(chat_context):
-                    self.logger.info(f"      Message {i+1} ({message['role']}):")
-                    content = message['content']
-                    if len(content) > 500:
-                        self.logger.info(f"        {content[:500]}...")
-                        self.logger.info(f"        [TRUNCATED - Full length: {len(content)} chars]")
-                    else:
-                        self.logger.info(f"        {content}")
-                    self.logger.info("")
-                
-                # Log the self-adjustment prompt that gets added
-                self.logger.info(f"      🔄 SELF-ADJUSTMENT PROMPT for {agent_name}:")
-                self.logger.info(f"      {adjustment_prompt}")
+                # Log prompt length for debugging
+                self.logger.info(f"      📊 SELF-ADJUSTMENT PROMPT LENGTH: {len(adjustment_prompt)} characters")
                 self.logger.info("")
                 
                 # Make API call
@@ -662,14 +887,6 @@ class ChatHistoryDebateSystem:
                     # All OpenAI models need combined prompt since response_completion doesn't support messages
                     combined_prompt = self._combine_chat_context_to_prompt(chat_context)
                     
-                    # Log the final combined prompt that gets sent to the API
-                    self.logger.info(f"      📤 FINAL COMBINED PROMPT SENT TO {agent_name} API:")
-                    if len(combined_prompt) > 1000:
-                        self.logger.info(f"        {combined_prompt[:1000]}...")
-                        self.logger.info(f"        [TRUNCATED - Full length: {len(combined_prompt)} chars]")
-                    else:
-                        self.logger.info(f"        {combined_prompt}")
-                    self.logger.info("")
                     
                     # Check if model supports reasoning parameters
                     if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
@@ -820,9 +1037,14 @@ class ChatHistoryDebateSystem:
                 # Get chat context for API call
                 chat_context = self.chat_manager.get_chat_context_for_agent(agent_name)
                 
-                # Log final discussion context
-                self.logger.info(f"  📝 {agent_name} FINAL DISCUSSION CHAT CONTEXT:")
-                self.logger.info(f"  Total messages: {len(chat_context)}")
+                # Log the complete final discussion prompt with all context (GREEN TEXT)
+                self.logger.info(f"  🎯 COMPLETE FINAL DISCUSSION PROMPT for {agent_name}:")
+                self.logger.info(f"[FINAL DISCUSSION PROMPT - GREEN] \033[32m{final_discussion_prompt}\033[0m")
+                self.logger.info("")
+                
+                # Log prompt length for debugging
+                self.logger.info(f"  📊 FINAL DISCUSSION PROMPT LENGTH: {len(final_discussion_prompt)} characters")
+                self.logger.info("")
                 
                 # Make API call for final decision
                 if config.provider == "openai":
@@ -938,14 +1160,49 @@ class ChatHistoryDebateSystem:
     def _create_debate_prompt_for_chat(self, game: ground_truth, player_name: str,
                                      current_agent_states: List[AgentResponse],
                                      previous_rounds: List[DebateRound], agent_name: str) -> str:
-        """Create debate prompt for chat history format."""
+        """Create debate prompt for chat history format with explicit context."""
+        
+        # Build context about all agents' current positions
+        agents_context = "\nCURRENT AGENT POSITIONS:\n"
+        for state in current_agent_states:
+            # Handle different response formats based on phase
+            if state.phase == "debate":
+                role = state.player_role_assignments.get("role", "unknown")
+            else:
+                role = state.player_role_assignments.get(player_name, "unknown")
+            is_self = " (YOU)" if state.agent_name == agent_name else ""
+            agents_context += f"- {state.agent_name}{is_self}: {role}\n"
+            agents_context += f"  Reasoning: {state.explanation}\n"
+            if self.config.self_reported_confidence and state.confidence >= 1:
+                agents_context += f"  Confidence: {state.confidence}\n"
+            agents_context += "\n"
+        
+        # Build context about previous debate rounds
+        previous_context = ""
+        if previous_rounds:
+            previous_context = "\nPREVIOUS DEBATE ROUNDS:\n"
+            for round_data in previous_rounds:
+                previous_context += f"Round {round_data.round_number} ({round_data.player_name}):\n"
+                for response in round_data.agent_responses:
+                    # Handle different response formats based on phase
+                    if response.phase == "debate":
+                        role = response.player_role_assignments.get("role", "unknown")
+                    else:
+                        role = response.player_role_assignments.get(round_data.player_name, "unknown")
+                    is_self = " (YOU)" if response.agent_name == agent_name else ""
+                    previous_context += f"  - {response.agent_name}{is_self}: {role}\n"
+                    if response.explanation:
+                        previous_context += f"    Reasoning: {response.explanation}\n"
+                if round_data.consensus_reached:
+                    previous_context += f"  → CONSENSUS: {round_data.majority_role}\n"
+                previous_context += "\n"
         
         prompt = f"""You are participating in a debate about {player_name}'s role in this Knight-Knaves-Spy game.
 
 GAME INFORMATION:
 {game.text_game}
 
-CURRENT FOCUS: We are debating the role of {player_name}.
+CURRENT FOCUS: We are debating the role of {player_name}.{agents_context}{previous_context}
 
 You can see the conversation history above, which includes:
 - Your own previous responses (marked as your messages)
@@ -958,6 +1215,12 @@ Your task is to:
 3. Provide reasoning for your agreements and disagreements
 4. Make your final decision on {player_name}'s role
 
+CRITICAL REQUIREMENTS:
+- You MUST assign {player_name} one of the three roles: "knight", "knave", or "spy"
+- Do NOT use "unknown" or any other value - you must make a definitive choice
+- Base your decision on the game logic and evidence from the statements
+- If you're uncertain, choose the most likely role based on available evidence
+
 Note: You can see your own previous responses in the conversation history, so you have natural self-awareness of your own position.
 
 Return your response in JSON format:
@@ -968,7 +1231,9 @@ Return your response in JSON format:
     "disagree_with": ["other_agent_name3"],
     "agree_reasoning": "Brief reasoning for agreements",
     "disagree_reasoning": "Brief reasoning for disagreements"
-}}"""
+}}
+
+IMPORTANT: The "role" field must be exactly one of: "knight", "knave", or "spy" - no other values are acceptable."""
         
         return prompt
     
@@ -977,21 +1242,79 @@ Return your response in JSON format:
                                               previous_rounds: List[DebateRound], 
                                               agent_name: str, agent_config: AgentConfig,
                                               current_agent_states: List[AgentResponse]) -> str:
-        """Create self-adjustment prompt for chat history format."""
+        """Create self-adjustment prompt for chat history format with explicit context."""
+        
+        # Build context about debate responses with agreement/disagreement analysis
+        debate_analysis = ""
+        if debate_responses:
+            debate_analysis = "\nCURRENT DEBATE ANALYSIS:\n"
+            for response in debate_responses:
+                # Handle different response formats based on phase
+                if response.phase == "debate":
+                    role = response.player_role_assignments.get("role", "unknown")
+                else:
+                    role = response.player_role_assignments.get(player_name, "unknown")
+                is_self = " (YOU)" if response.agent_name == agent_name else ""
+                debate_analysis += f"- {response.agent_name}{is_self}: {role}\n"
+                if self.config.self_reported_confidence and response.confidence >= 1:
+                    debate_analysis += f"  Confidence: {response.confidence}\n"
+                if response.agree_with and len(response.agree_with) > 0:
+                    debate_analysis += f"  Agrees with: {', '.join(response.agree_with)}\n"
+                    if response.agree_reasoning:
+                        debate_analysis += f"  Agree reasoning: {response.agree_reasoning}\n"
+                if response.disagree_with and len(response.disagree_with) > 0:
+                    debate_analysis += f"  Disagrees with: {', '.join(response.disagree_with)}\n"
+                    if response.disagree_reasoning:
+                        debate_analysis += f"  Disagree reasoning: {response.disagree_reasoning}\n"
+                debate_analysis += "\n"
+        
+        # Build context about previous rounds
+        previous_context = ""
+        if previous_rounds:
+            previous_context = "\nPREVIOUS DEBATE ROUNDS:\n"
+            for round_data in previous_rounds:
+                previous_context += f"Round {round_data.round_number} ({round_data.player_name}):\n"
+                for response in round_data.agent_responses:
+                    # Handle different response formats based on phase
+                    if response.phase == "debate":
+                        role = response.player_role_assignments.get("role", "unknown")
+                    else:
+                        role = response.player_role_assignments.get(round_data.player_name, "unknown")
+                    is_self = " (YOU)" if response.agent_name == agent_name else ""
+                    previous_context += f"  - {response.agent_name}{is_self}: {role}\n"
+                    # Include agreement/disagreement info for debate phase responses
+                    if response.phase == "debate":
+                        if response.agree_with and len(response.agree_with) > 0:
+                            previous_context += f"    Agrees with: {', '.join(response.agree_with)}\n"
+                            if response.agree_reasoning:
+                                previous_context += f"    Agree reasoning: {response.agree_reasoning}\n"
+                        if response.disagree_with and len(response.disagree_with) > 0:
+                            previous_context += f"    Disagrees with: {', '.join(response.disagree_with)}\n"
+                            if response.disagree_reasoning:
+                                previous_context += f"    Disagree reasoning: {response.disagree_reasoning}\n"
+                    else:
+                        # For non-debate phases, include the general explanation
+                        if response.explanation:
+                            previous_context += f"    Reasoning: {response.explanation}\n"
+                if round_data.consensus_reached:
+                    previous_context += f"  → CONSENSUS: {round_data.majority_role}\n"
+                previous_context += "\n"
         
         prompt = f"""Based on the debate about {player_name}'s role, please provide your complete solution for ALL players.
 
 GAME INFORMATION:
 {game.text_game}
 
-CURRENT FOCUS: We just finished debating {player_name}'s role.
+CURRENT FOCUS: We just finished debating {player_name}'s role.{debate_analysis}{previous_context}
 
 You can see the conversation history above, which includes:
 - Your own previous responses and solutions
 - Other agents' positions and reasoning
 - The debate arguments and agreements/disagreements
 
-Based on the debate, please provide your final assessment. You may adjust your position on {player_name} or any other players if you've been convinced by the arguments.
+Based on the debate, please provide your final assessment. 
+- Do NOT use "unknown" or any other value - you must make a definitive choice
+- You may adjust your position on {player_name} or any other players if you've been convinced by the arguments.
 
 You can reference your own previous responses and those of other agents from the conversation history.
 
@@ -1011,10 +1334,51 @@ Return your complete solution in JSON format:
     def _create_final_discussion_prompt_for_chat(self, game: ground_truth, initial_proposals: List[AgentResponse], debate_rounds: List[DebateRound]) -> str:
         """Create final discussion prompt for chat history format."""
         
-        prompt = f"""This is the FINAL DISCUSSION phase. You have seen the complete debate history in the conversation.
+        # Build initial proposals summary
+        initial_summary = "\nINITIAL PROPOSALS:\n"
+        for proposal in initial_proposals:
+            initial_summary += f"- {proposal.agent_name}: {proposal.player_role_assignments}\n"
+            if proposal.explanation:
+                initial_summary += f"  Reasoning: {proposal.explanation}\n"
+            if self.config.self_reported_confidence and proposal.confidence >= 1:
+                initial_summary += f"  Confidence: {proposal.confidence}\n"
+            initial_summary += "\n"
+        
+        # Build debate rounds summary
+        debate_summary = ""
+        if debate_rounds:
+            debate_summary = "\nDEBATE ROUNDS AND SELF-ADJUSTMENT SUMMARY:\n"
+            for round_data in debate_rounds:
+                debate_summary += f"Round {round_data.round_number} ({round_data.player_name}):\n"
+                for response in round_data.agent_responses:
+                    # Handle different response formats based on phase
+                    if response.phase == "debate":
+                        role = response.player_role_assignments.get("role", "unknown")
+                        debate_summary += f"  - {response.agent_name}: {role}\n"
+                        if self.config.self_reported_confidence and response.confidence >= 1:
+                            debate_summary += f"    Confidence: {response.confidence}\n"
+                        if response.agree_with and len(response.agree_with) > 0:
+                            debate_summary += f"    Agrees with: {', '.join(response.agree_with)}\n"
+                            if response.agree_reasoning:
+                                debate_summary += f"    Agree reasoning: {response.agree_reasoning}\n"
+                        if response.disagree_with and len(response.disagree_with) > 0:
+                            debate_summary += f"    Disagrees with: {', '.join(response.disagree_with)}\n"
+                            if response.disagree_reasoning:
+                                debate_summary += f"    Disagree reasoning: {response.disagree_reasoning}\n"
+                    elif response.phase == "self_adjustment":
+                        debate_summary += f"  - {response.agent_name} (self-adjustment): {response.player_role_assignments}\n"
+                        if response.explanation:
+                            debate_summary += f"    Reasoning: {response.explanation}\n"
+                        if self.config.self_reported_confidence and response.confidence >= 1:
+                            debate_summary += f"    Confidence: {response.confidence}\n"
+                if round_data.consensus_reached:
+                    debate_summary += f"  → CONSENSUS: {round_data.majority_role}\n"
+                debate_summary += "\n"
+        
+        prompt = f"""This is the FINAL DISCUSSION phase. You have access to the complete debate history.
 
 GAME INFORMATION:
-{game.text_game}
+{game.text_game}{initial_summary}{debate_summary}
 
 You can see the conversation history above, which includes:
 - Your own responses throughout all phases (initial, debate, self-adjustment)
@@ -1022,10 +1386,11 @@ You can see the conversation history above, which includes:
 - The complete debate history and evolution of arguments
 
 Now make your final decision for ALL players. Consider:
-1. All the arguments made during the debates (visible in conversation history)
+1. All the arguments made during the debates (shown above)
 2. How your thinking may have evolved through the conversation
 3. Any new insights from the discussion
 4. The overall consistency of the solution
+5. The agreement/disagreement patterns between agents
 
 You can reference the entire conversation history including your own responses and those of other agents.
 
@@ -1055,7 +1420,7 @@ INITIAL PROPOSALS:
         
         for proposal in initial_proposals:
             prompt += f"\n{proposal.agent_name} initially proposed: {proposal.player_role_assignments}"
-            prompt += f"\nTheir reasoning: {proposal.explanation[:200]}...\n"
+            prompt += f"\nTheir reasoning: {proposal.explanation}\n"
         
         prompt += "\nDEBATE ROUNDS:\n"
         for round_data in debate_rounds:
@@ -1069,18 +1434,18 @@ INITIAL PROPOSALS:
                     if response.agree_with and len(response.agree_with) > 0:
                         prompt += f"  Agreed with: {', '.join(response.agree_with)}"
                         if response.agree_reasoning and response.agree_reasoning.strip():
-                            prompt += f" - Reasoning: {response.agree_reasoning[:150]}..."
+                            prompt += f" - Reasoning: {response.agree_reasoning}"
                         prompt += "\n"
                     
                     if response.disagree_with and len(response.disagree_with) > 0:
                         prompt += f"  Disagreed with: {', '.join(response.disagree_with)}"
                         if response.disagree_reasoning and response.disagree_reasoning.strip():
-                            prompt += f" - Reasoning: {response.disagree_reasoning[:150]}..."
+                            prompt += f" - Reasoning: {response.disagree_reasoning}"
                         prompt += "\n"
                 else:
                     # Include explanation for non-debate phases (initial, self_adjustment)
                     if response.explanation:
-                        prompt += f"Reasoning: {response.explanation[:200]}...\n"
+                        prompt += f"Reasoning: {response.explanation}\n"
         
         prompt += """
 
@@ -1246,7 +1611,9 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         # Use a more unique timestamp with microseconds to avoid conflicts in parallel processing
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]  # Include milliseconds
         log_filename = f"debate_log_game{game_id}_{timestamp}.log"
+        html_filename = f"debate_log_game{game_id}_{timestamp}.html"
         log_path = os.path.join(self.organized_output_path, log_filename)
+        html_path = os.path.join(self.organized_output_path, html_filename)
         
         # Create logger with game-specific name
         logger_name = f"chat_debate_system_game{game_id}_{timestamp}"
@@ -1259,8 +1626,9 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         
         # Only create file handler if requested
         if create_log_file:
-            # Store the log path for later use
+            # Store the log paths for later use
             self.log_file_path = log_path
+            self.html_file_path = html_path
             # Don't create the file handler yet - we'll create it when we have content to log
         
         # Always log to console
@@ -1287,6 +1655,14 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
             formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
             file_handler.setFormatter(formatter)
             self.logger.addHandler(file_handler)
+            
+            # Create HTML file handler
+            if hasattr(self, 'html_file_path'):
+                html_handler = HTMLFileHandler(self.html_file_path)
+                html_handler.setLevel(logging.INFO)
+                formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+                html_handler.setFormatter(formatter)
+                self.logger.addHandler(html_handler)
     
     def _setup_output_paths(self, game_id: int = 1):
         """Setup output paths for results using the proper folder structure."""
@@ -1335,23 +1711,32 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         try:
             # First try to extract JSON from the response (handle extra text after JSON)
             json_text = self._extract_json_from_response(response_text)
+            self.logger.debug(f"Extracted JSON text: {json_text[:200]}...")
+            
             response_data = json.loads(json_text)
+            self.logger.debug(f"Parsed JSON data: {response_data}")
             
             # Extract player assignments (borrowed from traditional system)
             player_assignments = {}
             if "players" in response_data and isinstance(response_data["players"], list):
                 # New format with players array
+                self.logger.debug(f"Using players array format with {len(response_data['players'])} players")
                 for player_info in response_data["players"]:
                     if isinstance(player_info, dict) and "name" in player_info and "role" in player_info:
                         name = player_info.get("name", "")
                         role = player_info.get("role", "")
                         if name and role:
                             player_assignments[name] = role
+                            self.logger.debug(f"Added player assignment: {name} -> {role}")
+                self.logger.debug(f"Final player_assignments: {player_assignments}")
             else:
                 # Old format - direct name: role mapping
+                self.logger.debug("Using direct mapping format")
                 for key, value in response_data.items():
                     if key not in ["explanation", "confidence", "agree_with", "disagree_with", "agree_reasoning", "disagree_reasoning"] and isinstance(value, str):
                         player_assignments[key] = value
+                        self.logger.debug(f"Added direct assignment: {key} -> {value}")
+                self.logger.debug(f"Final player_assignments: {player_assignments}")
             
             # Extract explanation
             explanation = response_data.get("explanation", "")
@@ -1376,14 +1761,23 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         except Exception as e:
             self.logger.error(f"Error parsing agent response: {e}")
             self.logger.error(f"Raw response: {response_text}")
+            self.logger.error(f"Response length: {len(response_text)} characters")
             # Return default values instead of empty dict to avoid {} in logs
             return {"error": "parsing_failed"}, f"Error parsing response: {str(e)}", 5.0, None, None, None, None
     
     def _extract_json_from_response(self, response_text: str) -> str:
-        """Extract JSON from response text, handling extra text after JSON (borrowed from traditional system)."""
+        """Extract JSON from response text, handling extra text after JSON and double braces from GPT-5 models."""
+        # First, try to handle double braces that GPT-5 models sometimes return
+        # Replace double braces with single braces
+        normalized_text = response_text.replace('{{', '{').replace('}}', '}')
+        
+        # Log if we had to normalize double braces for debugging
+        if '{{' in response_text or '}}' in response_text:
+            self.logger.debug(f"Normalized double braces in response: {response_text[:100]}...")
+        
         # Try to find JSON object boundaries
         # Look for opening brace and try to find matching closing brace
-        start_idx = response_text.find('{')
+        start_idx = normalized_text.find('{')
         if start_idx == -1:
             raise ValueError("No JSON object found")
         
@@ -1391,7 +1785,7 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         brace_count = 0
         end_idx = start_idx
         
-        for i, char in enumerate(response_text[start_idx:], start_idx):
+        for i, char in enumerate(normalized_text[start_idx:], start_idx):
             if char == '{':
                 brace_count += 1
             elif char == '}':
@@ -1403,7 +1797,7 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         if brace_count != 0:
             raise ValueError("Unmatched braces in JSON")
         
-        return response_text[start_idx:end_idx]
+        return normalized_text[start_idx:end_idx]
     
     def _create_debate_summary(self, responses: List[AgentResponse], player_name: str) -> str:
         """Create a summary of debate responses for a specific player."""
@@ -1412,7 +1806,13 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         
         summary_parts = []
         for response in responses:
-            role = response.player_role_assignments.get(player_name, "unknown")
+            # Handle different response formats based on phase
+            if response.phase == "debate":
+                # For debate phase, the structure is {"player_role": "PlayerName", "role": "knight/knave/spy"}
+                role = response.player_role_assignments.get("role", "unknown")
+            else:
+                # For other phases, use the player name as key
+                role = response.player_role_assignments.get(player_name, "unknown")
             summary_parts.append(f"{response.agent_name}: {role}")
         
         return "; ".join(summary_parts)
@@ -1425,7 +1825,13 @@ IMPORTANT: Keep your explanation having details but less than 100 words."""
         # Count votes for each role
         role_counts = {}
         for response in responses:
-            role = response.player_role_assignments.get(player_name, "unknown")
+            # Handle different response formats based on phase
+            if response.phase == "debate":
+                # For debate phase, the structure is {"player_role": "PlayerName", "role": "knight/knave/spy"}
+                role = response.player_role_assignments.get("role", "unknown")
+            else:
+                # For other phases, use the player name as key
+                role = response.player_role_assignments.get(player_name, "unknown")
             if role != "unknown":
                 role_counts[role] = role_counts.get(role, 0) + 1
         

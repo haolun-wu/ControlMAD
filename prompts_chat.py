@@ -6,6 +6,13 @@ where agents maintain individual conversation histories and self-awareness is
 achieved naturally through message role separation.
 """
 
+from typing import List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils.project_types import ground_truth
+    from debate.chat.debate_system_chat import AgentResponse, DebateRound
+    from debate.chat.debate_config import AgentConfig
+
 kks_chat_system_prompt = """
 You are participating in a multi-agent debate about a Knight-Knave-Spy game. There are {num_player} other players in the game, each assigned a role of knight, knave, or spy. Each player will make a statement about themselves and other players. Besides those players, there is also a game manager who will provide you some hints. 
 
@@ -86,6 +93,104 @@ Keep your explanation having details but less than 100 words.
 Please follow strictly the format of the return, or the response will be rejected.
 """
 
+def get_debate_order_selection_prompt(game: 'ground_truth', initial_proposals: List['AgentResponse']) -> str:
+    """Generate a prompt for GPT-5 to decide the debate order."""
+    
+    # Create a summary of initial proposals
+    proposals_summary = ""
+    for proposal in initial_proposals:
+        if proposal and not proposal.error:
+            assignments = proposal.player_role_assignments
+            proposals_summary += f"\n{proposal.agent_name}: {assignments}"
+    
+    # Extract player names from the game
+    from utils.project_types import ground_truth
+    import re
+    solution_text = game.text_solution.strip()
+    pattern = r'(\w+)\s+is\s+a\s+(knight|knave|spy)\.'
+    matches = re.findall(pattern, solution_text, re.IGNORECASE)
+    player_names = [match[0] for match in matches]
+    
+    prompt = f"""
+You are a GPT-5 agent tasked with determining the optimal debate order for a Knight-Knave-Spy game. You must provide a valid order where each player occurs exactly once.
+
+**Game Information:**
+{game.text_game}
+
+**Players in this game:** {player_names}
+
+**Initial Proposals from All Agents:**
+{proposals_summary}
+
+**Your Task:**
+Now that all agents have provided their initial analysis, you need to decide the optimal order in which to discuss each player's role during the debate phase. Consider the following factors:
+
+1. **Logical dependencies**: Which players' roles can be determined most easily first?
+2. **Consensus vs. disagreement**: Which players have the most disagreement among agents?
+3. **Information flow**: Which order would provide the most useful information for resolving other players' roles?
+
+**Instructions:**
+- Provide the player names in the order you think would be most effective for the debate
+- Consider both the logical dependencies and the level of agreement/disagreement among agents
+- Your goal is to help the debate reach accurate conclusions efficiently
+
+**Response Format:**
+Return a JSON object with the following structure:
+{{
+    "debate_order": ["Player1", "Player2", "Player3", "Player4"],
+    "reasoning": "Brief explanation of why this order is optimal for the debate"
+}}
+
+**CRITICAL REQUIREMENTS - YOU MUST FOLLOW THESE EXACTLY:**
+- Include ALL players exactly once (no duplicates, no missing players)
+- Use the exact player names as they appear above: {player_names}
+- The order must contain every player from the game
+- Each player must appear exactly once in the order
+- Provide a concise reasoning for your chosen order
+- The order should help maximize the effectiveness of the debate process
+
+**MANDATORY VALIDATION CHECK:**
+Before responding, verify that your order:
+1. Contains exactly {len(player_names)} players
+2. Includes all players: {player_names}
+3. Has no duplicate players
+4. Uses the exact player names listed above
+
+**Example for this game:**
+Since the players are {player_names}, your order might be:
+{player_names} - each player appears exactly once (or any permutation)
+
+**INVALID examples that will be rejected:**
+- Missing any player from {player_names}
+- Including any player not in {player_names}
+- Having any duplicate players
+- Wrong number of players (must be exactly {len(player_names)})
+
+**CRITICAL:** Double-check your response before submitting. Invalid orders will cause the system to fall back to default order.
+
+Please respond with your recommended debate order.
+"""
+    return prompt
+
+def get_debate_order_response_schema() -> dict:
+    """Get the response schema for debate order selection."""
+    return {
+        "type": "object",
+        "properties": {
+            "debate_order": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Ordered list of player names for debate discussion"
+            },
+            "reasoning": {
+                "type": "string",
+                "description": "Brief explanation for the chosen order"
+            }
+        },
+        "required": ["debate_order", "reasoning"],
+        "additionalProperties": False
+    }
+
 def get_kks_chat_system_prompt_with_confidence(num_player: int, include_confidence: bool = False) -> str:
     """Get the KKS system prompt for chat history approach, optionally including confidence scoring."""
     base_prompt = kks_chat_system_prompt.replace("{num_player}", str(num_player))
@@ -163,11 +268,43 @@ def get_kks_chat_debate_response_schema_with_confidence(include_confidence: bool
 
 # Chat History Debate Specific Prompts
 
-def get_chat_debate_prompt(player_name: str) -> str:
-    """Get the debate prompt for chat history approach."""
+def get_chat_debate_prompt_for_chat(game: 'ground_truth', player_name: str,
+                                   current_agent_states: List['AgentResponse'],
+                                   previous_rounds: List['DebateRound'], agent_name: str) -> str:
+    """Get the debate prompt for chat history approach with full context."""
+    
+    # Build context about current agent states
+    current_positions = ""
+    if current_agent_states:
+        current_positions = "\nCURRENT AGENT POSITIONS:\n"
+        for state in current_agent_states:
+            role = state.player_role_assignments.get(player_name, "unknown")
+            current_positions += f"- {state.agent_name}: {role}\n"
+    
+    # Build context about previous debate rounds
+    previous_context = ""
+    if previous_rounds:
+        previous_context = "\nPREVIOUS DEBATE ROUNDS:\n"
+        for round_data in previous_rounds:
+            previous_context += f"Round {round_data.round_number} ({round_data.player_name}):\n"
+            for response in round_data.agent_responses:
+                role = response.player_role_assignments.get(round_data.player_name, "unknown")
+                previous_context += f"  - {response.agent_name}: {role}\n"
+            if round_data.consensus_reached:
+                previous_context += f"  → CONSENSUS: {round_data.majority_role}\n"
+            previous_context += "\n"
+    
     return f"""You are participating in a debate about {player_name}'s role in this Knight-Knaves-Spy game.
 
-Focus: We are specifically debating what role {player_name} has (knight, knave, or spy).
+GAME INFORMATION:
+{game.text_game}
+
+CURRENT FOCUS: We are debating the role of {player_name}.{current_positions}{previous_context}
+
+You can see the conversation history above, which includes:
+- Your own previous responses (marked as your messages)
+- Other agents' positions and reasoning
+- The debate context and instructions
 
 Your task is to:
 1. Analyze the other agents' positions on {player_name}'s role from the conversation history
@@ -187,13 +324,61 @@ Return your response in JSON format:
     "disagree_reasoning": "Brief reasoning for disagreements"
 }}"""
 
-def get_chat_self_adjustment_prompt(player_name: str) -> str:
-    """Get the self-adjustment prompt for chat history approach."""
+
+def get_chat_self_adjustment_prompt_for_chat(game: 'ground_truth', player_name: str,
+                                           debate_responses: List['AgentResponse'],
+                                           previous_rounds: List['DebateRound'], 
+                                           agent_name: str, agent_config: 'AgentConfig',
+                                           current_agent_states: List['AgentResponse']) -> str:
+    """Get the self-adjustment prompt for chat history approach with full context."""
+    
+    # Build context about debate responses with agreement/disagreement analysis
+    debate_analysis = ""
+    if debate_responses:
+        debate_analysis = "\nDEBATE ANALYSIS:\n"
+        for response in debate_responses:
+            role = response.player_role_assignments.get(player_name, "unknown")
+            debate_analysis += f"- {response.agent_name}: {role}\n"
+            if response.agree_with and len(response.agree_with) > 0:
+                debate_analysis += f"  Agrees with: {', '.join(response.agree_with)}\n"
+                if response.agree_reasoning:
+                    debate_analysis += f"  Agree reasoning: {response.agree_reasoning}\n"
+            if response.disagree_with and len(response.disagree_with) > 0:
+                debate_analysis += f"  Disagrees with: {', '.join(response.disagree_with)}\n"
+                if response.disagree_reasoning:
+                    debate_analysis += f"  Disagree reasoning: {response.disagree_reasoning}\n"
+            debate_analysis += "\n"
+    
+    # Build context about previous rounds
+    previous_context = ""
+    if previous_rounds:
+        previous_context = "\nPREVIOUS DEBATE ROUNDS:\n"
+        for round_data in previous_rounds:
+            previous_context += f"Round {round_data.round_number} ({round_data.player_name}):\n"
+            for response in round_data.agent_responses:
+                role = response.player_role_assignments.get(round_data.player_name, "unknown")
+                previous_context += f"  - {response.agent_name}: {role}\n"
+            if round_data.consensus_reached:
+                previous_context += f"  → CONSENSUS: {round_data.majority_role}\n"
+            previous_context += "\n"
+    
     return f"""Based on the debate about {player_name}'s role, please provide your complete solution for ALL players.
 
-You have seen the debate arguments and other agents' positions in the conversation history. Consider whether you want to adjust your position on {player_name} or any other players based on the arguments made.
+GAME INFORMATION:
+{game.text_game}
+
+CURRENT FOCUS: We just finished debating {player_name}'s role.{debate_analysis}{previous_context}
+
+You can see the conversation history above, which includes:
+- Your own previous responses and solutions
+- Other agents' positions and reasoning
+- The debate arguments and agreements/disagreements
+
+Based on the debate, please provide your final assessment. You may adjust your position on {player_name} or any other players if you've been convinced by the arguments.
 
 You can reference your own previous responses and those of other agents from the conversation history.
+
+IMPORTANT: For this self-adjustment phase, provide your complete solution for ALL players, not just {player_name}.
 
 Return your complete solution in JSON format:
 {{
@@ -204,9 +389,46 @@ Return your complete solution in JSON format:
     "explanation": "Your reasoning after considering the debate"
 }}"""
 
-def get_chat_final_discussion_prompt() -> str:
-    """Get the final discussion prompt for chat history approach."""
+
+def get_chat_final_discussion_prompt_for_chat(game: 'ground_truth', initial_proposals: List['AgentResponse'], debate_rounds: List['DebateRound']) -> str:
+    """Get the final discussion prompt for chat history approach with full context."""
+    
+    # Build context about initial proposals
+    initial_context = ""
+    if initial_proposals:
+        initial_context = "\nINITIAL PROPOSALS:\n"
+        for proposal in initial_proposals:
+            initial_context += f"- {proposal.agent_name}: {proposal.player_role_assignments}\n"
+            if proposal.explanation:
+                initial_context += f"  Reasoning: {proposal.explanation}\n"
+        initial_context += "\n"
+    
+    # Build context about debate rounds
+    debate_context = ""
+    if debate_rounds:
+        debate_context = "DEBATE ROUNDS:\n"
+        for round_data in debate_rounds:
+            debate_context += f"Round {round_data.round_number} ({round_data.player_name}):\n"
+            for response in round_data.agent_responses:
+                role = response.player_role_assignments.get(round_data.player_name, "unknown")
+                debate_context += f"  - {response.agent_name}: {role}\n"
+                if response.phase == "debate" and response.agree_with:
+                    debate_context += f"    Agrees with: {', '.join(response.agree_with)}\n"
+                if response.phase == "debate" and response.disagree_with:
+                    debate_context += f"    Disagrees with: {', '.join(response.disagree_with)}\n"
+            if round_data.consensus_reached:
+                debate_context += f"  → CONSENSUS: {round_data.majority_role}\n"
+            debate_context += "\n"
+    
     return f"""This is the FINAL DISCUSSION phase. You have seen the complete debate history in the conversation.
+
+GAME INFORMATION:
+{game.text_game}{initial_context}{debate_context}
+
+You can see the conversation history above, which includes:
+- Your own responses throughout all phases (initial, debate, self-adjustment)
+- Other agents' positions and reasoning from all phases
+- The complete debate history and evolution of arguments
 
 Now make your final decision for ALL players. Consider:
 1. All the arguments made during the debates (visible in conversation history)
@@ -224,6 +446,74 @@ Return your final solution in JSON format:
     ],
     "explanation": "Your final comprehensive reasoning"
 }}"""
+
+def get_chat_supervisor_prompt_for_chat(game: 'ground_truth', initial_proposals: List['AgentResponse'], debate_rounds: List['DebateRound']) -> str:
+    """Get the supervisor prompt for chat history approach with full context."""
+    
+    prompt = f"""You are a supervisor AI tasked with making the final decision in a multi-agent debate about a Knight-Knaves-Spy game.
+
+GAME INFORMATION:
+{game.text_game}
+
+COMPLETE DEBATE HISTORY:
+
+INITIAL PROPOSALS:
+"""
+    
+    for proposal in initial_proposals:
+        prompt += f"\n{proposal.agent_name} initially proposed: {proposal.player_role_assignments}"
+        prompt += f"\nTheir reasoning: {proposal.explanation}\n"
+    
+    prompt += "\nDEBATE ROUNDS:\n"
+    for round_data in debate_rounds:
+        prompt += f"\n--- Round {round_data.round_number}: {round_data.player_name} ---\n"
+        for response in round_data.agent_responses:
+            role = response.player_role_assignments.get(round_data.player_name, "unknown")
+            prompt += f"{response.agent_name} thought {round_data.player_name} is a {role}\n"
+            
+            # Include agreement/disagreement information if available (for debate phase responses)
+            if response.phase == "debate":
+                if response.agree_with and len(response.agree_with) > 0:
+                    prompt += f"  Agreed with: {', '.join(response.agree_with)}"
+                    if response.agree_reasoning and response.agree_reasoning.strip():
+                        prompt += f" - Reasoning: {response.agree_reasoning}"
+                    prompt += "\n"
+                
+                if response.disagree_with and len(response.disagree_with) > 0:
+                    prompt += f"  Disagreed with: {', '.join(response.disagree_with)}"
+                    if response.disagree_reasoning and response.disagree_reasoning.strip():
+                        prompt += f" - Reasoning: {response.disagree_reasoning}"
+                    prompt += "\n"
+            else:
+                # Include explanation for non-debate phases (initial, self_adjustment)
+                if response.explanation:
+                    prompt += f"Reasoning: {response.explanation}\n"
+    
+    prompt += """
+
+SUPERVISOR INSTRUCTIONS:
+As the supervisor, you have access to the complete debate history. The agents have been unable to reach consensus, so you must make the final decision. Consider:
+
+1. All initial proposals and their reasoning
+2. The evolution of arguments through the debate rounds
+3. The consistency and logic of each agent's reasoning
+4. The overall coherence of the solution
+5. Any patterns or insights that emerged during the debate
+
+Make your decision based on the most logical and well-reasoned arguments you observed.
+
+Return your response in the same JSON format:
+{
+    "players": [
+        {"name": "player_name", "role": "role"},
+        ...
+    ],
+    "explanation": "Your final decision with comprehensive reasoning based on the complete debate history"
+}
+
+IMPORTANT: Keep your explanation having details but less than 100 words."""
+    
+    return prompt
 
 # Response schemas for chat history approach
 kks_chat_response_schema = {

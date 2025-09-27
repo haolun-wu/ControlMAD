@@ -7,6 +7,8 @@ import os
 import json
 import argparse
 from datetime import datetime
+from multiprocessing import Pool, cpu_count
+import functools
 
 import sys
 # Add the project root to Python path
@@ -1246,6 +1248,47 @@ def _dict_to_debate_session(data: Dict[str, Any]) -> DebateSession:
     
     return session
 
+def process_single_session(args_tuple):
+    """Process a single session - designed for multiprocessing."""
+    session, session_output_dir, visualization_flags = args_tuple
+    
+    try:
+        # Create visualizer for this session
+        visualizer = ChatHistoryDebateVisualizer(session_output_dir)
+        results = {}
+        
+        # Generate visualizations for this single session
+        if visualization_flags['performance_matrix']:
+            print(f"    📈 Creating performance matrix for Game {session.game_id}...")
+            results[f'performance_matrix_{session.game_id}'] = visualizer.create_performance_matrix([session])
+        
+        # Fine-grained per-player prediction matrix
+        print(f"    🎯 Creating per-player prediction matrix for Game {session.game_id}...")
+        results[f'per_player_prediction_matrix_{session.game_id}'] = visualizer.create_per_player_prediction_matrix([session])
+        
+        # Player-centric analysis: Initial vs Final
+        print(f"    📊 Creating player-centric analysis for Game {session.game_id}...")
+        results[f'player_centric_analysis_{session.game_id}'] = visualizer.create_player_centric_analysis([session])
+        
+        if visualization_flags['consensus_tracking']:
+            print(f"    📊 Creating consensus tracking for Game {session.game_id}...")
+            results[f'consensus_tracking_{session.game_id}'] = visualizer.create_consensus_tracking([session])
+        
+        if visualization_flags['agent_comparison']:
+            print(f"    🤖 Creating agent comparison for Game {session.game_id}...")
+            results[f'agent_comparison_{session.game_id}'] = visualizer.create_agent_comparison([session])
+        
+        # Detailed per-player accuracy (simplified version for chat history)
+        print(f"    🔍 Creating detailed per-player accuracy for Game {session.game_id}...")
+        results[f'detailed_per_player_accuracy_{session.game_id}'] = visualizer.create_simple_detailed_per_player_accuracy([session])
+        
+        print(f"✅ Completed visualizations for Game {session.game_id}")
+        return results
+        
+    except Exception as e:
+        print(f"❌ Error processing Game {session.game_id}: {e}")
+        return {}
+
 def main():
     """Main function for standalone visualization."""
     parser = argparse.ArgumentParser(
@@ -1256,6 +1299,8 @@ Examples:
   python debate_visualizer.py --results-dir ./debate_results
   python debate_visualizer.py --results-dir ./debate_results --output-dir ./visualizations
   python debate_visualizer.py --results-dir ./debate_results --specific-session debate_session_1_20250910_133709.json
+  python debate_visualizer.py --results-dir ./debate_results --parallel --max-processes 4
+  python debate_visualizer.py --results-dir ./debate_results --no-parallel
         """
     )
     
@@ -1298,6 +1343,25 @@ Examples:
         help='Skip agent comparison visualization'
     )
     
+    parser.add_argument(
+        '--parallel', '-p',
+        action='store_true',
+        help='Enable parallel processing for multiple sessions (default: auto-detect)'
+    )
+    
+    parser.add_argument(
+        '--no-parallel',
+        action='store_true',
+        help='Disable parallel processing (force sequential)'
+    )
+    
+    parser.add_argument(
+        '--max-processes',
+        type=int,
+        default=None,
+        help='Maximum number of processes to use for parallel processing (default: CPU count)'
+    )
+    
     args = parser.parse_args()
     
     # Validate results directory
@@ -1338,43 +1402,61 @@ Examples:
     
     print(f"📊 Found {len(sessions)} debate(s)")
     
-    # Generate visualizations for each session individually
+    # Determine parallel processing strategy
+    use_parallel = False
+    if args.parallel:
+        use_parallel = True
+    elif args.no_parallel:
+        use_parallel = False
+    else:
+        # Auto-detect: use parallel if more than 1 session
+        use_parallel = len(sessions) > 1
+    
+    # Generate visualizations
     print("🎨 Generating visualizations...")
     results = {}
     
-    for i, session in enumerate(sessions, 1):
-        print(f"  📊 Processing session {i}/{len(sessions)} (Game ID: {session.game_id})")
+    # Prepare visualization flags
+    visualization_flags = {
+        'performance_matrix': not args.no_performance_matrix,
+        'consensus_tracking': not args.no_consensus_tracking,
+        'agent_comparison': not args.no_agent_comparison
+    }
+    
+    if use_parallel and len(sessions) > 1:
+        # Use parallel processing
+        num_processes = args.max_processes or min(cpu_count(), len(sessions))
+        print(f"🚀 Using parallel processing with {num_processes} processes")
         
-        # Determine the output directory for this session (same as JSON file location)
-        session_output_dir = os.path.dirname(session.source_file) if hasattr(session, 'source_file') else args.output_dir
+        # Prepare arguments for each session
+        args_list = []
+        for session in sessions:
+            session_output_dir = os.path.dirname(session.source_file) if hasattr(session, 'source_file') else args.output_dir
+            args_list.append((session, session_output_dir, visualization_flags))
         
-        # Create visualizer for this session
-        visualizer = ChatHistoryDebateVisualizer(session_output_dir)
+        # Process sessions in parallel
+        with Pool(processes=num_processes) as pool:
+            results_list = pool.map(process_single_session, args_list)
         
-        # Generate visualizations for this single session
-        if not args.no_performance_matrix:
-            print(f"    📈 Creating performance matrix...")
-            results[f'performance_matrix_{session.game_id}'] = visualizer.create_performance_matrix([session])
+        # Combine results from all processes
+        for session_results in results_list:
+            results.update(session_results)
+            
+    else:
+        # Use sequential processing
+        if len(sessions) > 1:
+            print("📝 Using sequential processing (parallel disabled)")
         
-        # Fine-grained per-player prediction matrix
-        print(f"    🎯 Creating per-player prediction matrix...")
-        results[f'per_player_prediction_matrix_{session.game_id}'] = visualizer.create_per_player_prediction_matrix([session])
-        
-        # Player-centric analysis: Initial vs Final
-        print(f"    📊 Creating player-centric analysis...")
-        results[f'player_centric_analysis_{session.game_id}'] = visualizer.create_player_centric_analysis([session])
-        
-        if not args.no_consensus_tracking:
-            print(f"    📊 Creating consensus tracking...")
-            results[f'consensus_tracking_{session.game_id}'] = visualizer.create_consensus_tracking([session])
-        
-        if not args.no_agent_comparison:
-            print(f"    🤖 Creating agent comparison...")
-            results[f'agent_comparison_{session.game_id}'] = visualizer.create_agent_comparison([session])
-        
-        # Detailed per-player accuracy (simplified version for chat history)
-        print(f"    🔍 Creating detailed per-player accuracy...")
-        results[f'detailed_per_player_accuracy_{session.game_id}'] = visualizer.create_simple_detailed_per_player_accuracy([session])
+        for i, session in enumerate(sessions, 1):
+            print(f"  📊 Processing session {i}/{len(sessions)} (Game ID: {session.game_id})")
+            
+            # Determine the output directory for this session (same as JSON file location)
+            session_output_dir = os.path.dirname(session.source_file) if hasattr(session, 'source_file') else args.output_dir
+            
+            # Process this session
+            session_args = (session, session_output_dir, visualization_flags)
+            session_results = process_single_session(session_args)
+            results.update(session_results)
     
     print(f"\n✅ All visualizations completed!")
     print(f"📁 Results saved in individual session directories")

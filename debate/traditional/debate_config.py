@@ -34,6 +34,8 @@ class DebateConfig:
     game_id_range: List[int] = field(default_factory=lambda: [1, 1])  # [start_id, end_id] inclusive
     game_parallel_workers: int = 20  # Number of workers for game-level parallel processing
     self_reported_confidence: bool = False  # SRC: Whether models output confidence scores (1-10)
+    script_name: str = None  # Name of the script that launched the debate (e.g., "control_hom")
+    debate_order_control: int = 0  # 0=use ground truth order, 1=agents decide order after initialization
     
     def __post_init__(self):
         """Set default game_id_range if not provided."""
@@ -47,6 +49,10 @@ class DebateConfig:
         model_names = [agent.model for agent in self.agents]
         conf_suffix = "true" if self.self_reported_confidence else "false"
         agent_folder = f"agent{agent_count}_{'_'.join(model_names)}_conf_{conf_suffix}"
+        
+        # Add script name prefix if provided
+        if self.script_name:
+            agent_folder = f"{self.script_name}_{agent_folder}"
         
         # Create game folder name: game_size{size}_id{num}
         if game_id is None:
@@ -138,7 +144,7 @@ def create_custom_debate_config(agent_configs: List[Dict[str, Any]], game_size: 
         self_reported_confidence=config.get("self_reported_confidence", True)
     )
 
-def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: int = 5, game_id_range: List[int] = None) -> DebateConfig:
+def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: int = 5, game_id_range: List[int] = None, script_name: str = None, debate_order_control: int = 0) -> DebateConfig:
     """Create a debate configuration with automatically generated agent names.
     
     Args:
@@ -150,6 +156,9 @@ def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: 
         ]
     """
     agents = []
+    # Track model counts to handle duplicate models
+    model_counts = {}
+    
     for i, config in enumerate(llm_configs):
         # Generate agent name based on model and provider
         provider = config.get("provider", "openai")
@@ -157,15 +166,24 @@ def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: 
         
         # Create a descriptive name
         if provider == "openai":
-            agent_name = f"OpenAI-{model}"
+            base_name = f"OpenAI-{model}"
         elif provider == "gemini":
-            agent_name = f"Gemini-{model}"
+            base_name = f"Gemini-{model}"
         elif provider == "ali":
-            agent_name = f"Qwen-{model}"
+            base_name = f"Qwen-{model}"
         elif provider == "cst":
-            agent_name = f"CST-{model}"
+            base_name = f"CST-{model}"
         else:
-            agent_name = f"Agent-{i+1}-{model}"
+            base_name = f"Agent-{i+1}-{model}"
+        
+        # Track model usage and add number if duplicate
+        model_key = f"{provider}-{model}"
+        if model_key in model_counts:
+            model_counts[model_key] += 1
+            agent_name = f"{base_name}-{model_counts[model_key]}"
+        else:
+            model_counts[model_key] = 1
+            agent_name = base_name
         
         # Temperature is optional - use it if provided, otherwise use default
         temperature = config.get("temperature", 0.1)  # Default temperature if not specified
@@ -195,6 +213,8 @@ def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: 
         game_size=game_size,
         game_id_range=game_id_range,
         game_parallel_workers=20,
-        self_reported_confidence=True
+        self_reported_confidence=True,
+        script_name=script_name,
+        debate_order_control=debate_order_control
     )
 

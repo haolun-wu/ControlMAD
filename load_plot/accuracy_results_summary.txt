@@ -1,0 +1,33 @@
+Debate Results Analysis Summary
+==============================
+
+Loaded 150 games total: 50 games for each of 3 game sizes (4, 6, 8)
+
+GAME SIZE 4 (4 players):
+- Strict Accuracy Mean: 0.820 (82.0% fully correct)
+- Smooth Accuracy Mean: 0.885 (88.5% average player role correctness)
+- Strict Accuracies: [1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+- Smooth Accuracies: [1.0, 1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.25, 1.0, 1.0, 1.0, 1.0, 0.75, 1.0, 1.0, 1.0, 1.0, 0.25, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 0.25, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+GAME SIZE 6 (6 players):
+- Strict Accuracy Mean: 0.720 (72.0% fully correct)
+- Smooth Accuracy Mean: 0.853 (85.3% average player role correctness)
+- Strict Accuracies: [1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]
+- Smooth Accuracies: [1.0, 1.0, 1.0, 1.0, 0.667, 1.0, 1.0, 1.0, 1.0, 0.167, 0.333, 1.0, 0.5, 1.0, 1.0, 1.0, 0.333, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.667, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 0.333, 0.667, 1.0, 0.167, 1.0, 0.333, 1.0, 0.667, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.833, 0.5]
+
+GAME SIZE 8 (8 players):
+- Strict Accuracy Mean: 0.780 (78.0% fully correct)
+- Smooth Accuracy Mean: 0.917 (91.7% average player role correctness)
+- Strict Accuracies: [1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 1.0]
+- Smooth Accuracies: [1.0, 1.0, 1.0, 0.5, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0, 0.875, 1.0, 0.25, 1.0, 1.0, 1.0, 1.0, 0.75, 1.0, 1.0, 0.625, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 0.25, 0.75, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.875, 1.0, 1.0, 1.0, 0.75, 1.0, 1.0]
+
+DEFINITIONS:
+- Strict Accuracy: 1.0 if all player roles are correct, 0.0 otherwise
+- Smooth Accuracy: Fraction of correctly identified player roles (0.0 to 1.0)
+
+OBSERVATIONS:
+- Game Size 4: Highest strict accuracy (82.0%), good smooth accuracy (88.5%)
+- Game Size 6: Lowest strict accuracy (72.0%), moderate smooth accuracy (85.3%)
+- Game Size 8: Moderate strict accuracy (78.0%), highest smooth accuracy (91.7%)
+- Generally, smooth accuracy is higher than strict accuracy, indicating partial correctness
+- Performance varies significantly across different game instances
