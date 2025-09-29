@@ -3,7 +3,6 @@ from .config import game_config, test_config
 from .validator import Validator
 from .generator import Generator
 from .utility import cstcloud
-from prompts import kks_system_prompt
 import json
 import time
 
@@ -34,7 +33,7 @@ class GroundTruth:
                     game_text += f"Message from the game manager: {single_player.statement}\n"
             for attempt in range(3):
                 try:
-                    llm_solution = self.cst.chat_completion(game_text, kks_system_prompt.replace("{num_player}", str(self.config.game_size)), model = "gpt-oss-120b")
+                    # llm_solution = self.cst.chat_completion(game_text, kks_system_prompt.replace("{num_player}", str(self.config.game_size)), model = "gpt-oss-120b")  # Commented out - not used
                     break  # Success, exit the loop
                 except Exception as e:
                     if attempt == 2:  # Last attempt

@@ -15,8 +15,8 @@ from typing import List, Dict, Any
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from utils.project_types import ground_truth
-from debate.chat.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config, create_flexible_debate_config
-from debate.chat.debate_system_chat import ChatHistoryDebateSystem
+from debate.debate_config import DebateConfig, create_default_debate_config, create_custom_debate_config, create_flexible_debate_config
+from debate.debate_system_chat import ChatHistoryDebateSystem
 from utils.config import test_config
 
 def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None) -> List[ground_truth]:

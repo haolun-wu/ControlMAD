@@ -984,7 +984,7 @@ class ali_client:
         except Exception as e:
             raise ValueError(f"Error reading API key: {e}")
 
-    def chat_completion(self, user_prompt: str, system_prompt: str = None, model: str = "qwen-flash", stream: bool = False, return_full_response: bool = False, enable_thinking: bool = False, thinking_budget: int = 8192, maximal_token: int = 4096):
+    def chat_completion(self, user_prompt: str, system_prompt: str = None, model: str = "qwen-flash", stream: bool = False, return_full_response: bool = False, enable_thinking: bool = False, thinking_budget: int = 8192, maximal_token: int = 4096, response_schema: dict = None):
         """
         Send a chat completion request to the Ali Cloud API.
 
@@ -997,6 +997,7 @@ class ali_client:
             enable_thinking (bool): Whether to enable thinking mode for compatible models (default: False)
             thinking_budget (int): Token budget for thinking (default: 8192)
             maximal_token (int): Maximum tokens for the response (default: 4096)
+            response_schema (dict): JSON schema for structured output (default: None)
             
         Returns:
             response_format or tuple: The response_format object, or (response_format, full_response) if return_full_response=True
@@ -1031,6 +1032,19 @@ class ali_client:
                 "stream": stream,
                 "max_tokens": maximal_token  # Limit response length to prevent very long responses
             }
+            
+            # Add response format if provided (for structured output)
+            if response_schema:
+                if isinstance(response_schema, dict):
+                    # Convert to OpenAI-compatible format
+                    request_params["response_format"] = {
+                        "type": "json_schema",
+                        "json_schema": {
+                            "name": "structured_output",
+                            "schema": response_schema,
+                            "strict": True
+                        }
+                    }
             
             # Add stream_options to get token usage in streaming mode
             if stream:

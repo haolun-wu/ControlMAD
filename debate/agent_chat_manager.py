@@ -147,10 +147,10 @@ class AgentChatManager:
     def create_initial_system_message(self, agent_name: str, game_text: str, 
                                     num_players: int, self_reported_confidence: bool = False) -> None:
         """Create the initial system message for an agent."""
-        from prompts_chat import get_kks_chat_system_prompt_with_confidence
+        from debate.prompts_chat import get_kks_chat_system_prompt_with_confidence
         
-        # Use the base prompt without adding agent name - chat history provides natural self-awareness
-        system_content = get_kks_chat_system_prompt_with_confidence(num_players, self_reported_confidence)
+        # Include agent name for clear identity in initial prompt
+        system_content = get_kks_chat_system_prompt_with_confidence(num_players, self_reported_confidence, agent_name)
         
         self.add_system_message(
             agent_name, 

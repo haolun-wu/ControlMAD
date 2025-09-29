@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Get the directory where this script is located and change to parent directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
 # Define LLM configurations for the debate
 LLM_CONFIGS='[
     {

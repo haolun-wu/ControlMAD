@@ -16,7 +16,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from debate.chat.debate_system_chat import DebateSession, DebateRound, AgentResponse
+from debate.debate_system_chat import DebateSession, DebateRound, AgentResponse
 
 class ChatHistoryDebateVisualizer:
     """Visualization system for chat history multi-agent debate performance."""

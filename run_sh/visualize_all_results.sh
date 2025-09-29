@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Get the directory where this script is located and change to parent directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
 # Script to generate visualizations for all debate results using debate_visualizer.py
 # Usage: ./visualize_all_results.sh [base_path] [max_processes]
 # 
@@ -62,7 +66,7 @@ process_directory() {
     echo "📊 Processing: $json_filename in $(basename "$json_dir")"
     
     # Build the command with optional max-processes parameter
-    CMD="python debate/chat/debate_visualizer.py --results-dir \"$json_dir\" --output-dir \"$json_dir\""
+    CMD="python debate/debate_visualizer.py --results-dir \"$json_dir\" --output-dir \"$json_dir\""
     if [ -n "$MAX_PROCESSES" ]; then
         CMD="$CMD --max-processes 1"  # Force sequential within directory since only 1 JSON
     fi
