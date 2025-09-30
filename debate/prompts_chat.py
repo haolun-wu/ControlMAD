@@ -284,12 +284,15 @@ def get_kks_chat_debate_response_schema_with_confidence(include_confidence: bool
 
 def get_kks_chat_self_adjustment_response_schema_with_confidence(include_confidence: bool = False) -> dict:
     """Get the self-adjustment response schema, optionally including confidence field."""
+    if kks_chat_self_adjustment_response_schema is None:
+        raise ValueError("kks_chat_self_adjustment_response_schema has not been generated. Call generate_kks_chat_self_adjustment_response_schema() first.")
+    
     if not include_confidence:
         return kks_chat_self_adjustment_response_schema
     
     # Create a copy of the schema and add confidence field
-    schema_with_confidence = kks_chat_self_adjustment_response_schema.copy()
-    schema_with_confidence['properties'] = schema_with_confidence['properties'].copy()
+    import copy
+    schema_with_confidence = copy.deepcopy(kks_chat_self_adjustment_response_schema)
     schema_with_confidence['properties']['confidence'] = {
         'type': 'integer',
         'minimum': 1,
@@ -772,7 +775,8 @@ kks_chat_debate_response_schema = {
     'required': ['player_role', 'role']
 }
 
-kks_chat_self_adjustment_response_schema = {
+# Base template for self-adjustment response schema (will be dynamically generated)
+_kks_chat_self_adjustment_response_schema_template = {
     'type': 'object',
     'description': "A self-adjustment response providing complete role assignments for all players after considering debate arguments.",
     'properties': {
@@ -782,7 +786,7 @@ kks_chat_self_adjustment_response_schema = {
             'items': {
                 'type': 'object',
                 'properties': {
-                    'name': {'type': 'string', 'description': 'The player'},
+                    'name': {'type': 'string', 'description': 'The player name'},
                     'role': {
                         'type': 'string',
                         'enum': ['knight', 'knave', 'spy'],
@@ -790,7 +794,7 @@ kks_chat_self_adjustment_response_schema = {
                     }
                 },
                 'required': ['name', 'role'],
-                'additionalProperties': False   # 👈 explicit inside items object
+                'additionalProperties': False
             }
         },
         'explanation': {
@@ -800,5 +804,44 @@ kks_chat_self_adjustment_response_schema = {
         }
     },
     'required': ['players', 'explanation'],
-    'additionalProperties': False   # 👈 explicit at root object
+    'additionalProperties': False
 }
+
+# This will be dynamically generated with specific player names
+kks_chat_self_adjustment_response_schema = None
+
+def generate_kks_chat_self_adjustment_response_schema(player_names: List[str]) -> dict:
+    """Generate the self-adjustment response schema with specific player names."""
+    global kks_chat_self_adjustment_response_schema
+    
+    import copy
+    schema = copy.deepcopy(_kks_chat_self_adjustment_response_schema_template)
+    
+    # Update the schema with specific player names
+    schema['properties']['players'] = {
+        'type': 'array',
+        'description': f'Complete array of all {len(player_names)} players with their assigned roles',
+        'minItems': len(player_names),
+        'maxItems': len(player_names),
+        'items': {
+            'type': 'object',
+            'properties': {
+                'name': {
+                    'type': 'string',
+                    'enum': player_names,
+                    'description': f'The player name (must be one of: {", ".join(player_names)})'
+                },
+                'role': {
+                    'type': 'string',
+                    'enum': ['knight', 'knave', 'spy'],
+                    'description': 'The role assigned to this player (must be definitive - no "unknown" values allowed)'
+                }
+            },
+            'required': ['name', 'role'],
+            'additionalProperties': False
+        }
+    }
+    
+    # Set the global schema
+    kks_chat_self_adjustment_response_schema = schema
+    return schema

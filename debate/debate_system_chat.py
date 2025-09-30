@@ -46,6 +46,7 @@ from debate.prompts_chat import (
     get_chat_self_adjustment_prompt_for_chat,
     get_chat_final_discussion_prompt_for_chat,
     get_chat_supervisor_prompt_for_chat,
+    generate_kks_chat_self_adjustment_response_schema
 )
 
 
@@ -139,7 +140,7 @@ class ChatHistoryDebateSystem:
 
         # Ensure the log file handler is created before logging
         self._ensure_log_file_handler()
-
+        
         # Initialize chat manager for this game
         agent_names = [name for name in self.agents.keys()]
         self.chat_manager = AgentChatManager(game.game_id, agent_names)
@@ -193,6 +194,10 @@ class ChatHistoryDebateSystem:
 
         # Select debate order based on configuration
         player_names = self._select_debate_order(game, initial_proposals)
+        
+        # Generate dynamic schema with specific player names for this game
+        generate_kks_chat_self_adjustment_response_schema(player_names)
+        self.logger.info(f"📋 Generated dynamic schema for players: {player_names}")
 
         # Track the current state of all agents (starts with initial proposals)
         current_agent_states = initial_proposals
@@ -1725,6 +1730,41 @@ class ChatHistoryDebateSystem:
                 None,
             )
 
+    def _extract_players_from_malformed_json(self, json_text: str) -> List[Dict[str, str]]:
+        """Extract player data from malformed JSON like the Qwen response."""
+        import re
+        
+        players_data = []
+        
+        # Look for player name-role pairs in the malformed JSON
+        # Pattern: {"name": "Bob", "role": "knave"}, or variations with missing commas/braces
+        name_role_pattern = r'"name"\s*:\s*"([^"]+)"\s*,?\s*"role"\s*:\s*"([^"]+)"'
+        
+        matches = re.findall(name_role_pattern, json_text)
+        for name, role in matches:
+            if name and role and role in ['knight', 'knave', 'spy']:
+                players_data.append({"name": name, "role": role})
+        
+        # Also look for the specific malformed pattern in the Qwen response
+        # {"name": "Frank", "role": "knight",\n        "name": "Grace",\n        "role": "knight",
+        broken_pattern = r'"name"\s*:\s*"([^"]+)"\s*,?\s*"role"\s*:\s*"([^"]+)"\s*,?\s*"name"'
+        broken_matches = re.findall(broken_pattern, json_text)
+        for name, role in broken_matches:
+            if name and role and role in ['knight', 'knave', 'spy']:
+                # Check if we already have this player
+                if not any(p['name'] == name for p in players_data):
+                    players_data.append({"name": name, "role": role})
+        
+        # Remove duplicates while preserving order
+        seen_names = set()
+        unique_players = []
+        for player in players_data:
+            if player['name'] not in seen_names:
+                unique_players.append(player)
+                seen_names.add(player['name'])
+        
+        return unique_players
+
     def _extract_json_from_response(self, response_text: str) -> str:
         """Extract JSON from response text, handling extra text after JSON and double braces from GPT-5 models."""
         # First, try to handle double braces that GPT-5 models sometimes return
@@ -1773,12 +1813,35 @@ class ChatHistoryDebateSystem:
         try:
             # Common repair strategies for malformed JSON
             repaired = json_text.strip()
+            import re
+            import json
+
+            # Strategy 0: Handle the specific Qwen malformed JSON case
+            # Look for malformed players array with missing commas and broken explanation
+            if '"players"' in repaired and '"name":' in repaired:
+                try:
+                    # Extract players array data even if malformed
+                    players_data = self._extract_players_from_malformed_json(repaired)
+                    if players_data:
+                        # Extract any explanation fragments
+                        explanation_fragments = re.findall(r'"([^"]*(?:manager|single-spy|constraint|solution|consistent)[^"]*)"', repaired)
+                        explanation = " ".join(explanation_fragments) if explanation_fragments else "Extracted from malformed JSON response."
+                        
+                        # Construct a valid JSON
+                        valid_json = {
+                            "players": players_data,
+                            "explanation": explanation
+                        }
+                        
+                        candidate = json.dumps(valid_json)
+                        json.loads(candidate)  # Validate
+                        self.logger.info("Successfully repaired malformed Qwen JSON response")
+                        return candidate
+                except Exception as e:
+                    self.logger.debug(f"Strategy 0 failed: {e}")
 
             # Strategy 1: Try to find where the JSON should end and add missing braces
             # Look for patterns like "explanation": "..." that indicate the end of content
-            import re
-
-            # Find the last complete field (explanation is usually last)
             explanation_match = re.search(
                 r'"explanation"\s*:\s*"([^"]*)"', repaired, re.DOTALL
             )
@@ -1799,8 +1862,6 @@ class ChatHistoryDebateSystem:
 
                     # Validate the repair attempt
                     try:
-                        import json
-
                         json.loads(candidate)
                         self.logger.info(
                             f"Successfully repaired JSON by adding {missing_braces} closing braces"
