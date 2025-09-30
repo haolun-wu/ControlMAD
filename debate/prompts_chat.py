@@ -282,6 +282,27 @@ def get_kks_chat_debate_response_schema_with_confidence(include_confidence: bool
     
     return schema_with_confidence
 
+def get_kks_chat_debate_response_schema_dynamic_with_confidence(include_confidence: bool = False) -> dict:
+    """Get the dynamic debate response schema, optionally including confidence field."""
+    if kks_chat_debate_response_schema_dynamic is None:
+        raise ValueError("kks_chat_debate_response_schema_dynamic has not been generated. Call generate_kks_chat_debate_response_schema() first.")
+    
+    if not include_confidence:
+        return kks_chat_debate_response_schema_dynamic
+    
+    # Create a copy of the schema and add confidence field
+    import copy
+    schema_with_confidence = copy.deepcopy(kks_chat_debate_response_schema_dynamic)
+    schema_with_confidence['properties']['confidence'] = {
+        'type': 'integer',
+        'minimum': 1,
+        'maximum': 10,
+        'description': 'Confidence level in the role assignment for this player (1-10)'
+    }
+    schema_with_confidence['required'] = schema_with_confidence['required'] + ['confidence']
+    
+    return schema_with_confidence
+
 def get_kks_chat_self_adjustment_response_schema_with_confidence(include_confidence: bool = False) -> dict:
     """Get the self-adjustment response schema, optionally including confidence field."""
     if kks_chat_self_adjustment_response_schema is None:
@@ -373,8 +394,7 @@ Your task is to:
 CRITICAL REQUIREMENTS:
 - You MUST assign {player_name} one of the three roles: "knight", "knave", or "spy"
 - Do NOT use "unknown" or any other value - you must make a definitive choice
-- Base your decision on the game logic and evidence from the statements
-- If you're uncertain, choose the most likely role based on available evidence
+- Do NOT consider other players' roles when making your decision (only consider {player_name})
 
 Note: You can see your own previous responses in the conversation history, so you have natural self-awareness of your own position.
 
@@ -388,10 +408,7 @@ Return your response in JSON format:
     "disagree_reasoning": "Brief reasoning for disagreements"
 }}
 
-IMPORTANT: 
-- The "role" field must be exactly one of: "knight", "knave", or "spy" - no other values are acceptable.
-- In "agree_with" and "disagree_with" arrays, only include OTHER agents' names (from: {other_agents_list}), NOT your own name ({agent_name}).
-- The agree_with, disagree_with, agree_reasoning, and disagree_reasoning fields are optional. If you don't have specific agreements or disagreements, you can omit these fields or provide empty arrays/strings."""
+"""
     
     return prompt
 
@@ -772,8 +789,91 @@ kks_chat_debate_response_schema = {
             'description': 'Detailed reasoning for why this agent disagrees with the specified agents'
         }
     },
-    'required': ['player_role', 'role']
+    'required': ['player_role', 'role'],
+    'additionalProperties': False
 }
+
+# Base template for debate response schema (will be dynamically generated)
+_kks_chat_debate_response_schema_template = {
+    'type': 'object',
+    'description': "A debate response for a specific player's role with dynamic validation.",
+    'properties': {
+        'player_role': {
+            'type': 'string',
+            'description': 'The name of the player being debated'
+        },
+        'role': {
+            'type': 'string',
+            'enum': ['knight', 'knave', 'spy'],
+            'description': 'The role assigned to this player (must be definitive - no "unknown" values allowed)'
+        },
+        'agree_with': {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+            'description': 'List of agent names that this agent agrees with regarding this player\'s role'
+        },
+        'disagree_with': {
+            'type': 'array',
+            'items': {
+                'type': 'string'
+            },
+            'description': 'List of agent names that this agent disagrees with regarding this player\'s role'
+        },
+        'agree_reasoning': {
+            'type': 'string',
+            'description': 'Detailed reasoning for why this agent agrees with the specified agents'
+        },
+        'disagree_reasoning': {
+            'type': 'string',
+            'description': 'Detailed reasoning for why this agent disagrees with the specified agents'
+        }
+    },
+    'required': ['player_role', 'role', 'agree_with', 'disagree_with', 'agree_reasoning', 'disagree_reasoning'],
+    'additionalProperties': False
+}
+
+# This will be dynamically generated with specific player and agent names
+kks_chat_debate_response_schema_dynamic = None
+
+def generate_kks_chat_debate_response_schema(player_name: str, agent_names: List[str]) -> dict:
+    """Generate the debate response schema with specific player and agent names."""
+    global kks_chat_debate_response_schema_dynamic
+    
+    import copy
+    schema = copy.deepcopy(_kks_chat_debate_response_schema_template)
+    
+    # Update the schema with specific player name
+    schema['properties']['player_role'] = {
+        'type': 'string',
+        'enum': [player_name],
+        'description': f'The name of the player being debated (must be: {player_name})'
+    }
+    
+    # Update agree_with and disagree_with to only allow other agent names (excluding current agent)
+    if agent_names:
+        schema['properties']['agree_with'] = {
+            'type': 'array',
+            'items': {
+                'type': 'string',
+                'enum': agent_names
+            },
+            'description': f'List of OTHER agent names that this agent agrees with (choose from: {", ".join(agent_names)})'
+        }
+        
+        schema['properties']['disagree_with'] = {
+            'type': 'array',
+            'items': {
+                'type': 'string',
+                'enum': agent_names
+            },
+            'description': f'List of OTHER agent names that this agent disagrees with (choose from: {", ".join(agent_names)})'
+        }
+    
+    # Set the global schema
+    kks_chat_debate_response_schema_dynamic = schema
+    return schema
 
 # Base template for self-adjustment response schema (will be dynamically generated)
 _kks_chat_self_adjustment_response_schema_template = {

@@ -48,7 +48,7 @@ test_config = test_setup(
     reasoning_effort = "low",
     reasoning_summary = "None",
     return_full_response = False,
-    truncation = 100
+    truncation = 50  # Use first 50 cases
 )
 
 

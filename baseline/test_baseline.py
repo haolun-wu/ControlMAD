@@ -14,8 +14,16 @@ os.chdir(project_root)
 
 from utils.config import test_config
 from utils.project_types import ground_truth, test_setup
-from utils.utility import openai_client, ParallelProcessor, ali_client, volcano_client, cstcloud, claude_client
+from utils.utility import openai_client, ParallelProcessor, ali_client, volcano_client, cstcloud
 from baseline.prompt_extract import PromptExtractor
+
+# Placeholder for claude_client since it's not implemented in utils.utility
+class claude_client:
+    def __init__(self, secret_path: str):
+        raise NotImplementedError("Claude client is not implemented yet")
+    
+    def chat_completion(self, **kwargs):
+        raise NotImplementedError("Claude client is not implemented yet")
 
 class Test:
     def __init__(self, test_config: test_setup):

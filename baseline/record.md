@@ -27,6 +27,16 @@ size 5, game_id 1-100, no token limit
 - Input: $0.05
 - Output: $0.4
 
+## gpt-5-mini-low-effort
+- Accuracy: 40/50
+- Confidence: 6.3/10
+- Test Date: 2025-09-30 10:56:45
+
+## gpt-5-mini-medium-effort
+- Accuracy: 41/50
+- Confidence: 6.6/10
+- Test Date: 2025-09-30 10:56:45
+
 ## gpt-4o-mini
 - Accuracy: 1/50
 - Confidence: 6/10

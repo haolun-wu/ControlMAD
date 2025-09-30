@@ -46,7 +46,9 @@ from debate.prompts_chat import (
     get_chat_self_adjustment_prompt_for_chat,
     get_chat_final_discussion_prompt_for_chat,
     get_chat_supervisor_prompt_for_chat,
-    generate_kks_chat_self_adjustment_response_schema
+    generate_kks_chat_self_adjustment_response_schema,
+    generate_kks_chat_debate_response_schema,
+    get_kks_chat_debate_response_schema_dynamic_with_confidence
 )
 
 
@@ -547,7 +549,7 @@ class ChatHistoryDebateSystem:
 
                 # Parse response
                 player_assignments, explanation, confidence, _, _, _, _ = (
-                    self._parse_agent_response(response_obj.text)
+                    self._parse_agent_response(response_obj.text, "initial", game, agent_name)
                 )
 
                 # Add agent's response to their chat history
@@ -787,10 +789,19 @@ class ChatHistoryDebateSystem:
                 )
                 self.logger.info("")
 
+                # Generate dynamic debate schema for this specific player and other agents
+                other_agent_names = [name for name in self.agents.keys() if name != agent_name]
+                generate_kks_chat_debate_response_schema(player_name, other_agent_names)
+                debate_response_schema = get_kks_chat_debate_response_schema_dynamic_with_confidence(
+                    self.config.self_reported_confidence
+                )
+
                 # Make API call
                 if config.provider == "openai":
                     # All OpenAI models need combined prompt since response_completion doesn't support messages
                     combined_prompt = self._combine_chat_context_to_prompt(chat_context)
+                    schema_for_openai = copy.deepcopy(debate_response_schema)
+                    
                     # Check if model supports reasoning parameters
                     if config.model in ["gpt-5-nano", "gpt-5", "gpt-4o"]:
                         response_obj = client.response_completion(
@@ -799,6 +810,7 @@ class ChatHistoryDebateSystem:
                             model=config.model,
                             reasoning_effort=config.reasoning_effort,
                             verbosity=config.verbosity,
+                            schema_format=schema_for_openai,
                         )
                     else:
                         # For models that don't support reasoning, use basic response completion
@@ -806,20 +818,30 @@ class ChatHistoryDebateSystem:
                             user_prompt=combined_prompt,
                             system_prompt="",
                             model=config.model,
+                            schema_format=schema_for_openai,
                         )
                 elif config.provider == "gemini":
-                    # Use debate-specific schema for Gemini
+                    # Use dynamic debate-specific schema for Gemini
                     combined_prompt = self._combine_chat_context_to_prompt(chat_context)
-                    debate_response_schema = (
-                        get_kks_chat_debate_response_schema_with_confidence(
-                            self.config.self_reported_confidence
-                        )
+                    
+                    def strip_additional_props(schema: dict) -> dict:
+                        if isinstance(schema, dict):
+                            schema.pop("additionalProperties", None)
+                            for v in schema.values():
+                                strip_additional_props(v)
+                        elif isinstance(schema, list):
+                            for v in schema:
+                                strip_additional_props(v)
+                        return schema
+
+                    schema_for_gemini = strip_additional_props(
+                        copy.deepcopy(debate_response_schema)
                     )
                     response_obj = client.chat_completion(
                         user_prompt=combined_prompt,
                         system_prompt="",
                         model=config.model,
-                        response_schema=debate_response_schema,
+                        response_schema=schema_for_gemini,
                     )
                 else:
                     combined_prompt = self._combine_chat_context_to_prompt(chat_context)
@@ -827,6 +849,7 @@ class ChatHistoryDebateSystem:
                         user_prompt=combined_prompt,
                         system_prompt="",
                         model=config.model,
+                        response_schema=debate_response_schema,
                     )
 
                 # Parse response
@@ -838,7 +861,7 @@ class ChatHistoryDebateSystem:
                     disagree_with,
                     agree_reasoning,
                     disagree_reasoning,
-                ) = self._parse_agent_response(response_obj.text, "debate")
+                ) = self._parse_agent_response(response_obj.text, "debate", None, agent_name)
 
                 # Add agent's debate response to their chat history
                 debate_response_content = json.dumps(
@@ -1059,7 +1082,7 @@ class ChatHistoryDebateSystem:
 
                 # Parse response
                 player_assignments, explanation, confidence, _, _, _, _ = (
-                    self._parse_agent_response(response_obj.text, "self_adjustment")
+                    self._parse_agent_response(response_obj.text, "self_adjustment", game, agent_name)
                 )
 
                 # Add agent's self-adjustment response to their chat history
@@ -1264,7 +1287,7 @@ class ChatHistoryDebateSystem:
 
                 # Parse response
                 player_assignments, explanation, confidence, _, _, _, _ = (
-                    self._parse_agent_response(response_obj.text)
+                    self._parse_agent_response(response_obj.text, "final", game, agent_name)
                 )
 
                 # Add agent's final response to their chat history
@@ -1420,7 +1443,7 @@ class ChatHistoryDebateSystem:
 
             # Parse supervisor response
             player_assignments, explanation, confidence, _, _, _, _ = (
-                self._parse_agent_response(response_obj.text)
+                self._parse_agent_response(response_obj.text, "final", game, "Supervisor")
             )
             self.logger.info(f"Supervisor decision: {player_assignments}")
             if self.config.self_reported_confidence:
@@ -1610,8 +1633,69 @@ class ChatHistoryDebateSystem:
             self.logger.error(f"Solution text: {game.text_solution}")
             return {}
 
+    def _extract_player_names_from_game(self, game: ground_truth) -> List[str]:
+        """Extract all player names from the game's text solution."""
+        import re
+        solution_text = game.text_solution.strip()
+        pattern = r'(\w+)\s+is\s+a\s+(knight|knave|spy)\.'
+        matches = re.findall(pattern, solution_text, re.IGNORECASE)
+        player_names = [match[0] for match in matches]
+        return player_names
+
+    def _fill_missing_players_with_fallback(
+        self, 
+        player_assignments: Dict[str, str], 
+        all_player_names: List[str], 
+        agent_name: str, 
+        phase: str
+    ) -> Dict[str, str]:
+        """
+        Fill missing player assignments using the agent's latest available assignments.
+        If an agent missed assigning roles to several players, assign those missing players 
+        the roles same as the latest available assignments from the same agent.
+        """
+        if not all_player_names:
+            return player_assignments
+            
+        missing_players = [name for name in all_player_names if name not in player_assignments]
+        
+        if not missing_players:
+            # No missing players, return as is
+            return player_assignments
+            
+        self.logger.warning(
+            f"Agent {agent_name} in {phase} phase missing assignments for players: {missing_players}"
+        )
+        
+        # Get available role assignments (excluding special keys like "role", "error")
+        available_assignments = {
+            name: role for name, role in player_assignments.items() 
+            if name in all_player_names and role in ['knight', 'knave', 'spy']
+        }
+        
+        if not available_assignments:
+            # No valid assignments available, assign default role (knight) to missing players
+            self.logger.warning(
+                f"No valid assignments available for {agent_name}, using default role 'knight' for missing players"
+            )
+            for missing_player in missing_players:
+                player_assignments[missing_player] = 'knight'
+        else:
+            # Use the most recent assignment as fallback
+            # Since dict maintains insertion order in Python 3.7+, the last item is the most recent
+            fallback_role = list(available_assignments.values())[-1]
+            
+            self.logger.info(
+                f"Using fallback role '{fallback_role}' for missing players {missing_players} from agent {agent_name}"
+            )
+            
+            for missing_player in missing_players:
+                player_assignments[missing_player] = fallback_role
+                
+        return player_assignments
+
     def _parse_agent_response(
-        self, response_text: str, phase: str = "initial"
+        self, response_text: str, phase: str = "initial", game: ground_truth = None, agent_name: str = None
     ) -> Tuple[
         Dict[str, str],
         str,
@@ -1704,6 +1788,13 @@ class ChatHistoryDebateSystem:
                 disagree_with = response_data.get("disagree_with", [])
                 agree_reasoning = response_data.get("agree_reasoning", "")
                 disagree_reasoning = response_data.get("disagree_reasoning", "")
+
+            # Apply fallback logic for missing players (only for phases that need complete assignments)
+            if phase in ["initial", "self_adjustment", "final"] and game is not None and agent_name is not None:
+                all_player_names = self._extract_player_names_from_game(game)
+                player_assignments = self._fill_missing_players_with_fallback(
+                    player_assignments, all_player_names, agent_name, phase
+                )
 
             return (
                 player_assignments,

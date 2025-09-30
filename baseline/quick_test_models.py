@@ -24,27 +24,28 @@ file_lock = threading.Lock()
 # Quick test with selected models
 QUICK_MODELS = [
     # OpenAI models
-    {"provider": "openai", "model": "gpt-5-nano", "reasoning_effort": "medium", "name": "gpt-5-nano (medium effort)"},
-    {"provider": "openai", "model": "gpt-5-nano", "reasoning_effort": "low", "name": "gpt-5-nano (low effort)"},
-    {"provider": "openai", "model": "gpt-4o-mini", "name": "gpt-4o-mini"},
-    {"provider": "openai", "model": "gpt-4.1-mini", "name": "gpt-4.1-mini"},
+    {"provider": "openai", "model": "gpt-5-mini", "reasoning_effort": "low", "name": "gpt-5-mini (low effort)"},
+    {"provider": "openai", "model": "gpt-5-mini", "reasoning_effort": "medium", "name": "gpt-5-mini (medium effort)"},
+    # {"provider": "openai", "model": "gpt-3.5-turbo", "name": "gpt-3.5-turbo"},
+    # {"provider": "openai", "model": "gpt-4o-mini", "name": "gpt-4o-mini"},
+    # {"provider": "openai", "model": "gpt-4.1-mini", "name": "gpt-4.1-mini"},
     
     # Gemini models
-    {"provider": "gemini", "model": "gemini-2.5-flash-lite", "name": "gemini-2.5-flash-lite"},
-    {"provider": "gemini", "model": "gemini-2.5-flash", "name": "gemini-2.5-flash"},
+    # {"provider": "gemini", "model": "gemini-2.5-flash-lite", "name": "gemini-2.5-flash-lite"},
+    # {"provider": "gemini", "model": "gemini-2.5-flash", "name": "gemini-2.5-flash"},
     
     # Ali models
     # {"provider": "ali", "model": "qwq-32b", "name": "qwq-32b"},
-    {"provider": "ali", "model": "qwen-turbo-latest", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen-turbo-latest"},
-    {"provider": "ali", "model": "qwen3-30b-a3b-thinking-2507", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen3-30b-a3b-thinking-2507"},
-    {"provider": "ali", "model": "qwen-flash", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen-flash"},
-    {"provider": "ali", "model": "qwen-plus", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen-plus"},
+    # {"provider": "ali", "model": "qwen-turbo-latest", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen-turbo-latest"},
+    # {"provider": "ali", "model": "qwen3-30b-a3b-thinking-2507", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen3-30b-a3b-thinking-2507"},
+    # {"provider": "ali", "model": "qwen-flash", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen-flash"},
+    # {"provider": "ali", "model": "qwen-plus", "maximal_token": 4096, "thinking_budget": 4096, "name": "qwen-plus"},
     
     # DeepSeek models (CST Cloud)
     # {"provider": "cstcloud", "model": "deepseek-reasoner", "name": "deepseek-reasoner"},
     
     # Claude models
-    {"provider": "claude", "model": "claude-3-5-haiku-latest", "name": "claude-3-5-haiku-latest"},
+    # {"provider": "claude", "model": "claude-3-5-haiku-latest", "name": "claude-3-5-haiku-latest"},
 ]
 
 def update_config_file(model_config):
@@ -135,7 +136,11 @@ def run_baseline_test(model_config=None):
             text=True,
             cwd=os.path.join(project_root, "baseline")
         )
-        return result.returncode == 0, result.stdout
+        # Return both stdout and stderr for debugging
+        if result.returncode != 0:
+            error_output = f"STDOUT: {result.stdout}\nSTDERR: {result.stderr}"
+            return False, error_output
+        return True, result.stdout
     except Exception as e:
         return False, str(e)
 
