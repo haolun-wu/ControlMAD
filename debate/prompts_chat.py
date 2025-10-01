@@ -282,17 +282,22 @@ def get_kks_chat_debate_response_schema_with_confidence(include_confidence: bool
     
     return schema_with_confidence
 
-def get_kks_chat_debate_response_schema_dynamic_with_confidence(include_confidence: bool = False) -> dict:
-    """Get the dynamic debate response schema, optionally including confidence field."""
-    if kks_chat_debate_response_schema_dynamic is None:
-        raise ValueError("kks_chat_debate_response_schema_dynamic has not been generated. Call generate_kks_chat_debate_response_schema() first.")
+def get_kks_chat_debate_response_schema_dynamic_with_confidence(include_confidence: bool = False, base_schema: dict = None) -> dict:
+    """Get the dynamic debate response schema, optionally including confidence field.
+    
+    Args:
+        include_confidence: Whether to include confidence field
+        base_schema: The base schema to use (from generate_kks_chat_debate_response_schema)
+    """
+    if base_schema is None:
+        raise ValueError("base_schema is required. Pass the result from generate_kks_chat_debate_response_schema().")
     
     if not include_confidence:
-        return kks_chat_debate_response_schema_dynamic
+        return base_schema
     
     # Create a copy of the schema and add confidence field
     import copy
-    schema_with_confidence = copy.deepcopy(kks_chat_debate_response_schema_dynamic)
+    schema_with_confidence = copy.deepcopy(base_schema)
     schema_with_confidence['properties']['confidence'] = {
         'type': 'integer',
         'minimum': 1,
@@ -303,17 +308,25 @@ def get_kks_chat_debate_response_schema_dynamic_with_confidence(include_confiden
     
     return schema_with_confidence
 
-def get_kks_chat_self_adjustment_response_schema_with_confidence(include_confidence: bool = False) -> dict:
-    """Get the self-adjustment response schema, optionally including confidence field."""
-    if kks_chat_self_adjustment_response_schema is None:
-        raise ValueError("kks_chat_self_adjustment_response_schema has not been generated. Call generate_kks_chat_self_adjustment_response_schema() first.")
+def get_kks_chat_self_adjustment_response_schema_with_confidence(include_confidence: bool = False, player_names: List[str] = None) -> dict:
+    """Get the self-adjustment response schema, optionally including confidence field.
+    
+    Args:
+        include_confidence: Whether to include confidence field
+        player_names: List of player names to generate schema for (required for thread safety)
+    """
+    if player_names is None:
+        raise ValueError("player_names is required. This ensures thread-safe schema generation for parallel processing.")
+    
+    # Generate the base schema locally to avoid race conditions
+    base_schema = generate_kks_chat_self_adjustment_response_schema(player_names)
     
     if not include_confidence:
-        return kks_chat_self_adjustment_response_schema
+        return base_schema
     
     # Create a copy of the schema and add confidence field
     import copy
-    schema_with_confidence = copy.deepcopy(kks_chat_self_adjustment_response_schema)
+    schema_with_confidence = copy.deepcopy(base_schema)
     schema_with_confidence['properties']['confidence'] = {
         'type': 'integer',
         'minimum': 1,
@@ -834,13 +847,12 @@ _kks_chat_debate_response_schema_template = {
     'additionalProperties': False
 }
 
-# This will be dynamically generated with specific player and agent names
-kks_chat_debate_response_schema_dynamic = None
-
 def generate_kks_chat_debate_response_schema(player_name: str, agent_names: List[str]) -> dict:
-    """Generate the debate response schema with specific player and agent names."""
-    global kks_chat_debate_response_schema_dynamic
+    """Generate the debate response schema with specific player and agent names.
     
+    This function creates a new schema instance for each call to avoid race conditions
+    in parallel processing where multiple games might have different player/agent names.
+    """
     import copy
     schema = copy.deepcopy(_kks_chat_debate_response_schema_template)
     
@@ -871,8 +883,7 @@ def generate_kks_chat_debate_response_schema(player_name: str, agent_names: List
             'description': f'List of OTHER agent names that this agent disagrees with (choose from: {", ".join(agent_names)})'
         }
     
-    # Set the global schema
-    kks_chat_debate_response_schema_dynamic = schema
+    # Return the schema directly without storing globally
     return schema
 
 # Base template for self-adjustment response schema (will be dynamically generated)
@@ -907,13 +918,12 @@ _kks_chat_self_adjustment_response_schema_template = {
     'additionalProperties': False
 }
 
-# This will be dynamically generated with specific player names
-kks_chat_self_adjustment_response_schema = None
-
 def generate_kks_chat_self_adjustment_response_schema(player_names: List[str]) -> dict:
-    """Generate the self-adjustment response schema with specific player names."""
-    global kks_chat_self_adjustment_response_schema
+    """Generate the self-adjustment response schema with specific player names.
     
+    This function creates a new schema instance for each call to avoid race conditions
+    in parallel processing where multiple games might have different player names.
+    """
     import copy
     schema = copy.deepcopy(_kks_chat_self_adjustment_response_schema_template)
     
@@ -942,6 +952,5 @@ def generate_kks_chat_self_adjustment_response_schema(player_names: List[str]) -
         }
     }
     
-    # Set the global schema
-    kks_chat_self_adjustment_response_schema = schema
+    # Return the schema directly without storing globally
     return schema

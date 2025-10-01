@@ -198,8 +198,8 @@ class ChatHistoryDebateSystem:
         player_names = self._select_debate_order(game, initial_proposals)
         
         # Generate dynamic schema with specific player names for this game
-        generate_kks_chat_self_adjustment_response_schema(player_names)
-        self.logger.info(f"📋 Generated dynamic schema for players: {player_names}")
+        # Note: Schema is now generated locally within each function call to avoid race conditions
+        self.logger.info(f"📋 Will generate dynamic schemas locally for players: {player_names}")
 
         # Track the current state of all agents (starts with initial proposals)
         current_agent_states = initial_proposals
@@ -791,9 +791,9 @@ class ChatHistoryDebateSystem:
 
                 # Generate dynamic debate schema for this specific player and other agents
                 other_agent_names = [name for name in self.agents.keys() if name != agent_name]
-                generate_kks_chat_debate_response_schema(player_name, other_agent_names)
+                base_debate_schema = generate_kks_chat_debate_response_schema(player_name, other_agent_names)
                 debate_response_schema = get_kks_chat_debate_response_schema_dynamic_with_confidence(
-                    self.config.self_reported_confidence
+                    self.config.self_reported_confidence, base_schema=base_debate_schema
                 )
 
                 # Make API call
@@ -1017,11 +1017,17 @@ class ChatHistoryDebateSystem:
                 )
                 self.logger.info("")
 
+                # Get player names for schema generation
+                player_names = self._extract_player_names_from_game(game)
                 self_adjustment_schema = (
                     get_kks_chat_self_adjustment_response_schema_with_confidence(
-                        self.config.self_reported_confidence
+                        self.config.self_reported_confidence, player_names
                     )
                 )
+                
+                # Log the schema for debugging
+                self.logger.info(f"      📋 SELF-ADJUSTMENT SCHEMA: {json.dumps(self_adjustment_schema, indent=2)}")
+                self.logger.info("")
 
                 # Make API call
                 if config.provider == "openai":
@@ -1858,6 +1864,9 @@ class ChatHistoryDebateSystem:
 
     def _extract_json_from_response(self, response_text: str) -> str:
         """Extract JSON from response text, handling extra text after JSON and double braces from GPT-5 models."""
+        import json
+        import re
+        
         # First, try to handle double braces that GPT-5 models sometimes return
         # Replace double braces with single braces
         normalized_text = response_text.replace("{{", "{").replace("}}", "}")
@@ -1868,36 +1877,231 @@ class ChatHistoryDebateSystem:
                 f"Normalized double braces in response: {response_text[:100]}..."
             )
 
-        # Try to find JSON object boundaries
-        # Look for opening brace and try to find matching closing brace
-        start_idx = normalized_text.find("{")
-        if start_idx == -1:
-            raise ValueError("No JSON object found")
+        # Strategy 1: Try to find a complete, valid JSON object first
+        try:
+            # Look for JSON object boundaries with proper string handling
+            start_idx = normalized_text.find("{")
+            if start_idx == -1:
+                raise ValueError("No JSON object found")
 
-        # Count braces to find the end of the JSON object
-        brace_count = 0
-        end_idx = start_idx
+            # Use a more robust approach to find the end of JSON
+            json_candidate = self._find_complete_json_object(normalized_text[start_idx:])
+            if json_candidate:
+                # Validate that it's proper JSON
+                json.loads(json_candidate)
+                return json_candidate
+        except (json.JSONDecodeError, ValueError) as e:
+            self.logger.debug(f"Initial JSON extraction failed: {e}")
 
-        for i, char in enumerate(normalized_text[start_idx:], start_idx):
-            if char == "{":
-                brace_count += 1
-            elif char == "}":
-                brace_count -= 1
-                if brace_count == 0:
-                    end_idx = i + 1
-                    break
-
-        if brace_count != 0:
-            # Try to repair malformed JSON by attempting to fix common issues
-            json_candidate = normalized_text[start_idx:]
+        # Strategy 2: Try to repair malformed JSON
+        try:
+            json_candidate = normalized_text[start_idx:] if start_idx != -1 else normalized_text
             repaired_json = self._attempt_json_repair(json_candidate)
             if repaired_json:
                 self.logger.warning(f"Repaired malformed JSON from response")
                 return repaired_json
-            else:
-                raise ValueError("Unmatched braces in JSON")
+        except Exception as e:
+            self.logger.debug(f"JSON repair failed: {e}")
 
-        return normalized_text[start_idx:end_idx]
+        # Strategy 3: Extract key-value pairs using regex as last resort
+        try:
+            extracted_json = self._extract_json_with_regex(normalized_text)
+            if extracted_json:
+                self.logger.warning(f"Extracted JSON using regex fallback")
+                return extracted_json
+        except Exception as e:
+            self.logger.debug(f"Regex extraction failed: {e}")
+
+        raise ValueError("Could not extract valid JSON from response")
+
+    def _find_complete_json_object(self, text: str) -> str:
+        """Find a complete JSON object, handling strings properly."""
+        import json
+        
+        brace_count = 0
+        in_string = False
+        escape_next = False
+        
+        for i, char in enumerate(text):
+            if escape_next:
+                escape_next = False
+                continue
+                
+            if char == '\\' and in_string:
+                escape_next = True
+                continue
+                
+            if char == '"' and not escape_next:
+                in_string = not in_string
+                continue
+                
+            if not in_string:
+                if char == "{":
+                    brace_count += 1
+                elif char == "}":
+                    brace_count -= 1
+                    if brace_count == 0:
+                        candidate = text[:i + 1]
+                        try:
+                            json.loads(candidate)
+                            return candidate
+                        except json.JSONDecodeError:
+                            continue
+        
+        return None
+
+    def _extract_json_with_regex(self, text: str) -> str:
+        """Extract JSON structure using regex patterns as a fallback."""
+        import json
+        import re
+        
+        # Try to extract key information using regex patterns
+        extracted_data = {}
+        
+        # Look for player_role and role (debate format)
+        player_role_match = re.search(r'"player_role"\s*:\s*"([^"]+)"', text)
+        role_match = re.search(r'"role"\s*:\s*"([^"]+)"', text)
+        
+        if player_role_match and role_match:
+            extracted_data["player_role"] = player_role_match.group(1)
+            extracted_data["role"] = role_match.group(1)
+        
+        # Look for agree_with array
+        agree_with_match = re.search(r'"agree_with"\s*:\s*\[([^\]]*)\]', text)
+        if agree_with_match:
+            agree_content = agree_with_match.group(1)
+            # Extract quoted strings from the array
+            agree_items = re.findall(r'"([^"]+)"', agree_content)
+            extracted_data["agree_with"] = agree_items
+        else:
+            extracted_data["agree_with"] = []
+        
+        # Look for disagree_with array
+        disagree_with_match = re.search(r'"disagree_with"\s*:\s*\[([^\]]*)\]', text)
+        if disagree_with_match:
+            disagree_content = disagree_with_match.group(1)
+            disagree_items = re.findall(r'"([^"]+)"', disagree_content)
+            extracted_data["disagree_with"] = disagree_items
+        else:
+            extracted_data["disagree_with"] = []
+        
+        # Look for reasoning fields - handle unterminated strings
+        agree_reasoning_match = re.search(r'"agree_reasoning"\s*:\s*"([^"]*)', text)
+        if agree_reasoning_match:
+            extracted_data["agree_reasoning"] = agree_reasoning_match.group(1)
+        else:
+            extracted_data["agree_reasoning"] = ""
+        
+        disagree_reasoning_match = re.search(r'"disagree_reasoning"\s*:\s*"([^"]*)', text)
+        if disagree_reasoning_match:
+            extracted_data["disagree_reasoning"] = disagree_reasoning_match.group(1)
+        else:
+            extracted_data["disagree_reasoning"] = ""
+        
+        # Look for explanation field
+        explanation_match = re.search(r'"explanation"\s*:\s*"([^"]*)', text)
+        if explanation_match:
+            extracted_data["explanation"] = explanation_match.group(1)
+        
+        # Look for players array format
+        players_match = re.search(r'"players"\s*:\s*\[([^\]]*)\]', text, re.DOTALL)
+        if players_match:
+            players_content = players_match.group(1)
+            players = []
+            # Extract individual player objects
+            player_matches = re.findall(r'\{\s*"name"\s*:\s*"([^"]+)"\s*,\s*"role"\s*:\s*"([^"]+)"\s*\}', players_content)
+            for name, role in player_matches:
+                players.append({"name": name, "role": role})
+            if players:
+                extracted_data["players"] = players
+        
+        # Only return if we extracted meaningful data
+        if extracted_data:
+            return json.dumps(extracted_data)
+        
+        return None
+
+    def _fix_unterminated_strings(self, text: str) -> str:
+        """Fix unterminated strings and extra text in JSON responses."""
+        import re
+        import json
+        
+        # Strategy 1: Find the main JSON structure and terminate at logical boundaries
+        # Look for key patterns that indicate where the JSON should end
+        
+        # Find the start of JSON
+        start_idx = text.find("{")
+        if start_idx == -1:
+            return None
+            
+        # Look for patterns that indicate the end of meaningful JSON content
+        # Common patterns: closing of disagree_reasoning field, end of explanation, etc.
+        
+        # Try to find a reasonable cutoff point
+        cutoff_patterns = [
+            # End of disagree_reasoning field followed by closing brace
+            r'"disagree_reasoning"\s*:\s*"[^"]*"\s*}',
+            # End of agree_reasoning field followed by closing brace  
+            r'"agree_reasoning"\s*:\s*"[^"]*"\s*}',
+            # End of explanation field followed by closing brace
+            r'"explanation"\s*:\s*"[^"]*"\s*}',
+            # End of role field in debate format
+            r'"role"\s*:\s*"[^"]*"\s*}',
+        ]
+        
+        json_candidate = text[start_idx:]
+        
+        for pattern in cutoff_patterns:
+            match = re.search(pattern, json_candidate)
+            if match:
+                # Try cutting at this point
+                candidate = json_candidate[:match.end()]
+                try:
+                    json.loads(candidate)
+                    return candidate
+                except json.JSONDecodeError:
+                    continue
+        
+        # Strategy 2: Fix specific unterminated string issues
+        # Look for unterminated strings and try to close them properly
+        try:
+            # Find unterminated strings by looking for quotes that aren't properly closed
+            fixed_text = json_candidate
+            
+            # Handle the specific case from the error log where there's extra text after JSON
+            # Pattern: "...reasoning":"Both agents conclude Kate is a knight.","disagree_reasoning":"} }  (Note: The trailing characters..."
+            
+            # Look for the pattern where reasoning field has extra text
+            reasoning_pattern = r'("(?:agree_|disagree_)?reasoning"\s*:\s*"[^"]*")\s*,?\s*"[^"]*"\s*}\s*}\s*\([^)]*\)[^}]*'
+            match = re.search(reasoning_pattern, fixed_text)
+            if match:
+                # Keep only the valid reasoning part and close the JSON
+                valid_part = match.group(1)
+                # Find the position and reconstruct
+                before_reasoning = fixed_text[:match.start()]
+                # Close the JSON properly
+                fixed_text = before_reasoning + valid_part + "}"
+                try:
+                    json.loads(fixed_text)
+                    return fixed_text
+                except json.JSONDecodeError:
+                    pass
+            
+            # Strategy 3: Handle cases where there's a valid JSON followed by garbage
+            # Try to find the longest valid JSON prefix
+            for i in range(len(fixed_text) - 1, 0, -1):
+                if fixed_text[i] == '}':
+                    candidate = fixed_text[:i + 1]
+                    try:
+                        json.loads(candidate)
+                        return candidate
+                    except json.JSONDecodeError:
+                        continue
+                        
+        except Exception as e:
+            pass
+            
+        return None
 
     def _attempt_json_repair(self, json_text: str) -> str:
         """Attempt to repair common JSON formatting issues."""
@@ -1907,7 +2111,19 @@ class ChatHistoryDebateSystem:
             import re
             import json
 
-            # Strategy 0: Handle the specific Qwen malformed JSON case
+            # Strategy 0: Handle unterminated strings and extra text
+            # This addresses the specific error: "Unterminated string starting at: line 1 column 209"
+            try:
+                # Find the first complete JSON-like structure and terminate unterminated strings
+                fixed_json = self._fix_unterminated_strings(repaired)
+                if fixed_json:
+                    json.loads(fixed_json)  # Validate
+                    self.logger.info("Successfully repaired JSON with unterminated strings")
+                    return fixed_json
+            except Exception as e:
+                self.logger.debug(f"Unterminated string repair failed: {e}")
+
+            # Strategy 1: Handle the specific Qwen malformed JSON case
             # Look for malformed players array with missing commas and broken explanation
             if '"players"' in repaired and '"name":' in repaired:
                 try:
@@ -1929,9 +2145,9 @@ class ChatHistoryDebateSystem:
                         self.logger.info("Successfully repaired malformed Qwen JSON response")
                         return candidate
                 except Exception as e:
-                    self.logger.debug(f"Strategy 0 failed: {e}")
+                    self.logger.debug(f"Strategy 1 failed: {e}")
 
-            # Strategy 1: Try to find where the JSON should end and add missing braces
+            # Strategy 2: Try to find where the JSON should end and add missing braces
             # Look for patterns like "explanation": "..." that indicate the end of content
             explanation_match = re.search(
                 r'"explanation"\s*:\s*"([^"]*)"', repaired, re.DOTALL
