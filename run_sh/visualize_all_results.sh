@@ -13,7 +13,7 @@ cd "$SCRIPT_DIR/.."
 #   ./visualize_all_results.sh /path/to/results 4                 # Use custom path and 4 processes
 #   ./visualize_all_results.sh "" 1                               # Use default path but force sequential (1 process)
 
-BASE_PATH=${1:-"/Users/haolunwu/Documents/GitHub/ControlMAD/debate_results/agent3_gpt-5-nano_qwen-turbo-latest_gemini-2.5-flash-lite_conf_true"}
+BASE_PATH=${1:-"debate_results/mix_C_agent3_gemini-2.5-flash_qwen-flash_gpt-4.1-mini_conf_false"}
 MAX_PROCESSES=${2:-""}
 
 echo "🎨 Generating visualizations for chat debate results..."
@@ -72,7 +72,7 @@ process_directory() {
     fi
     
     # Run the debate visualizer for this directory
-    cd /Users/haolunwu/Documents/GitHub/ControlMAD && eval $CMD
+    eval $CMD
     
     if [ $? -eq 0 ]; then
         echo "✅ Generated visualizations for $json_filename"

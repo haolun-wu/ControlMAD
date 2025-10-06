@@ -33,7 +33,8 @@ class DebateConfig:
     save_detailed_logs: bool = True
     game_size: int = 4
     game_id_range: List[int] = field(default_factory=lambda: [1, 1])  # [start_id, end_id] inclusive
-    game_parallel_workers: int = 20  # Number of workers for game-level parallel processing
+    game_id_list: List[int] = field(default_factory=lambda: None)  # Optional specific game IDs to run
+    game_parallel_workers: int = 5  # Number of workers for game-level parallel processing
     self_reported_confidence: bool = False  # SRC: Whether models output confidence scores (1-10)
     script_name: str = None  # Name of the script that launched the debate (e.g., "control_hom")
     debate_order_control: int = 0  # 0=use ground truth order, 1=agents decide order after initialization
@@ -66,17 +67,25 @@ class DebateConfig:
         return organized_path
     
     def get_game_ids(self) -> List[int]:
-        """Get list of game IDs in the specified range."""
-        start_id, end_id = self.game_id_range
-        return list(range(start_id, end_id + 1))
+        """Get list of game IDs based on game_id_list or game_id_range."""
+        if self.game_id_list is not None:
+            return sorted(self.game_id_list)  # Return sorted list of specific game IDs
+        else:
+            # Use game_id_range if game_id_list is not specified
+            start_id, end_id = self.game_id_range
+            return list(range(start_id, end_id + 1))
     
     def get_num_games(self) -> int:
-        """Get the number of games in the range."""
-        start_id, end_id = self.game_id_range
-        return end_id - start_id + 1
+        """Get the number of games based on game_id_list or game_id_range."""
+        if self.game_id_list is not None:
+            return len(self.game_id_list)
+        else:
+            # Use game_id_range if game_id_list is not specified
+            start_id, end_id = self.game_id_range
+            return end_id - start_id + 1
 
 # Default debate configurations
-def create_default_debate_config(game_size: int = 5, game_id_range: List[int] = None) -> DebateConfig:
+def create_default_debate_config(game_size: int = 5, game_id_range: List[int] = None, game_id_list: List[int] = None) -> DebateConfig:
     """Create a default debate configuration with 3 agents using flexible naming."""
     # Define the LLM configurations - temperature must be specified for each agent
     llm_configs = [
@@ -96,9 +105,9 @@ def create_default_debate_config(game_size: int = 5, game_id_range: List[int] = 
     ]
     
     # Use the flexible configuration to auto-generate agent names
-    return create_flexible_debate_config(llm_configs, game_size, game_id_range)
+    return create_flexible_debate_config(llm_configs, game_size, game_id_range, None, 0, 1, game_id_list)
 
-def create_custom_debate_config(agent_configs: List[Dict[str, Any]], game_size: int = 5, game_id_range: List[int] = None, depth: int = 1) -> DebateConfig:
+def create_custom_debate_config(agent_configs: List[Dict[str, Any]], game_size: int = 5, game_id_range: List[int] = None, depth: int = 1, game_id_list: List[int] = None) -> DebateConfig:
     """Create a custom debate configuration from a list of agent dictionaries.
     
     Args:
@@ -142,11 +151,12 @@ def create_custom_debate_config(agent_configs: List[Dict[str, Any]], game_size: 
         save_detailed_logs=config.get("save_detailed_logs", True),
         game_size=game_size,
         game_id_range=game_id_range,
-        game_parallel_workers=config.get("game_parallel_workers", 20),
+        game_id_list=game_id_list,
+        game_parallel_workers=config.get("game_parallel_workers", 5),
         self_reported_confidence=config.get("self_reported_confidence", True)
     )
 
-def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: int = 5, game_id_range: List[int] = None, script_name: str = None, debate_order_control: int = 0, depth: int = 1) -> DebateConfig:
+def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: int = 5, game_id_range: List[int] = None, script_name: str = None, debate_order_control: int = 0, depth: int = 1, game_id_list: List[int] = None) -> DebateConfig:
     """Create a debate configuration with automatically generated agent names.
     
     Args:
@@ -226,7 +236,8 @@ def create_flexible_debate_config(llm_configs: List[Dict[str, Any]], game_size: 
         save_detailed_logs=True,
         game_size=game_size,
         game_id_range=game_id_range,
-        game_parallel_workers=20,
+        game_id_list=game_id_list,
+        game_parallel_workers=5,
         self_reported_confidence=True,
         script_name=script_name,
         debate_order_control=debate_order_control

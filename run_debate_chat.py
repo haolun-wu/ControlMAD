@@ -19,13 +19,24 @@ from debate.debate_config import DebateConfig, create_default_debate_config, cre
 from debate.debate_system_chat import ChatHistoryDebateSystem
 from utils.config import test_config
 
-def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None) -> List[ground_truth]:
+def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None, game_id_list: List[int] = None) -> List[ground_truth]:
     """Load ground truth games for testing."""
-    if game_id_range is None:
-        game_id_range = [1, 1]  # Default to single game
-    
-    start_id, end_id = game_id_range
     ground_truth_list = []
+    
+    # Determine which games to load
+    if game_id_list is not None:
+        # Use specific game IDs from game_id_list
+        games_to_load = sorted(game_id_list)
+        print(f"Loading specific games: {games_to_load}")
+    elif game_id_range is not None:
+        # Use game_id_range (existing behavior)
+        start_id, end_id = game_id_range
+        games_to_load = list(range(start_id, end_id + 1))
+        print(f"Loading games from range: {start_id}-{end_id}")
+    else:
+        # Default to single game
+        games_to_load = [1]
+        print("Loading default game: 1")
     
     try:
         ground_truth_path = f"./groundtruth/{game_size}.jsonl"
@@ -39,11 +50,9 @@ def load_ground_truth_games(game_size: int = 5, game_id_range: List[int] = None)
                     data = json.loads(line)
                     game_id = data['game_id']
                     
-                    # Filter by actual game_id, not line number
-                    if game_id < start_id:  # Skip games before start_id
+                    # Check if this game_id is in our list of games to load
+                    if game_id not in games_to_load:
                         continue
-                    if game_id > end_id:  # Stop after end_id
-                        break
                     
                     gt = ground_truth(
                         game_id=game_id,
@@ -89,6 +98,7 @@ def run_debates_with_system(debate_system, games, use_parallel=True):
 
 def run_single_chat_debate_session(game_size: int = 5, 
                                  game_id_range: List[int] = None,
+                                 game_id_list: List[int] = None,
                                  use_parallel: bool = True,
                                  game_parallel_workers: int = 20,
                                  self_reported_confidence: bool = False,
@@ -103,7 +113,7 @@ def run_single_chat_debate_session(game_size: int = 5,
         game_id_range = [1, 3]  # Default to games 1-3
     
     # Load default configuration
-    debate_config = create_default_debate_config(game_size, game_id_range)
+    debate_config = create_default_debate_config(game_size, game_id_range, game_id_list)
     # Override parameters if specified
     debate_config.game_parallel_workers = game_parallel_workers
     debate_config.self_reported_confidence = self_reported_confidence
@@ -117,8 +127,11 @@ def run_single_chat_debate_session(game_size: int = 5,
     
     # Load ground truth games
     num_games = debate_config.get_num_games()
-    print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
-    games = load_ground_truth_games(game_size, game_id_range)
+    if game_id_list is not None:
+        print(f"\n📚 Loading specific games {game_id_list} of size {game_size} ({num_games} games)...")
+    else:
+        print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
+    games = load_ground_truth_games(game_size, game_id_range, game_id_list)
     
     if not games:
         print("❌ No games loaded. Please generate ground truth data first.")
@@ -176,6 +189,7 @@ def run_single_chat_debate_session(game_size: int = 5,
 def run_custom_chat_debate(agent_configs: List[Dict[str, Any]], 
                           game_size: int = 5, 
                           game_id_range: List[int] = None,
+                          game_id_list: List[int] = None,
                           use_parallel: bool = True):
     """Run chat history debate with custom agent configuration."""
     
@@ -187,14 +201,17 @@ def run_custom_chat_debate(agent_configs: List[Dict[str, Any]],
         game_id_range = [1, 3]  # Default to games 1-3
     
     # Create custom configuration
-    debate_config = create_custom_debate_config(agent_configs, game_size, game_id_range)
+    debate_config = create_custom_debate_config(agent_configs, game_size, game_id_range, 1, game_id_list)
     print(f"🤖 Custom agents: {[agent.name for agent in debate_config.agents]}")
     print(f"💬 Chat History: ENABLED")
     
     # Load ground truth games
     num_games = debate_config.get_num_games()
-    print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
-    games = load_ground_truth_games(game_size, game_id_range)
+    if game_id_list is not None:
+        print(f"\n📚 Loading specific games {game_id_list} of size {game_size} ({num_games} games)...")
+    else:
+        print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
+    games = load_ground_truth_games(game_size, game_id_range, game_id_list)
     
     if not games:
         print("❌ No games loaded. Please generate ground truth data first.")
@@ -222,6 +239,7 @@ def run_custom_chat_debate(agent_configs: List[Dict[str, Any]],
 def run_flexible_chat_debate(llm_configs: List[Dict[str, Any]], 
                            game_size: int = 5, 
                            game_id_range: List[int] = None,
+                           game_id_list: List[int] = None,
                            use_parallel: bool = True,
                            script_name: str = None,
                            debate_order_control: int = 0,
@@ -236,15 +254,18 @@ def run_flexible_chat_debate(llm_configs: List[Dict[str, Any]],
         game_id_range = [1, 3]  # Default to games 1-3
     
     # Create flexible configuration
-    debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control, depth)
+    debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control, depth, game_id_list)
     print(f"🤖 Auto-generated agents: {[agent.name for agent in debate_config.agents]}")
     print(f"🔄 Debate depth: {depth} rounds per player")
     print(f"💬 Chat History: ENABLED")
     
     # Load ground truth games
     num_games = debate_config.get_num_games()
-    print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
-    games = load_ground_truth_games(game_size, game_id_range)
+    if game_id_list is not None:
+        print(f"\n📚 Loading specific games {game_id_list} of size {game_size} ({num_games} games)...")
+    else:
+        print(f"\n📚 Loading games {game_id_range[0]}-{game_id_range[1]} of size {game_size} ({num_games} games)...")
+    games = load_ground_truth_games(game_size, game_id_range, game_id_list)
     
     if not games:
         print("❌ No games loaded. Please generate ground truth data first.")
@@ -288,15 +309,17 @@ def main():
         print("  custom <agent_configs_json> [game_size] [game_id_range]")
         print("  flexible <llm_configs_json> [game_size] [game_id_range]")
         print("\nNew format (recommended):")
-        print("  python run_debate_chat.py run game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>] [depth=<1/2/3>]")
-        print("  python run_debate_chat.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [use_parallel=<true/false>] [self_reported_confidence=<true/false>] [script_name=<name>] [debate_order_control=<0/1>] [depth=<1/2/3>]")
+        print("  python run_debate_chat.py run game_size=<size> game_id_range=<start,end> [game_id_list=<id1,id2,id3>] [use_parallel=<true/false>] [game_parallel_workers=<num>] [self_reported_confidence=<true/false>] [depth=<1/2/3>]")
+        print("  python run_debate_chat.py flexible llm_configs='<json>' game_size=<size> game_id_range=<start,end> [game_id_list=<id1,id2,id3>] [use_parallel=<true/false>] [self_reported_confidence=<true/false>] [script_name=<name>] [debate_order_control=<0/1>] [depth=<1/2/3>]")
         print("\nExamples:")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20")
+        print("  python run_debate_chat.py run game_size=5 game_id_list=1,4,7,8")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 use_parallel=false")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 game_parallel_workers=10")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 self_reported_confidence=true")
         print("  python run_debate_chat.py run game_size=5 game_id_range=1,20 depth=2")
         print("  python run_debate_chat.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-4o-mini\"}]' game_size=5 game_id_range=1,20")
+        print("  python run_debate_chat.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-4o-mini\"}]' game_size=5 game_id_list=1,4,7,8")
         print("  python run_debate_chat.py flexible llm_configs='[{\"provider\":\"openai\",\"model\":\"gpt-4o-mini\"}]' game_size=5 game_id_range=1,20 depth=3")
         print("  python run_debate_chat.py run 5 1,20")
         print("  python run_debate_chat.py custom '[{\"name\":\"GPT-5\",\"provider\":\"openai\",\"model\":\"gpt-5-nano\"}]' game_size=5 game_num=1")
@@ -327,19 +350,34 @@ def main():
         else:
             game_id_range = [1, 1]  # Default to single game
         
+        # Parse game_id_list
+        game_id_list = None
+        if 'game_id_list' in kv_args:
+            game_id_list_str = kv_args.get('game_id_list', '')
+            try:
+                game_id_list = [int(id_str.strip()) for id_str in game_id_list_str.split(',') if id_str.strip()]
+                print(f"Using specific game IDs: {game_id_list}")
+            except ValueError:
+                print(f"Error: Invalid game_id_list format '{game_id_list_str}'. Use comma-separated integers (e.g., '1,4,7,8').")
+                return
+        
         if command == "run":
             use_parallel = kv_args.get('use_parallel', 'true').lower() == 'true'
             game_parallel_workers = int(kv_args.get('game_parallel_workers', 20))
             self_reported_confidence = kv_args.get('self_reported_confidence', 'false').lower() == 'true'
             depth = int(kv_args.get('depth', '1'))
-            num_games = game_id_range[1] - game_id_range[0] + 1
-            print(f"🎯 Running chat history default configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
+            if game_id_list is not None:
+                num_games = len(game_id_list)
+                print(f"🎯 Running chat history default configuration with {game_size} players, specific games {game_id_list} ({num_games} games)")
+            else:
+                num_games = game_id_range[1] - game_id_range[0] + 1
+                print(f"🎯 Running chat history default configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
             print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
             print(f"🔧 Game parallel workers: {game_parallel_workers}")
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
             print(f"🔄 Debate depth: {depth} rounds per player")
             print(f"💬 Chat History: ENABLED")
-            run_single_chat_debate_session(game_size, game_id_range, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence, depth=depth)
+            run_single_chat_debate_session(game_size, game_id_range, game_id_list, use_parallel=use_parallel, game_parallel_workers=game_parallel_workers, self_reported_confidence=self_reported_confidence, depth=depth)
         elif command == "flexible":
             # Support flexible command with key=value format
             if 'llm_configs' not in kv_args:
@@ -357,9 +395,13 @@ def main():
             script_name = kv_args.get('script_name', None)
             debate_order_control = int(kv_args.get('debate_order_control', '0'))
             depth = int(kv_args.get('depth', '1'))
-            num_games = game_id_range[1] - game_id_range[0] + 1
             
-            print(f"🎯 Running flexible chat history configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
+            if game_id_list is not None:
+                num_games = len(game_id_list)
+                print(f"🎯 Running flexible chat history configuration with {game_size} players, specific games {game_id_list} ({num_games} games)")
+            else:
+                num_games = game_id_range[1] - game_id_range[0] + 1
+                print(f"🎯 Running flexible chat history configuration with {game_size} players, games {game_id_range[0]}-{game_id_range[1]} ({num_games} games)")
             print(f"🤖 Agents: {[config.get('provider', 'unknown') + '-' + config.get('model', 'unknown') for config in llm_configs]}")
             print(f"🔄 Parallel processing: {'enabled' if use_parallel else 'disabled'}")
             print(f"📊 Self-reported confidence: {'enabled' if self_reported_confidence else 'disabled'}")
@@ -367,11 +409,11 @@ def main():
             print(f"💬 Chat History: ENABLED")
             
             # Create debate config with custom LLM configs
-            debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control, depth)
+            debate_config = create_flexible_debate_config(llm_configs, game_size, game_id_range, script_name, debate_order_control, depth, game_id_list)
             debate_config.self_reported_confidence = self_reported_confidence
             
             # Load ground truth games
-            games = load_ground_truth_games(game_size, game_id_range)
+            games = load_ground_truth_games(game_size, game_id_range, game_id_list)
             if not games:
                 print("❌ No games loaded. Please generate ground truth data first.")
                 return

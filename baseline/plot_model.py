@@ -8,6 +8,16 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Set adjustable font sizes
+plt.rcParams["figure.facecolor"] = "white"
+plt.rcParams["axes.facecolor"] = "white"
+plt.rcParams["font.size"] = 26
+plt.rcParams["axes.labelsize"] = 22
+plt.rcParams["axes.titlesize"] = 24
+plt.rcParams["xtick.labelsize"] = 20
+plt.rcParams["ytick.labelsize"] = 20
+plt.rcParams["legend.fontsize"] = 20
+
 # Add project root to Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
@@ -168,30 +178,20 @@ def create_scatter_plot(models_data):
             print(f"     - {short_name}: {acc:.1f}% accuracy, {conf:.1f}/10 confidence")
     
     # Create figure with improved layout
-    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    fig, ax = plt.subplots(1, 1, figsize=(11, 7))
     
-    # Color code points by accuracy group
-    colors = []
-    for i, model in enumerate(models):
-        acc = accuracy[i]
-        if acc >= accuracy_high_threshold:
-            colors.append('green')  # High accuracy
-        elif acc >= accuracy_medium_threshold:
-            colors.append('orange')  # Medium accuracy
-        else:
-            colors.append('red')  # Low accuracy
-    
-    # Create scatter plot with color coding
-    scatter = ax.scatter(confidence, accuracy, alpha=0.8, s=150, c=colors, edgecolors='black', linewidth=1.5)
+    # Create scatter plot with coolwarm colormap based on accuracy
+    cmap = plt.get_cmap('coolwarm')
+    scatter = ax.scatter(confidence, accuracy, alpha=0.8, s=150, c=accuracy, cmap=cmap, edgecolors='black', linewidth=1.5)
     
     # Set labels (removed title)
-    ax.set_xlabel('Confidence (1-10 scale)', fontsize=16)
-    ax.set_ylabel('Accuracy (%)', fontsize=16)
+    ax.set_xlabel('Confidence (1-10 scale)', fontsize=plt.rcParams["axes.labelsize"])
+    ax.set_ylabel('Accuracy (%)', fontsize=plt.rcParams["axes.labelsize"])
     
     # Improved x-axis with margins to prevent points on edges
-    ax.set_xlim(-0.5, 10.5)
-    ax.set_xticks(np.arange(0, 11, 1))  # Show all integer values
-    ax.set_xticklabels([f'{i}' for i in range(11)])
+    ax.set_xlim(3.8, 10.2)
+    ax.set_xticks(np.arange(4, 11, 1))  # Show integer values from 4 to 10
+    ax.set_xticklabels([f'{i}' for i in range(4, 11)])
     
     # Set y-axis with margins - plot area goes to 100, extra space for boxes above
     ax.set_ylim(-5, 100)
@@ -265,19 +265,21 @@ def create_scatter_plot(models_data):
     
     # Manual positioning for specific models to avoid overlaps
     manual_positions = {
-        'o4-mini': (-45, 25),  
-        'o3-mini': (25, -25), 
+        'o4-mini': (-55, 15),  
+        'o3-mini': (25, -15), 
         'qwq-32b': (10, 10), 
-        'gpt-5-mini (Medium)': (10, -20), 
-        'gpt-5-mini (Low)': (-65, -25),  
-        'doubao-seed-1-6-250615': (-45, 15),  
-        'doubao-seed-1-6-flash-250828': (15, -10),  
+        'gpt-5-mini (Medium)': (10, -10), 
+        'gpt-5-mini (Low)': (-75, -25),  
+        'doubao-seed-1-6-250615': (-35, 15),  
+        'doubao-seed-1-6-flash-250828': (15, -20),  
         'gpt-5-nano-medium-effort': (35, -30), 
         'gemini-2.5-flash': (25, -25),  
-        'qwen-plus': (-55, -10), 
+        'qwen-plus': (-75, -8), 
         'qwen-turbo-latest': (25, -10), 
         'qwen-flash': (35, -30),  
-        'gpt-4o-mini': (25, -25),  
+        'gpt-4o-mini': (-25, 25),  
+        'gpt-4.1-mini': (15, 35),  
+        'gemini-2.5-flash-lite': (35, -5),
     }
     
     for i, model in enumerate(models):
@@ -316,31 +318,25 @@ def create_scatter_plot(models_data):
         
         ax.annotate(short_name, (confidence[i], accuracy[i]), 
                     xytext=(x_offset, y_offset), textcoords='offset points', 
-                    fontsize=7, alpha=0.95, fontweight='bold',
+                    fontsize=plt.rcParams["font.size"]*0.4, alpha=0.95, fontweight='bold',
                     bbox=dict(boxstyle='round,pad=0.25', facecolor='white', alpha=0.95, edgecolor='black', linewidth=0.7),
                     arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.05', color='darkgray', alpha=0.8, lw=1.0))
     
-    # Add legend for color coding
-    from matplotlib.patches import Patch
-    legend_elements = [Patch(facecolor='green', label=f'High Accuracy (≥{accuracy_high_threshold}%)'),
-                      Patch(facecolor='orange', label=f'Medium Accuracy ({accuracy_medium_threshold}-{accuracy_high_threshold-1}%)'),
-                      Patch(facecolor='red', label=f'Low Accuracy (<{accuracy_medium_threshold}%)')]
-    ax.legend(handles=legend_elements, loc='upper left', fontsize=12)
     
     # Add text annotations for grouping thresholds above the plot boundary
     # Position boxes in the horizontal center of each confidence zone
-    low_confidence_center = (0 + confidence_medium_threshold) / 2  # Center of 0 to 6.5
+    low_confidence_center = (4 + confidence_medium_threshold) / 2  # Center of 4 to 6.5
     medium_confidence_center = (confidence_medium_threshold + confidence_high_threshold) / 2  # Center of 6.5 to 8.5
     high_confidence_center = (confidence_high_threshold + 10) / 2  # Center of 8.5 to 10
     
-    ax.text(low_confidence_center, 1.08, 'Low Confidence\n(1-6.5)', ha='center', va='center', 
-            fontsize=10, bbox=dict(boxstyle='round,pad=0.3', facecolor='lightblue', alpha=0.8),
+    ax.text(low_confidence_center, 1.08, 'Low Confidence', ha='center', va='center', 
+            fontsize=plt.rcParams["font.size"]*0.6, bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgrey', alpha=0.8),
             transform=ax.get_xaxis_transform())
-    ax.text(medium_confidence_center, 1.08, 'Medium Confidence\n(6.5-8.5)', ha='center', va='center', 
-            fontsize=10, bbox=dict(boxstyle='round,pad=0.3', facecolor='lightyellow', alpha=0.8),
+    ax.text(medium_confidence_center, 1.08, 'Medium Confidence', ha='center', va='center', 
+            fontsize=plt.rcParams["font.size"]*0.6, bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgrey', alpha=0.8),
             transform=ax.get_xaxis_transform())
-    ax.text(high_confidence_center, 1.08, 'High Confidence\n(8.5-10)', ha='center', va='center', 
-            fontsize=10, bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgreen', alpha=0.8),
+    ax.text(high_confidence_center, 1.08, 'High Confidence', ha='center', va='center', 
+            fontsize=plt.rcParams["font.size"]*0.6, bbox=dict(boxstyle='round,pad=0.3', facecolor='lightgrey', alpha=0.8),
             transform=ax.get_xaxis_transform())
     
     plt.tight_layout()

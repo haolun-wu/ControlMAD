@@ -861,7 +861,7 @@ class ChatHistoryDebateSystem:
                     disagree_with,
                     agree_reasoning,
                     disagree_reasoning,
-                ) = self._parse_agent_response(response_obj.text, "debate", None, agent_name)
+                ) = self._parse_agent_response(response_obj.text, "debate", None, agent_name, player_name, round_num)
 
                 # Add agent's debate response to their chat history
                 debate_response_content = json.dumps(
@@ -1648,6 +1648,96 @@ class ChatHistoryDebateSystem:
         player_names = [match[0] for match in matches]
         return player_names
 
+    def _get_last_round_assignment_for_player(
+        self, agent_name: str, player_name: str, current_round: int
+    ) -> Optional[str]:
+        """
+        Get the last round assignment for a specific player from the agent's previous responses.
+        This is used as fallback when debate response parsing fails.
+        """
+        if not self.chat_manager:
+            return None
+            
+        agent_history = self.chat_manager.get_agent_history(agent_name)
+        if not agent_history:
+            return None
+            
+        # Look through messages in reverse order (most recent first)
+        # Only look at messages from previous rounds (round_number < current_round)
+        for message in reversed(agent_history.messages):
+            if (message.role == MessageRole.ASSISTANT and 
+                message.content and 
+                message.round_number is not None and 
+                message.round_number < current_round):
+                try:
+                    # Parse the JSON content to extract player assignments
+                    content_data = json.loads(message.content)
+                    
+                    # Check different response formats
+                    if "players" in content_data and isinstance(content_data["players"], list):
+                        # New format with players array
+                        for player_info in content_data["players"]:
+                            if (isinstance(player_info, dict) and 
+                                player_info.get("name") == player_name and 
+                                player_info.get("role") in ['knight', 'knave', 'spy']):
+                                return player_info["role"]
+                    elif player_name in content_data and content_data[player_name] in ['knight', 'knave', 'spy']:
+                        # Direct mapping format
+                        return content_data[player_name]
+                    elif "player_role" in content_data and content_data.get("player_role") == player_name:
+                        # Debate format where this message is about the specific player
+                        if content_data.get("role") in ['knight', 'knave', 'spy']:
+                            return content_data["role"]
+                            
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    # Skip malformed JSON or missing keys
+                    continue
+                    
+        return None
+
+    def _get_latest_assignment_for_player_from_chat_history(
+        self, agent_name: str, player_name: str
+    ) -> Optional[str]:
+        """
+        Get the latest assignment for a specific player from the agent's chat history.
+        Returns the most recent role assignment for the given player, or None if not found.
+        """
+        if not self.chat_manager:
+            return None
+            
+        agent_history = self.chat_manager.get_agent_history(agent_name)
+        if not agent_history:
+            return None
+            
+        # Look through messages in reverse order (most recent first)
+        for message in reversed(agent_history.messages):
+            if message.role == MessageRole.ASSISTANT and message.content:
+                try:
+                    # Parse the JSON content to extract player assignments
+                    content_data = json.loads(message.content)
+                    
+                    # Check different response formats
+                    if "players" in content_data and isinstance(content_data["players"], list):
+                        # New format with players array
+                        for player_info in content_data["players"]:
+                            if (isinstance(player_info, dict) and 
+                                player_info.get("name") == player_name and 
+                                player_info.get("role") in ['knight', 'knave', 'spy']):
+                                return player_info["role"]
+                    elif player_name in content_data and content_data[player_name] in ['knight', 'knave', 'spy']:
+                        # Direct mapping format
+                        return content_data[player_name]
+                    elif "player_role" in content_data and content_data.get("player_role") == player_name:
+                        # Debate format where this message is about the specific player
+                        if content_data.get("role") in ['knight', 'knave', 'spy']:
+                            return content_data["role"]
+                            
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    # Skip malformed JSON or missing keys
+                    continue
+                    
+        return None
+
     def _fill_missing_players_with_fallback(
         self, 
         player_assignments: Dict[str, str], 
@@ -1656,9 +1746,9 @@ class ChatHistoryDebateSystem:
         phase: str
     ) -> Dict[str, str]:
         """
-        Fill missing player assignments using the agent's latest available assignments.
-        If an agent missed assigning roles to several players, assign those missing players 
-        the roles same as the latest available assignments from the same agent.
+        Fill missing player assignments using the agent's latest available assignments for each specific player.
+        If an agent missed assigning roles to several players, assign each missing player 
+        the latest role that agent assigned to that specific player in their chat history.
         """
         if not all_player_names:
             return player_assignments
@@ -1673,35 +1763,29 @@ class ChatHistoryDebateSystem:
             f"Agent {agent_name} in {phase} phase missing assignments for players: {missing_players}"
         )
         
-        # Get available role assignments (excluding special keys like "role", "error")
-        available_assignments = {
-            name: role for name, role in player_assignments.items() 
-            if name in all_player_names and role in ['knight', 'knave', 'spy']
-        }
-        
-        if not available_assignments:
-            # No valid assignments available, assign default role (knight) to missing players
-            self.logger.warning(
-                f"No valid assignments available for {agent_name}, using default role 'knight' for missing players"
+        # For each missing player, try to find their latest assignment from chat history
+        for missing_player in missing_players:
+            latest_assignment = self._get_latest_assignment_for_player_from_chat_history(
+                agent_name, missing_player
             )
-            for missing_player in missing_players:
+            
+            if latest_assignment:
+                player_assignments[missing_player] = latest_assignment
+                self.logger.info(
+                    f"Using latest assignment '{latest_assignment}' for missing player {missing_player} from agent {agent_name}'s chat history"
+                )
+            else:
+                # Fallback to default role if no history found for this specific player
                 player_assignments[missing_player] = 'knight'
-        else:
-            # Use the most recent assignment as fallback
-            # Since dict maintains insertion order in Python 3.7+, the last item is the most recent
-            fallback_role = list(available_assignments.values())[-1]
-            
-            self.logger.info(
-                f"Using fallback role '{fallback_role}' for missing players {missing_players} from agent {agent_name}"
-            )
-            
-            for missing_player in missing_players:
-                player_assignments[missing_player] = fallback_role
+                self.logger.warning(
+                    f"No chat history found for player {missing_player} from agent {agent_name}, using default role 'knight'"
+                )
                 
         return player_assignments
 
     def _parse_agent_response(
-        self, response_text: str, phase: str = "initial", game: ground_truth = None, agent_name: str = None
+        self, response_text: str, phase: str = "initial", game: ground_truth = None, agent_name: str = None, 
+        player_name: str = None, round_num: int = None
     ) -> Tuple[
         Dict[str, str],
         str,
@@ -1725,19 +1809,38 @@ class ChatHistoryDebateSystem:
             if phase == "debate":
                 # Debate format: {"player_role": "PlayerName", "role": "knight/knave/spy"}
                 if "player_role" in response_data and "role" in response_data:
-                    player_name = response_data.get("player_role", "")
+                    player_name_from_response = response_data.get("player_role", "")
                     role = response_data.get("role", "")
-                    if player_name and role:
-                        player_assignments[player_name] = role
+                    if player_name_from_response and role:
+                        player_assignments[player_name_from_response] = role
                         # Also store as "role" key for consistent access
                         player_assignments["role"] = role
                         self.logger.debug(
-                            f"Added debate assignment: {player_name} -> {role}"
+                            f"Added debate assignment: {player_name_from_response} -> {role}"
                         )
                 else:
-                    self.logger.warning(
-                        f"Missing player_role or role in debate response: {response_data}"
-                    )
+                    # Fallback: use last round assignment for the player being debated
+                    if player_name and agent_name and round_num is not None:
+                        last_round_role = self._get_last_round_assignment_for_player(
+                            agent_name, player_name, round_num
+                        )
+                        if last_round_role:
+                            player_assignments[player_name] = last_round_role
+                            player_assignments["role"] = last_round_role
+                            self.logger.warning(
+                                f"Missing player_role or role in debate response, using last round assignment: {player_name} -> {last_round_role}"
+                            )
+                        else:
+                            # Ultimate fallback: use default role
+                            player_assignments[player_name] = "knight"
+                            player_assignments["role"] = "knight"
+                            self.logger.warning(
+                                f"Missing player_role or role in debate response, no last round assignment found, using default: {player_name} -> knight"
+                            )
+                    else:
+                        self.logger.warning(
+                            f"Missing player_role or role in debate response and no fallback context available: {response_data}"
+                        )
             elif "players" in response_data and isinstance(
                 response_data["players"], list
             ):
