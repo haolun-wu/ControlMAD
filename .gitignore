@@ -1,3 +1,12 @@
 secret.json
 debate_results/*
 __pycache__/
+plot/*
+baseline/*
+run_sh/control_conf.sh
+run_sh/control_depth.sh
+run_sh/control_hom_strong.sh
+run_sh/control_hom_weak.sh
+run_sh/control_num.sh
+run_sh/control_order.sh
+run_sh/visualize_all_results.sh
